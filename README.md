@@ -11,7 +11,7 @@ CmpE 352 is a course designed to enhance abilities in collaborative software dev
 - [Asya Su Sen](https://github.com/bounswe/bounswe2024group12/wiki/Asya-Su-Sen)
 - [Arda Yalcindag](https://github.com/bounswe/bounswe2024group12/wiki/Arda%20Yalcindag)
 - [Isıl Su Karakuzu](https://github.com/bounswe/bounswe2024group12/wiki/Isil-Su-Karakuzu)
-- [Mehmet Batuhan Cok]()
+- [Mehmet Batuhan Cok](https://github.com/bounswe/bounswe2024group12/wiki/Mehmet-Batuhan-Cok)
 - [Orhan Unuvar](https://github.com/bounswe/bounswe2024group12/wiki/Orhan-Unuvar)
 - [Soner Kuyar](https://github.com/bounswe/bounswe2024group12/wiki/Soner-Kuyar)
 - [Taha Ensar Kukul](https://github.com/bounswe/bounswe2024group12/wiki/Taha-Ensar-Kukul)
