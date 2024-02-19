@@ -6,7 +6,7 @@ CmpE 352 is a course designed to enhance abilities in collaborative software dev
 
 ## 👥 Group Members 
 
-- [Ahmet Bayir]()
+- [Ahmet Bayir](https://github.com/bounswe/bounswe2024group12/wiki/Ahmet-Bayir)
 - [Ahmet Fırat Gamsız](https://github.com/bounswe/bounswe2024group12/wiki/Ahmet-Firat-Gamsiz)
 - [Asya Su Sen](https://github.com/bounswe/bounswe2024group12/wiki/Asya-Su-Sen)
 - [Arda Yalcindag](https://github.com/bounswe/bounswe2024group12/wiki/Arda%20Yalcindag)
