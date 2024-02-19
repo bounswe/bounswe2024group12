@@ -21,7 +21,7 @@ CmpE 352 is a course designed to enhance abilities in collaborative software dev
 - **Instructor:** [Suzan Uskudarli](https://github.com/uskudarli)
 - **Assistants**
 	- Deniz Barak Aksoy
-	- Kutay Aslantas
+	- Kutay Altintas
 	- Salih Furkan Akkurt
 	
 ## 📷 The Team
