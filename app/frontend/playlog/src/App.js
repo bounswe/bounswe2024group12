@@ -1,24 +1,19 @@
 import './App.css';
+import LoginPage from './pages/LoginPage';
+import SignUpPage from './pages/SignUpPage';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <p>
-          Welcome to Playlog!
-        </p>
-        <a
-          className="App-link"
-          href=" "
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          
-        
-        </a>
-        <h1>Playlog</h1>
-      </header>
-    </div>
+
+    <Router>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignUpPage />} />
+      </Routes>
+    </Router>
+
   );
 }
 
