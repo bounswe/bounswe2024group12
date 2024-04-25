@@ -8,35 +8,31 @@ export default Signup = () => {
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
     const [email, setEmail] = useState('')
-    const placeholderTextColor = '#888'
 
     return (
         <Screen>
-            <Text style={[textStyles.title, styles.title]}>Sign Up</Text>
+            <Text style={[textStyles.title, styles.title]}>Sign Up Page</Text>
             <TextInput
                 placeholder="E-Mail"
-                placeholderTextColor
                 textContentType="emailAddress"
                 style={[textStyles.default, styles.input]}
                 onChangeText={(text) => setEmail(text)}
             />
             <TextInput
                 placeholder="Username"
-                placeholderTextColor
                 textContentType="username"
                 style={[textStyles.default, styles.input]}
                 onChangeText={(text) => setUsername(text)}
             />
             <TextInput
                 placeholder="Password"
-                placeholderTextColor
                 textContentType="password"
                 style={[textStyles.default, styles.input]}
                 secureTextEntry={true}
                 onChangeText={(text) => setPassword(text)}
             />
             <CustomButton
-                title="Login"
+                title="Sign Up"
                 onPress={() => alert(`Username: ${username}\nPassword: ${password}\nE-Mail: ${email}`)}
                 style={styles.button} />
         </Screen>

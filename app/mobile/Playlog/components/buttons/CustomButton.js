@@ -12,7 +12,7 @@ export default CustomButton = (props) => {
 
 const styles = StyleSheet.create({
     button: {
-        backgroundColor: 'blue',
+        backgroundColor: '#3AA6B9',
         padding: 10,
         margin: 5,
         borderRadius: 5,

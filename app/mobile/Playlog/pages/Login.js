@@ -1,8 +1,9 @@
-import { StyleSheet, Text, TextInput } from "react-native"
+import { StyleSheet, Text, TextInput, View } from "react-native"
 import Screen from "../layouts/Screen"
 import textStyles from "../styles/textStyles"
 import { useState } from "react"
 import CustomButton from "../components/buttons/CustomButton"
+import TextButton from "../components/buttons/TextButton"
 
 export default Login = () => {
     const [username, setUsername] = useState('')
@@ -10,7 +11,7 @@ export default Login = () => {
 
     return (
         <Screen>
-            <Text style={[textStyles.title, styles.title]}>Login</Text>
+            <Text style={[textStyles.title, styles.title]}>Login Page</Text>
             <TextInput
                 placeholder="Username"
                 placeholderTextColor={'#888'}
@@ -28,6 +29,11 @@ export default Login = () => {
                 title="Login"
                 onPress={() => alert(`Username: ${username}\nPassword: ${password}`)}
                 style={styles.button} />
+            <View style={styles.bottomView}>
+                <TextButton title="Forgot Password?" onPress={() => alert('Forgot Password?')} />
+                <TextButton title="Continue as a Guest" onPress={() => alert('Forgot Password?')} />
+            </View>
+
         </Screen>
     );
 }
@@ -46,5 +52,11 @@ const styles = StyleSheet.create({
     },
     title: {
         marginVertical: 20,
+    },
+    bottomView: {
+        // flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '80%',
+        margin: 10,
     }
 });
