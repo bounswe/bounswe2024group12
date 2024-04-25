@@ -16,7 +16,6 @@ export default Signup = () => {
         navigation.navigate('Login Page')
     }
 
-
     return (
         <Screen>
             <Text style={[textStyles.title, styles.title]}>Sign Up Page</Text>
@@ -43,7 +42,7 @@ export default Signup = () => {
                 title="Sign Up"
                 onPress={() => alert(`Username: ${username}\nPassword: ${password}\nE-Mail: ${email}`)}
                 style={styles.button} />
-            <TextButton title="Already Registered? Login" onPress={navigateLogin} />
+            <TextButton title={`Already Registered?\nLogin`} onPress={navigateLogin} />
         </Screen>
     );
 }

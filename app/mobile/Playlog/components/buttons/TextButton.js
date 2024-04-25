@@ -16,12 +16,14 @@ const styles = StyleSheet.create({
         padding: 10,
         margin: 5,
         borderRadius: 5,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     buttonText: {
         color: '#3AA6B9',
+        textAlign: 'center',
     },
     disabledButtonText: {
         color: 'gray',
     },
-
 })
