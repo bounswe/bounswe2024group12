@@ -1,11 +1,13 @@
-import { FormEvent } from 'react';
+import { FormEvent, useState } from 'react';
 import Card from '../common/Card';
 import style from './LoginCard.module.css';
 import { useNavigate } from 'react-router-dom';
+import { sha256 } from 'js-sha256';
 
 
 export default function LoginCard() {
   const navigate = useNavigate();
+  const [loginFailed, setLoginFailed] = useState(false);
 
   function handleCreateAccount(event) {
     // link to sign up page
@@ -15,22 +17,25 @@ export default function LoginCard() {
 
 
   async function handleSubmit(event) {
-
     event.preventDefault();
 
     const formData = new FormData(event.currentTarget);
     const email = formData.get('email');
     const password = formData.get('password');
 
-    const realMail = 'user@cmpe.com'
-    const realPassword = '1234'
+    const realMail = sha256('user@cmpe.com')
+    const realPassword = sha256('1234')
 
+    let hashedEmail = sha256(email);
+    let hashedPassword = sha256(password);
 
-    if (email === realMail && password === realPassword) {
+    if (hashedEmail === realMail && hashedPassword === realPassword) {
       console.log('Login successful');
+      setLoginFailed(false);
     } else {
       // Handle errors
       console.error('Login failed');
+      setLoginFailed(true);
     }
   }
 
@@ -52,6 +57,7 @@ export default function LoginCard() {
           </div>
 
           <button type='submit' style={{width:'100%'}}>Login</button>
+          {loginFailed && <div className={style.Error}>Incorrect e-mail or password!</div>}
 
         </form>
         <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%', marginTop: '5px' }}>
