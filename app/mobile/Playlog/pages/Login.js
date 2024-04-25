@@ -4,10 +4,16 @@ import textStyles from "../styles/textStyles"
 import { useState } from "react"
 import CustomButton from "../components/buttons/CustomButton"
 import TextButton from "../components/buttons/TextButton"
+import { useNavigation } from "@react-navigation/native"
 
 export default Login = () => {
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
+    const navigation = useNavigation()
+
+    const navigateSignUp = () => {
+        navigation.navigate('Signup')
+    }
 
     return (
         <Screen>
@@ -31,7 +37,8 @@ export default Login = () => {
                 style={styles.button} />
             <View style={styles.bottomView}>
                 <TextButton title="Forgot Password?" onPress={() => alert('Forgot Password?')} />
-                <TextButton title="Continue as a Guest" onPress={() => alert('Forgot Password?')} />
+                <TextButton title="Continue as a Guest" onPress={() => alert('Guest')} />
+                <TextButton title="Sign Up" onPress={navigateSignUp} />
             </View>
 
         </Screen>

@@ -3,11 +3,19 @@ import Screen from "../layouts/Screen"
 import textStyles from "../styles/textStyles"
 import { useState } from "react"
 import CustomButton from "../components/buttons/CustomButton"
+import TextButton from "../components/buttons/TextButton"
+import { useNavigation } from "@react-navigation/native"
 
 export default Signup = () => {
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
     const [email, setEmail] = useState('')
+    const navigation = useNavigation()
+
+    const navigateLogin = () => {
+        navigation.navigate('Login Page')
+    }
+
 
     return (
         <Screen>
@@ -35,6 +43,7 @@ export default Signup = () => {
                 title="Sign Up"
                 onPress={() => alert(`Username: ${username}\nPassword: ${password}\nE-Mail: ${email}`)}
                 style={styles.button} />
+            <TextButton title="Already Registered? Login" onPress={navigateLogin} />
         </Screen>
     );
 }
