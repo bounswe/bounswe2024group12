@@ -9,7 +9,6 @@ export default function SignUpCard() {
     const navigate = useNavigate();
     const [passwordErr, setPasswordErr] = useState("");
     const [usernameErr, setUsernameErr] = useState("");
-    const [properSignUp, setProperSignUp] = useState(false);
 
     async function handleSubmit(event) {
         event.preventDefault();
@@ -35,7 +34,7 @@ export default function SignUpCard() {
         console.log("Username: ", username);
         console.log("Email: ", hashedEmail);
         console.log("Password", hashedPassword);
-        navigate('/login');
+        navigate('/signup-success', {state: {email: email, signUpSuccess: true}});
     }
 
     function checkPasswordCriteria(string){
