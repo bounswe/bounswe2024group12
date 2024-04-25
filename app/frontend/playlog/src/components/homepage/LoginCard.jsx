@@ -23,18 +23,29 @@ export default function LoginCard() {
     const email = formData.get('email');
     const password = formData.get('password');
 
-    const realMail = sha256('user@cmpe.com')
-    const realPassword = sha256('1234')
-
     let hashedEmail = sha256(email);
     let hashedPassword = sha256(password);
+    console.log('Email: ', hashedEmail);
+    console.log('Password', hashedPassword);
 
-    if (hashedEmail === realMail && hashedPassword === realPassword) {
-      console.log('Login successful');
+    try {
+      const response = await fetch('http://localhost:3001/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ hashedEmail, hashedPassword }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`${response.statusText} - ${await response.text()}`);
+      }
+
       setLoginFailed(false);
-    } else {
-      // Handle errors
-      console.error('Login failed');
+      navigate('/home');
+    }
+    catch (error) {
+      console.error('Error:', error);
       setLoginFailed(true);
     }
   }

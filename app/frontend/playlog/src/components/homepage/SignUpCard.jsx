@@ -34,6 +34,22 @@ export default function SignUpCard() {
         console.log("Username: ", username);
         console.log("Email: ", hashedEmail);
         console.log("Password", hashedPassword);
+
+        try {
+            const response = await fetch('http://localhost:3001/signup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, hashedEmail, hashedPassword }),
+            });
+            const data = await response.json();
+            console.log(data);
+        }
+        catch (error) {
+            console.error('Error:', error);
+        }
+
         navigate('/signup-success', {state: {email: email, signUpSuccess: true}});
     }
 

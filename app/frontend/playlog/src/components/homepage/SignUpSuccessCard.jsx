@@ -1,4 +1,4 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent } from 'react';
 import Card from '../common/Card';
 import style from './SignUpSuccessCard.module.css';
 import { useLocation } from 'react-router-dom'
@@ -18,7 +18,7 @@ export default function SignUpSuccessCard() {
         <div className={style.Container}>
             <Card>
                 <h1>You successfully signed up!</h1>
-                <p>Please check your mailbox for confirmation e-mail.</p>
+                <p>Your confirmation mail is sent to {email}. Please check your inbox.</p>
             </Card>
         </div>
     );
