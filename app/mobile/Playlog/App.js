@@ -1,8 +1,8 @@
-import ComponentExamples from './pages/ComponentExamples';
+import Signup from './pages/Signup';
 
 export default function App() {
   return (
-    <ComponentExamples />
+    <Signup />
   );
 }
 
