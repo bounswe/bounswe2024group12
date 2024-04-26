@@ -1,6 +1,7 @@
 .DS_Store
 
-# Environments 
+# Environments
+.env
 .venv 
 env/ 
 venv/ 
