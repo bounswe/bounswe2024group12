@@ -1,14 +1,21 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useState, useEffect } from 'react';
 import Card from '../common/Card';
 import style from './SignUpCard.module.css';
 import { useNavigate } from 'react-router-dom'
 import { sha256 } from 'js-sha256';
+import { useAuth } from '../common/UserContext';
 
 
 export default function SignUpCard() {
     const navigate = useNavigate();
     const [passwordErr, setPasswordErr] = useState("");
     const [usernameErr, setUsernameErr] = useState("");
+    const { loggedIn,  } = useAuth();
+
+    useEffect(() => {
+        if (loggedIn)
+            navigate('/home');
+    });
 
     async function handleSubmit(event) {
         event.preventDefault();
@@ -28,29 +35,37 @@ export default function SignUpCard() {
             console.log("Password meets criteria.");
         }
 
-        let hashedEmail = sha256(email);
         let hashedPassword = sha256(password);
         
         console.log("Username: ", username);
-        console.log("Email: ", hashedEmail);
+        console.log("Email: ", email);
         console.log("Password", hashedPassword);
 
         try {
             const response = await fetch('http://localhost:3001/signup', {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ username, hashedEmail, hashedPassword }),
+                body: JSON.stringify({ username, email, hashedPassword }),
             });
+
+            if (!response.ok) {
+                console.log(response.statusText);
+                throw new Error(await response.text());
+            }
+
             const data = await response.json();
             console.log(data);
+            navigate('/signup-success', {state: {email: email, signUpSuccess: true}});
         }
+        
         catch (error) {
             console.error('Error:', error);
+            setUsernameErr(error);
         }
 
-        navigate('/signup-success', {state: {email: email, signUpSuccess: true}});
     }
 
     function checkPasswordCriteria(string){

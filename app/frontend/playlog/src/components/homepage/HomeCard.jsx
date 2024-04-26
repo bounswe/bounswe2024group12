@@ -1,10 +1,12 @@
-import { FormEvent } from 'react';
+import { FormEvent, useContext } from 'react';
 import Card from '../common/Card';
 import style from './HomeCard.module.css';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../common/UserContext';
 
 export default function HomeCard() {
     const navigate = useNavigate();
+    const { loggedIn, handleLogin, handleLogout, } = useAuth();
 
     async function handleSignUpBtn(event) {
         navigate('/signup');
@@ -20,8 +22,9 @@ export default function HomeCard() {
             <Card>
                 <h1>Welcome to Playlog</h1>
                 <p>Playlog is a platform where you can share your favorite games and playlists with your friends.</p>
-                <button type='button' style={{ width: '100%' }} onClick={handleSignUpBtn} >Sign Up</button>
-                <button type='button' style={{ width: '100%' }} onClick={handleLoginBtn}>Login</button>
+                {!loggedIn && <button type='button' style={{ width: '100%' }} onClick={handleSignUpBtn} >Sign Up</button>}
+                {!loggedIn && <button type='button' style={{ width: '100%' }} onClick={handleLoginBtn}>Login</button>}
+                {loggedIn && <button type='button' style={{ width: '100%' }} onClick={handleLogout}>Logout</button>}
             </Card>
         </div>
     );
