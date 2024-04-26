@@ -1,8 +1,8 @@
 import React from 'react';
 import styles from './MainPageReviewBox.module.css';
-import tempGame from "./temporaryassets/game.json";
-import tempImage from "./temporaryassets/gamePicture.jpeg";
-import tempReview from "./temporaryassets/review.json";
+import tempGame from "../temporaryassets/game.json";
+import tempImage from "../temporaryassets/gamePicture.jpeg";
+import tempReview from "../temporaryassets/review.json";
 
 const MainPageReviewBox = ({ game = { ...tempGame }, review=tempReview }) => {
   return (

@@ -1,6 +1,6 @@
 import React from 'react';
 import styles from './MainPageGameLists.module.css';
-import tempImage from "./temporaryassets/gamePicture.jpeg";
+import tempImage from "../temporaryassets/gamePicture.jpeg";
 const MainPageGameLists = ({title="Featured Games", list=[]}) => {
     for(let i=0; i<10;i++){
         list.push({src:tempImage, name: "Witcher"})

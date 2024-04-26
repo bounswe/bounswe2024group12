@@ -1,8 +1,15 @@
-import React from 'react';
+import React,{useState} from 'react';
 import styles from './Menu.module.css';
 
 
-const Menu = ({ isLoggedIn, username }) => {
+const Menu = () => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isLoggedIn, setisLoggedIn] = useState(true);
+  const [username, setUserName] = useState()
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+  };
+
   return (
     <div className={styles.menu}>
       <div className={styles.siteName}>PlayLog</div>

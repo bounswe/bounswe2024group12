@@ -1,6 +1,6 @@
 import React from 'react';
 import styles from './MainPageReviewList.module.css';
-import tempImage from "./temporaryassets/gamePicture.jpeg";
+import tempImage from "../temporaryassets/gamePicture.jpeg";
 import MainPageReviewBox from './MainPageReviewBox';
 
 const MainPageReviewLists = ({title="Featured Reviews", list=[]}) => {

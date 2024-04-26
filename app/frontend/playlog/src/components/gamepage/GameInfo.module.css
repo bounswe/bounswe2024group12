@@ -1,0 +1,59 @@
+.card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    border: 1px solid var(--card-color);
+    border-radius: 5px;
+    overflow: hidden;
+    padding: 10px;
+    margin-left: 50px;
+    margin-right: 50px;
+  }
+
+  .content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+  }
+  
+  .imageContainer {
+    margin-right: 20px; 
+    flex-direction: column;
+    align-items: center; 
+    justify-content: center;
+
+  }
+  
+  .gameImage {
+
+    height: 300px;
+    width: auto;
+  }
+  
+  .gameDetails {
+    display: flex;
+    flex-direction: column;
+    align-items: center; 
+    justify-content: center;
+  }
+  
+  .gameName {
+    font-size: 30px;
+    margin-bottom: 5px;
+    color: var(--text-color);
+  }
+  
+  .developer {
+    font-size: 20px;
+    color: #666;
+    margin-bottom: 5px;
+  }
+  
+  .rating {
+    font-size: 40px;
+    color: #ffa500;
+  }
+  

@@ -1,7 +1,7 @@
 // MainPageComponents.jsx
 
 import React, { useState, useEffect } from 'react';
-import Menu from './Menu';
+import Menu from '../common/Menu';
 import GameOfTheDay from './GameOfTheDay';
 import MainPageGameLists from "./MainPageGameLists"
 import { useNavigate } from 'react-router-dom';
@@ -9,14 +9,8 @@ import MainPageReviewList from './MainPageReviewList';
 import styles from './MainPageComponents.module.css'; 
 
 export default function MainPageComponents(){
-  const navigate = useNavigate();
   const [loggedIn, setLoggedIn] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
   const [gameOfTheDay, setGameOfTheDay] = useState();
-
-  const handleSearch = (query) => {
-    setSearchQuery(query);
-  };
 
   const fetchGameOfTheDay = () => {
     const game = {};
@@ -29,7 +23,7 @@ export default function MainPageComponents(){
 
   return (
     <>
-      <Menu username={"Asya"} loggedIn={loggedIn}/>
+      <Menu/>
       <GameOfTheDay game={gameOfTheDay}/>
       <MainPageGameLists title ="Popular Games"/>
       <MainPageGameLists title ="New Games"/>
