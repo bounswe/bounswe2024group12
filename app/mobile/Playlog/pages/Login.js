@@ -15,6 +15,35 @@ export default Login = () => {
         navigation.navigate('Signup')
     }
 
+    const onLogin = async () => {
+        //Send username and password to server
+        //If successful, navigate to the home page
+        //If not, show an error message
+        //TODO: remove comment after implementing the server
+
+        // const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/login`, {
+        //     method: 'POST',
+        //     headers: {
+        //         'Content-Type': 'application/json',
+        //     },
+        //     body: JSON.stringify({ username, password }),
+        // })
+
+        const response = {
+            status: 200,
+            token: 'your_token_here'
+        }
+
+        const { token } = response;
+
+        if (response.status === 200 && token) {
+            navigation.navigate('Main')
+        } else {
+            alert('Invalid username or password')
+        }
+
+    }
+
     return (
         <Screen>
             <Text style={[textStyles.title, styles.title]}>Login Page</Text>
@@ -33,7 +62,7 @@ export default Login = () => {
             />
             <CustomButton
                 title="Login"
-                onPress={() => alert(`Username: ${username}\nPassword: ${password}`)}
+                onPress={onLogin}
                 style={styles.button} />
             <View style={styles.bottomView}>
                 <TextButton title="Forgot Password?" onPress={() => alert('Forgot Password?')} />
