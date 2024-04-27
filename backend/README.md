@@ -55,6 +55,7 @@ MYSQL_ROOT_PASSWORD=<root_password>
 MYSQL_DATABASE=playlog_db
 MYSQL_USER=<user>
 MYSQL_PASSWORD=<mypassword>
+DJANGO_SECRET_KEY=<django_secret_key>
 
 # Add more environment variables as needed
 ```
