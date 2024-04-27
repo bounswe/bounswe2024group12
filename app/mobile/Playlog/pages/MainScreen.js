@@ -1,11 +1,12 @@
+
 import Screen from "../layouts/Screen"
+import MainScreenComponents from "../components/main/MainScreenComponents"
 
 export default MainScreen = () => {
 
     return (
         <Screen>
-            <Text style={textStyles.header}>Main Screen</Text>
-            <Text style={textStyles.default}>Welcome to the Main Screen</Text>
+            <MainScreenComponents />
         </Screen>
     )
 }

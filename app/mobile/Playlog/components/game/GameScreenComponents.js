@@ -1,28 +1,30 @@
+import { StyleSheet, Text, Image } from "react-native";
+import textStyles from "../../styles/textStyles";
 
 export default GameScreenComponents = ({ game }) => {
     return (
         <>
-            <Text>{game.title}</Text>
+            <Text style={textStyles.default}>{game.title}</Text>
             <Image source={{ uri: game.logo }} style={styles.logo} />
-            <Text>{game.shortDescription}</Text>
-            <Text>{game.developer}</Text>
-            <Text>{game.publisher}</Text>
-            <Text>{game.publicationDate.toDateString()}</Text>
-            <Text>{game.platforms.join(', ')}</Text>
-            <Text>{game.genres.join(', ')}</Text>
-            <Text>{game.directors.join(', ')}</Text>
-            <Text>{game.producers.join(', ')}</Text>
-            <Text>{game.screenWriters.join(', ')}</Text>
-            <Text>{game.composers.join(', ')}</Text>
-            <Text>{game.countryOfOrigin}</Text>
-            <Text>{game.storeUrls.steam}</Text>
-            <Text>{game.storeUrls.gog}</Text>
-            <Text>{game.storeUrls.epic}</Text>
-            <Text>{game.criticScores.metacritic}</Text>
-            <Text>{game.criticScores.opencritic}</Text>
-            <Text>{game.criticScores.ign}</Text>
-            <Text>{game.canYouRunItUrl}</Text>
-            <Text>{game.likes}</Text>
+            <Text style={textStyles.default}>{game.shortDescription}</Text>
+            <Text style={textStyles.default}>{game.developer}</Text>
+            <Text style={textStyles.default}>{game.publisher}</Text>
+            <Text style={textStyles.default}>{game.publicationDate.toDateString()}</Text>
+            <Text style={textStyles.default}>{game.platforms.join(', ')}</Text>
+            <Text style={textStyles.default}>{game.genres.join(', ')}</Text>
+            <Text style={textStyles.default}>{game.directors.join(', ')}</Text>
+            <Text style={textStyles.default}>{game.producers.join(', ')}</Text>
+            <Text style={textStyles.default}>{game.screenWriters.join(', ')}</Text>
+            <Text style={textStyles.default}>{game.composers.join(', ')}</Text>
+            <Text style={textStyles.default}>{game.countryOfOrigin}</Text>
+            <Text style={textStyles.default}>{game.storeUrls.steam}</Text>
+            <Text style={textStyles.default}>{game.storeUrls.gog}</Text>
+            <Text style={textStyles.default}>{game.storeUrls.epic}</Text>
+            <Text style={textStyles.default}>{game.criticScores.metacritic}</Text>
+            <Text style={textStyles.default}>{game.criticScores.opencritic}</Text>
+            <Text style={textStyles.default}>{game.criticScores.ign}</Text>
+            <Text style={textStyles.default}>{game.canYouRunItUrl}</Text>
+            <Text style={textStyles.default}>{game.likes}</Text>
         </>
     )
 }

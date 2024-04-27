@@ -5,6 +5,7 @@ import { Text } from "react-native";
 import GameScreenComponents from "../components/game/GameScreenComponents";
 
 const exampleGame = {
+    id: "exampleGameId",
     title: "The Witcher 3",
     logo: "https://wallpaperaccess.com/full/204728.jpg",
     banner: "https://wallpaperaccess.com/full/204728.jpg",
