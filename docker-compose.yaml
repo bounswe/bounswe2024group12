@@ -3,7 +3,7 @@ version: '3'
 services:
   db:
     platform: linux/x86_64
-    image: mysql:5.7
+    image: mysql:latest
     restart: always
     environment:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
@@ -16,7 +16,7 @@ services:
       - db_data:/var/lib/mysql
 
   backend:
-    build: 
+    build:
       context: .
       dockerfile: backend/Dockerfile
     command: python manage.py runserver 0.0.0.0:8000

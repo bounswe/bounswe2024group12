@@ -80,7 +80,7 @@ DATABASES = {
         'NAME': os.getenv('MYSQL_DATABASE'),
         'USER': os.getenv('MYSQL_USER'),
         'PASSWORD': os.getenv('MYSQL_PASSWORD'),
-        'HOST': 'host.docker.internal',
+        'HOST': 'db',
         'PORT': '3306',  # Default MySQL port
     }
 }
