@@ -1,47 +1,37 @@
 import { StyleSheet, Text, TextInput, View } from "react-native"
 import Screen from "../layouts/Screen"
 import textStyles from "../styles/textStyles"
-import { useState } from "react"
+import { useContext, useState } from "react"
 import CustomButton from "../components/buttons/CustomButton"
 import TextButton from "../components/buttons/TextButton"
 import { useNavigation } from "@react-navigation/native"
+import { ProfileContext } from "../context/ProfileProvider"
 
 export default Login = () => {
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
     const navigation = useNavigation()
+    const { loginHandler, guestHandler } = useContext(ProfileContext)
 
     const navigateSignUp = () => {
         navigation.navigate('Signup')
     }
 
     const onLogin = async () => {
-        //Send username and password to server
-        //If successful, navigate to the home page
-        //If not, show an error message
-        //TODO: remove comment after implementing the server
-
-        // const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/login`, {
-        //     method: 'POST',
-        //     headers: {
-        //         'Content-Type': 'application/json',
-        //     },
-        //     body: JSON.stringify({ username, password }),
-        // })
-
-        const response = {
-            status: 200,
-            token: 'your_token_here'
+        try {
+            await loginHandler({ username, password });
+        } catch (e) {
+            alert(e.message);
+            return;
         }
+        navigation.replace('Main')
 
-        const { token } = response;
 
-        if (response.status === 200 && token) {
-            navigation.navigate('Main')
-        } else {
-            alert('Invalid username or password')
-        }
+    }
 
+    const onGuest = async () => {
+        await guestHandler();
+        navigation.replace('Main')
     }
 
     return (
@@ -66,7 +56,7 @@ export default Login = () => {
                 style={styles.button} />
             <View style={styles.bottomView}>
                 <TextButton title="Forgot Password?" onPress={() => alert('Forgot Password?')} />
-                <TextButton title="Continue as a Guest" onPress={() => alert('Guest')} />
+                <TextButton title="Continue as a Guest" onPress={onGuest} />
                 <TextButton title="Sign Up" onPress={navigateSignUp} />
             </View>
 
