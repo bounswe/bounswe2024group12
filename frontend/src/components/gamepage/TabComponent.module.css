@@ -1,0 +1,32 @@
+.tabContainer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.tabButtons {
+  display: flex;
+}
+
+.tabButton {
+  padding: 10px 20px;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  font-size: 16px;
+  outline: none;
+  color: var(--text-color);
+}
+
+.tabButton:hover {
+  background-color: var(--card-color);
+}
+
+.tabButton.active {
+  background-color: var(--highlight-color);
+  color: var(--background-color);
+}
+
+.tabContent {
+  margin-top: 20px;
+}

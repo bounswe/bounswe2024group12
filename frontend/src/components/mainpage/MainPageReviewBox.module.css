@@ -1,0 +1,56 @@
+.card {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+    border: 1px solid var(--card-color);
+    border-radius: 5px;
+    overflow: hidden;
+    padding: 10px;
+  }
+  
+  .title {
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--text-color);
+    margin-bottom: 15px;
+  }
+  
+  .content {
+    display: flex;
+    width: 100%;
+  }
+  
+  .imageContainer {
+    margin-right: 20px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .gameImage {
+    width: 150px;
+    height: auto;
+  }
+  
+  .reviewDetails {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .username {
+    font-size: 18px;
+    margin-bottom: 2px;
+    color: var(--text-color);
+  }
+  
+  .likeCount {
+    font-size: 14px;
+    color: #666;
+    margin-right: 10px;
+  }
+  
+  .likeRatingContainer {
+    display: flex;
+    
+  }
+  

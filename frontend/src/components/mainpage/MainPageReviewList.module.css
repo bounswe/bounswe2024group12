@@ -1,0 +1,17 @@
+.container {
+    display: flex;
+    justify-content: space-between;
+    flex-direction: column;
+  }
+  
+  .imageContainer {
+    flex: 1;
+    margin-bottom: 3px; 
+  }
+  
+  .image {
+    width: 100%;
+    height: auto;
+    border-radius: 5px;
+  }
+  

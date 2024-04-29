@@ -1,0 +1,44 @@
+.Container {
+    max-width: 500px;
+    margin: 5px auto;
+}
+
+.Form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.Error{
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.linkText {
+    margin: 0 5px;
+    color: var(--highlight-color); /* Use your theme's highlight color or set a specific color like blue */
+    cursor: pointer;
+    text-decoration: underline;
+  }
+  
+  /* SignUpCard.module.css */
+.contentCard {
+    margin-top: 10px;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 900px;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    background-color: var(--card-color);
+    border: 2px solid var(--highlight-color);
+    /* scrollable in y */
+    max-height: 150px;
+    overflow-y: auto;
+    font-size: 14px;
+
+  }
+  

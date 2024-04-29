@@ -1,0 +1,54 @@
+
+
+body {
+    --highlight-color: #3AA6B9;
+    --text-color: #E6E4E0;
+    --background-color: #212121;
+    --card-color: #161616;
+    --navbar-color: #3a2d4a;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    margin: 0;
+    font-family: 'GeneralSans-Variable', 'Segoe UI', Tahoma, Verdana, sans-serif;
+}
+
+label {
+    display: block;
+    margin-bottom: 10px;
+    width: fit-content;
+    padding-right: 16px;
+  }
+
+input[type='text'],
+input[type='number'],
+input[type='color'],
+input[type='email'],
+input[type='password'],
+select {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  border: 1px solid #444;
+  background-color: #333;
+  color: #fff;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+button {
+    padding: 10px 60px;
+    background-color: var(--highlight-color);
+    color: var(--background-color);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.2s ease-in;
+  }
+  
+  button:hover {
+    /* traverse the colors */
+    background-color: var(--card-color);
+    color: var(--highlight-color);
+    outline: 2px solid var(--highlight-color);
+
+  }
