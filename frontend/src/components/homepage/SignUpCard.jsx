@@ -1,8 +1,7 @@
-import { FormEvent, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Card from '../common/Card';
 import style from './SignUpCard.module.css';
 import { useNavigate } from 'react-router-dom'
-import { sha256 } from 'js-sha256';
 import { useAuth } from '../common/UserContext';
 import TermsAndConditions from './agreements/TermsAndConditions';
 import PrivacyAgreement from './agreements/PrivacyAgreement';
@@ -40,11 +39,10 @@ export default function SignUpCard() {
             console.log("Password meets criteria.");
         }
 
-        let hashedPassword = sha256(password);
 
         console.log("Username: ", username);
         console.log("Email: ", email);
-        console.log("Password", hashedPassword);
+        console.log("Password", password);
 
         try {
             const response = await fetch('http://127.0.0.1:8000/signup', {
@@ -53,7 +51,7 @@ export default function SignUpCard() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ username, email, hashedPassword }),
+                body: JSON.stringify({ username, email, password }),
             });
 
             if (!response.ok) {
