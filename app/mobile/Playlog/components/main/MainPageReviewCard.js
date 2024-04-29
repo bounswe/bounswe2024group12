@@ -6,42 +6,42 @@ import SmallRatings from '../commons/SmallRatings';
 import { useNavigation } from "@react-navigation/native";
 
 const exampleReview = {
-    game: {
-        gameId: 'exampleGameId',
-        logo: "https://wallpaperaccess.com/full/204728.jpg",
-    },
-    user: {
-        username: "exampleUser",
-        profilePicture: "https://wallpaperaccess.com/full/204728.jpg",
-    },
-    rating: 4,
-    text: "queee fue estooo. desde el principio se siente una vibra rarísima y costantemente pensas que va a pasar algo...",
-    likes: 16512,
+  game: {
+    gameId: 'exampleGameId',
+    logo: "https://wallpaperaccess.com/full/204728.jpg",
+  },
+  user: {
+    username: "exampleUser",
+    profilePicture: "https://wallpaperaccess.com/full/204728.jpg",
+  },
+  rating: 4,
+  text: "queee fue estooo. desde el principio se siente una vibra rarísima y costantemente pensas que va a pasar algo...",
+  likes: 16512,
 };
 
 export default MainPageReviewCard = ({ review = exampleReview }) => {
-    const navigation = useNavigation();
-    const onPress = () => {
-      navigation.navigate('Game', { gameId: review.game.gameId });
-    };
+  const navigation = useNavigation();
+  const onPress = () => {
+    navigation.navigate('Game', { gameId: review.game.gameId });
+  };
 
-    return (
-        <TouchableOpacity style={styles.card} onPress={onPress}>
-            <Image source={{ uri: review.game.logo }} style={styles.image} />
-            <View style={styles.cardContent}>
-                <View style={styles.profileContainer}>
-                    <MaterialIcons name='person' size={50} color='blue' />
-                    <Text style={styles.username}>{review.user.username}</Text>
-                </View>
-                <View style={styles.ratingContainer}>
-                    <SmallRatings rating={review.rating} />
-                    <MaterialIcons name='favorite' size={30} color='red' />
-                    <Text style={styles.likesCount}>{review.likes} Likes</Text>
-                </View>
-                <Text style={styles.reviewText}>{review.text}</Text>
-            </View>
-        </TouchableOpacity>
-    );
+  return (
+    <TouchableOpacity style={styles.card} onPress={onPress}>
+      <Image source={{ uri: review.game.logo }} style={styles.image} />
+      <View style={styles.cardContent}>
+        <View style={styles.profileContainer}>
+          <MaterialIcons name='person' size={50} color='blue' />
+          <Text style={styles.username}>{review.user.username}</Text>
+        </View>
+        <View style={styles.ratingContainer}>
+          <SmallRatings rating={review.rating} />
+          <MaterialIcons name='favorite' size={30} color='red' />
+          <Text style={styles.likesCount}>{review.likes} Likes</Text>
+        </View>
+        <Text style={styles.reviewText}>{review.text}</Text>
+      </View>
+    </TouchableOpacity>
+  );
 };
 
 const styles = StyleSheet.create({
@@ -55,18 +55,18 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     justifyContent: 'space-evenly',
+    // width: 500,
   },
   image: {
     width: 100,
     height: 150,
     borderRadius: 5,
-    marginTop: 10,
-    marginBottom: 10,
-    marginLeft: 10,
+    margin: 10
   },
   cardContent: {
+    width: 300,
     marginHorizontal: 18,
-    marginVertical: 20,
+    marginVertical: 10,
   },
   profileContainer: {
     flexDirection: 'row',
