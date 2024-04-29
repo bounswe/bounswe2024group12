@@ -25,6 +25,9 @@ export default function HomeCard() {
                 {!loggedIn && <button type='button' style={{ width: '100%' }} onClick={handleSignUpBtn} >Sign Up</button>}
                 {!loggedIn && <button type='button' style={{ width: '100%' }} onClick={handleLoginBtn}>Login</button>}
                 {loggedIn && <button type='button' style={{ width: '100%' }} onClick={handleLogout}>Logout</button>}
+                {!loggedIn &&  <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%', marginTop: '5px' }}>
+          <a href="/home" style={{ color: 'var(--highlight-color)' }}>Continue as Guest</a>
+        </div>}
             </Card>
         </div>
     );
