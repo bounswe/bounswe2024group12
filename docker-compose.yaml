@@ -30,6 +30,7 @@ services:
     depends_on:
       - db
     env_file: .env
+    restart: "on-failure"
 
 volumes:
   db_data:
