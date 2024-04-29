@@ -5,6 +5,7 @@ body {
     --text-color: #E6E4E0;
     --background-color: #212121;
     --card-color: #161616;
+    --navbar-color: #3a2d4a;
     background-color: var(--background-color);
     color: var(--text-color);
     margin: 0;
