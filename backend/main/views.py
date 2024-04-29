@@ -32,7 +32,6 @@ def signup(request):
                 email=email,
                 password=hashed_password,  # Hash the password
             )
-        user.date_created = timezone.now()
         user.is_active = True
         user.save()
 
