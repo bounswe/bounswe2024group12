@@ -26,7 +26,6 @@ load_dotenv()
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-AUTH_USER_MODEL = 'main.RegisteredUser'
 
 ALLOWED_HOSTS = ["*","127.0.0.1"]
 CSRF_TRUSTED_ORIGINS = ["http://localhost:3000"]
