@@ -1,7 +1,5 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
-import SmallRatings from '../commons/SmallRatings';
-import { useNavigation } from '@react-navigation/native';
 
 
 
@@ -63,7 +61,6 @@ const styles = StyleSheet.create({
   },
   gameBanner: {
     height: 200,
-    borderRadius: 10,
   },
   bottomContainer: {
     // flex: 1,

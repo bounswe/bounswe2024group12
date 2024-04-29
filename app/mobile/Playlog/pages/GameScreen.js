@@ -11,7 +11,7 @@ const exampleGame = {
     logo: "https://wallpaperaccess.com/full/204728.jpg",
     banner: "https://wallpaperaccess.com/full/204728.jpg",
     shortDescription: "The Witcher 3: Wild Hunt is a 2015 action role-playing game developed and published by Polish developer CD Projekt Red and is based on The Witcher series of fantasy novels by Andrzej Sapkowski. It is the sequel to the 2011 game The Witcher 2: Assassins of Kings.",
-    longDescription: "",
+    longDescription: "The Witcher 3: Wild Hunt is the third and final installment in the series of games developed by CD PROJEKT RED featuring the witcher Geralt of Rivia. The game was originally scheduled for release in late 2014, then pushed back to 24 February 2015, and finally released on 19 May 2015.[3] During the first two weeks since release it had sold more than 4 million copies worldwide,[4] more than doubling the total sales of its predecessor, The Witcher 2: Assassins of Kings.[5]",
     images: [
       "https://wallpaperaccess.com/full/204728.jpg",
       "https://wallpaperaccess.com/full/204728.jpg",
