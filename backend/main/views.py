@@ -4,6 +4,10 @@ from .models import RegisteredUser
 import json
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth import authenticate, login, logout
+import logging
+from django.utils import timezone
+
+logger = logging.getLogger(__name__)
 
 @csrf_exempt  # Only for demonstration. CSRF protection should be enabled in production.
 def signup(request):
@@ -26,8 +30,9 @@ def signup(request):
         user = RegisteredUser.objects.create(
                 username=username,
                 email=email,
-                password=hashed_password  # Hash the password
+                password=hashed_password,  # Hash the password
             )
+        user.date_created = timezone.now()
         user.is_active = True
         user.save()
 
@@ -40,7 +45,7 @@ def signup(request):
 def login(request):
     if request.method == 'POST':
         data = json.loads(request.body)
-        print(data)
+        logger.info(data)
         email = data.get('email')
         password = data.get('hashedPassword')
 

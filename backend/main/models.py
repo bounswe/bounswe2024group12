@@ -1,6 +1,7 @@
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
     
 class RegisteredUserManager(BaseUserManager):  
     def  create_user(self, email, username, password=None, **extra_fields):
@@ -20,6 +21,8 @@ class RegisteredUser(AbstractBaseUser):
     email = models.EmailField(max_length=255, unique=True)
     username = models.CharField(max_length=100, unique=True)
     password = models.CharField(max_length=100)
+    date_joined = models.DateTimeField(default=timezone.now())
+    last_login = models.DateTimeField(blank=True, null=True, default=timezone.now())
     is_active = models.BooleanField(default=True)
     
     objects = RegisteredUserManager()

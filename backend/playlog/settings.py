@@ -29,7 +29,7 @@ DEBUG = True
 AUTH_USER_MODEL = 'main.RegisteredUser'
 
 ALLOWED_HOSTS = ["*","127.0.0.1"]
-
+CSRF_TRUSTED_ORIGINS = ["http://localhost:3000"]
 
 # Application definition
 
@@ -42,11 +42,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'main.apps.MainConfig',
     'corsheaders',
-    
 ]
 
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -54,7 +54,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'playlog.urls'
@@ -127,7 +126,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = 'static/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -138,6 +137,7 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
+CSRF_COOKIE_SECURE = True
 
 # LOGIN_REDIRECT_URL = '/home'
 # LOGOUT_REDIRECT_URL = '/login'
