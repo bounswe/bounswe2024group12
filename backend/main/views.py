@@ -1,5 +1,3 @@
-# views.py (inside your Django app)
-
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import RegisteredUser
@@ -31,7 +29,7 @@ def signup(request):
             user = RegisteredUser.objects.create(
                 username=username,
                 email=email,
-                password=make_password(hashed_password)  # Hash the password
+                password=hashed_password  # Hash the password
             )
             return JsonResponse({'success': True, 'message': 'User created successfully'}, status=201)
         except Exception as e:
@@ -39,12 +37,13 @@ def signup(request):
 
     else:
         return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
-
+    
+@csrf_exempt 
 def login(request):
+    print(request)
     if request.method == 'POST':
         # Parse JSON data from the request body
         data = json.loads(request.body)
-
         email = data.get('email')
         password = data.get('password')
 
