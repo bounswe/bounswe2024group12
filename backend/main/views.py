@@ -1,17 +1,58 @@
-from django.shortcuts import render, redirect
-from .forms import RegisterForm
-from django.contrib.auth import login, logout, authenticate
-# Create your views here.
-def home(request):
-    return render(request, 'main/home.html')
+# views.py (inside your Django app)
 
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from .models import RegisteredUser
+import json
+from django.contrib.auth.hashers import make_password
+
+@csrf_exempt  # Only for demonstration. CSRF protection should be enabled in production.
 def signup(request):
-    if request.method=='POST':
-        form = RegisterForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect('/home')
+    if request.method == 'POST':
+        print(request.body)
+        # Parse JSON data from the request body
+        data = json.loads(request.body)
+
+        # Extract username, email, and hashed password from JSON data
+        username = data.get('username')
+        email = data.get('email')
+        hashed_password = data.get('hashedPassword')
+
+        # Create a new user using the RegisteredUser model
+        try:
+            user = RegisteredUser.objects.create(
+                username=username,
+                email=email,
+                password=make_password(hashed_password)  # Hash the password
+            )
+            return JsonResponse({'success': True, 'message': 'User created successfully'}, status=201)
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
     else:
-        form = RegisterForm()
-    return render(request, 'registration/sign_up.html', {'form': form})
+        return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
+
+def login(request):
+    if request.method == 'POST':
+        # Parse JSON data from the request body
+        data = json.loads(request.body)
+
+        email = data.get('email')
+        password = data.get('password')
+
+        # Find the user with the given email
+        try:
+            user = RegisteredUser.objects.get(email=email)
+            if user.check_password(password):
+                return JsonResponse({'success': True, 'message': 'Login successful', 'username': user.username}, status=200)
+            else:
+                return JsonResponse({'success': False, 'message': 'Invalid password'}, status=401)
+        except RegisteredUser.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'User not found'}, status=404)
+    else:
+        return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
+    
+
+def index(request):
+    return JsonResponse({'message': 'Welcome to the PlayLog API!'})
+
