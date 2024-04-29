@@ -24,7 +24,7 @@ def signup(request):
         data = json.loads(request.body)
         username = data.get('username')
         email = data.get('email')
-        hashed_password = data.get('hashedPassword')
+        hashed_password = data.get('password')
         user = RegisteredUser.objects.create_user(
             username=username,
             email=email,
@@ -43,7 +43,7 @@ def login(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         email = data.get('email')
-        password = data.get('hashedPassword')
+        password = data.get('password')
 
         user = authenticate(email=email, password=password)
         if user is not None:
