@@ -31,6 +31,13 @@ services:
     env_file: .env
     restart: "on-failure"
 
+  frontend:
+    build: ./frontend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
 volumes:
   db_data:
   
