@@ -15,14 +15,7 @@ export default function ForgotPasswordCard() {
       const formData = new FormData(event.currentTarget);
       const email = formData.get('email');
       console.log('Email: ', email);
-    //   if (false) {
-    //     setError("No user found with that email address.");
-    //     setSuccessMessage(""); // Clear success message if there's an error
-    //   } else {
-    //     setError(""); // Clear error message on success
-    //     // Set success message indicating the reset email has been sent
-    //     setSuccessMessage(`Reset email sent to: ${email}`);
-    //   }
+     
   
       try {
         const response = await fetch('http://localhost:3001/forgot-password', {

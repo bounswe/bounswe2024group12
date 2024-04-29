@@ -52,7 +52,7 @@ export default function LoginCard() {
 
       setLoginFailed(false);
       handleLogin(data.username);
-      navigate('/home');
+      navigate('/main');
     }
     catch (error) {
       console.error('Error:', error);
@@ -95,7 +95,7 @@ export default function LoginCard() {
           Sign Up
         </button>
         <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%', marginTop: '5px' }}>
-          <a href="/home" style={{ color: 'var(--highlight-color)' }}>Continue as Guest</a>
+          <a href="/main" style={{ color: 'var(--highlight-color)' }}>Continue as Guest</a>
         </div>
         </div>
       </Card>

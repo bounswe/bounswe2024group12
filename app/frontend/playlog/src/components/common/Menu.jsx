@@ -1,11 +1,14 @@
-import React,{useState} from 'react';
+import React,{useState, useContext} from 'react';
 import styles from './Menu.module.css';
+import {useAuth } from './UserContext';
 
 
 const Menu = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoggedIn, setisLoggedIn] = useState(true);
-  const [username, setUserName] = useState()
+  const { user } = useAuth();
+  console.log(user);
+  
   const handleSearch = (query) => {
     setSearchQuery(query);
   };
@@ -18,7 +21,7 @@ const Menu = () => {
         <button className={styles.menuButton}><a href="/games" className={styles.menuLink}>Games</a></button>
         <input type="text" placeholder="Search games" className={styles.searchBar} />
         {isLoggedIn ? (
-          <div className={styles.userInfo}>Welcome, {username}</div>
+          <div className={styles.userInfo}>Welcome, {user.username} </div>
         ) : (
           <button className={styles.loginButton}> <a href="/" className={styles.loginLink}>Log in</a></button>
         )}
