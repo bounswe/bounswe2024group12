@@ -1,12 +1,9 @@
 from django.contrib.auth.models import UserManager, AbstractBaseUser
 from django.db import models
 from django.contrib.auth.models import User
-from django.utils import timezone
     
 class RegisteredUserManager(UserManager):  
-    def  create_user(self, email, username, password=None, **extra_fields):
-        if not email:
-            raise ValueError('The email field must be set')
+    def create_user(self, email, username, password=None, **extra_fields):
         email = self.normalize_email(email)
         user = self.model(email=email, username=username, **extra_fields)
         user.set_password(password)
@@ -18,19 +15,15 @@ class RegisteredUserManager(UserManager):
     
 class RegisteredUser(AbstractBaseUser):
     user_id = models.AutoField(primary_key=True)
-    email = models.EmailField(max_length=255, unique=True)
+    email = models.EmailField(unique=True)
     username = models.CharField(max_length=100, unique=True)
     password = models.CharField(max_length=100)
-
     is_active = models.BooleanField(default=True)
     
     objects = RegisteredUserManager()
     
     USERNAME_FIELD = 'username'
-    EMAIL_FIELD = 'email'
     REQUIRED_FIELDS = ['email', 'password']
-    
-    def __str__(self):
-        return self.username
+
 
 

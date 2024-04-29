@@ -8,6 +8,7 @@ from django.contrib.auth import authenticate, login, logout
 import logging
 from django.utils import timezone
 
+
 logger = logging.getLogger(__name__)
 
 @csrf_exempt  # Only for demonstration. CSRF protection should be enabled in production.
@@ -24,17 +25,13 @@ def signup(request):
         username = data.get('username')
         email = data.get('email')
         hashed_password = data.get('hashedPassword')
-        if (RegisteredUser.objects.filter(email=email).exists()):
-            return JsonResponse({'success': False, 'message': 'User already exists'}, status=400)
-        elif (RegisteredUser.objects.filter(username=username).exists()):
-            return JsonResponse({'success': False, 'message': 'Username already exists'}, status=400)
-        user = RegisteredUser.objects.create(
-                username=username,
-                email=email,
-                password=hashed_password,  # Hash the password
-            )
-        user.is_active = True
-        user.save()
+        user = RegisteredUser.objects.create_user(
+            username=username,
+            email=email,
+            password=hashed_password,  # Hash the password
+            is_active=True
+        )
+        
 
         return JsonResponse({'success': True, 'message': 'User created successfully'}, status=201)
 
@@ -45,7 +42,6 @@ def signup(request):
 def login(request):
     if request.method == 'POST':
         data = json.loads(request.body)
-        logger.info(data)
         email = data.get('email')
         password = data.get('hashedPassword')
 
