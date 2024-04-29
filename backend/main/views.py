@@ -47,7 +47,8 @@ def login(request):
 
         user = authenticate(email=email, password=password)
         if user is not None:
-            return JsonResponse({'success': True, 'message': 'Login successful', 'username': user.username}, status=200)
+            response = JsonResponse({'success': True, 'message': 'Login successful', 'username': user.username, "token" : "dummy-token"}, status=200)
+            response.set_cookie("token", "dummy-token")
         else:
             return JsonResponse({'success': False, 'message': 'Invalid credentials'}, status=401)
     else:
