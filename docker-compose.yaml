@@ -1,5 +1,4 @@
 version: '3'
-
 services:
   db:
     platform: linux/x86_64
@@ -19,7 +18,10 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
-    command: python manage.py runserver 0.0.0.0:8000
+    command:  >
+            sh -c " python manage.py makemigrations main &&
+            python manage.py migrate &&
+            python manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/code
     ports:
@@ -27,6 +29,8 @@ services:
     depends_on:
       - db
     env_file: .env
+    restart: "on-failure"
 
 volumes:
   db_data:
+  
