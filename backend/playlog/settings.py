@@ -135,6 +135,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
 CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
 
 # LOGIN_REDIRECT_URL = '/home'
 # LOGOUT_REDIRECT_URL = '/login'

@@ -8,6 +8,14 @@ from django.contrib.auth.hashers import make_password
 
 @csrf_exempt  # Only for demonstration. CSRF protection should be enabled in production.
 def signup(request):
+    print(request)
+    if request.method == 'OPTIONS':
+        response = JsonResponse({'message': 'CORS Preflight'})
+        response['Access-Control-Allow-Origin'] = '*'  # Allow requests from all origins
+        response['Access-Control-Allow-Methods'] = 'POST, OPTIONS'  # Allow POST and OPTIONS methods
+        response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'  # Allow specified headers
+        return response
+
     if request.method == 'POST':
         print(request.body)
         # Parse JSON data from the request body
