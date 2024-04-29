@@ -4,13 +4,18 @@ import style from './SignUpCard.module.css';
 import { useNavigate } from 'react-router-dom'
 import { sha256 } from 'js-sha256';
 import { useAuth } from '../common/UserContext';
+import TermsAndConditions from './agreements/TermsAndConditions';
+import PrivacyAgreement from './agreements/PrivacyAgreement';
 
 
 export default function SignUpCard() {
     const navigate = useNavigate();
     const [passwordErr, setPasswordErr] = useState("");
     const [usernameErr, setUsernameErr] = useState("");
-    const { loggedIn,  } = useAuth();
+    const [showTerms, setShowTerms] = useState(false);
+    const [showPrivacy, setShowPrivacy] = useState(false);
+
+    const { loggedIn, } = useAuth();
 
     useEffect(() => {
         if (loggedIn)
@@ -36,7 +41,7 @@ export default function SignUpCard() {
         }
 
         let hashedPassword = sha256(password);
-        
+
         console.log("Username: ", username);
         console.log("Email: ", email);
         console.log("Password", hashedPassword);
@@ -58,9 +63,9 @@ export default function SignUpCard() {
 
             const data = await response.json();
             console.log(data);
-            navigate('/signup-success', {state: {email: email, signUpSuccess: true}});
+            navigate('/signup-success', { state: { email: email, signUpSuccess: true } });
         }
-        
+
         catch (error) {
             console.error('Error:', error);
             setUsernameErr(error);
@@ -68,7 +73,7 @@ export default function SignUpCard() {
 
     }
 
-    function checkPasswordCriteria(string){
+    function checkPasswordCriteria(string) {
         if (string.length < 8) {
             return "Password must be at least 8 characters long.";
         }
@@ -92,11 +97,11 @@ export default function SignUpCard() {
         }
     }
 
-    function checkUsernameCriteria(string){
+    function checkUsernameCriteria(string) {
         if (string.length < 8) {
             return "Username must be at least 8 characters long.";
         }
-        else if (string.length > 16){
+        else if (string.length > 16) {
             return "Username must be at most 16 characters long.";
         }
         else if (string.search(/[^a-zA-Z0-9_]/) !== -1) {
@@ -105,9 +110,17 @@ export default function SignUpCard() {
         else {
             return "";
         }
+
     }
+    const toggleTerms = (event) => {
+        event.stopPropagation(); 
+        setShowTerms(!showTerms)};
+    const togglePrivacy = (event) => {
+        event.stopPropagation(); 
+        setShowPrivacy(!showPrivacy);}
 
     return (
+        <>
         <div className={style.Container}>
             <Card>
                 <form onSubmit={handleSubmit} className={style.Form}>
@@ -120,24 +133,26 @@ export default function SignUpCard() {
                         <label>Password</label>
                         <input type='password' name='password' placeholder='Password' required />
                         {/* Privacy and terms*/}
-                        
-                        <div style={{ marginTop: '10px', display:'flex' ,flexDirection:'row' }}>
-                            <input
-                                // type agree to terms and conditions and privacy policy whent its not checked
-                                type='checkbox'
-                                id='privacyPolicy'
-                                name='privacy'
-                                required
-                                style={{ width: '20px', height: '20px', cursor: 'pointer'}}
 
-                                
-                                
-
-                            />
-                            <label htmlFor='privacyPolicy' style={{ marginLeft: '5px' }}>
-                                I agree to the <a href="/terms-and-conditions" style={{ color: 'var(--highlight-color)' }}>Terms &amp; Conditions</a> and <a href="/privacy-policy" style={{color: 'var(--highlight-color)' }}>Privacy Policy</a>.
-                            </label>
-                        </div>
+                        <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'row' }}>
+              <input
+                type='checkbox'
+                id='privacyPolicy'
+                name='privacy'
+                required
+                style={{ width: '20px', height: '20px', cursor: 'pointer' }}
+              />
+              <label htmlFor='privacyPolicy' style={{ marginLeft: '5px', paddingRight:'0px' }}>
+                I agree to the
+              </label>
+              <span className={style.linkText} onClick={toggleTerms}>
+                Terms & Conditions
+              </span>
+              <span> and </span>
+              <span className={style.linkText} onClick={togglePrivacy}>
+                Privacy Policy
+              </span>.
+            </div>
 
                     </div>
 
@@ -145,7 +160,21 @@ export default function SignUpCard() {
                     {passwordErr !== "" && <div className={style.Error}>{passwordErr}</div>}
                     {usernameErr !== "" && <div className={style.Error}>{usernameErr}</div>}
                 </form>
+                
             </Card>
+            
         </div>
+        {showTerms && (
+        <div className={style.contentCard}>
+            <TermsAndConditions />
+          
+        </div>
+      )}
+      {showPrivacy && (
+        <div className={style.contentCard}>
+          <PrivacyAgreement />
+        </div>
+      )}
+        </>
     );
 }
