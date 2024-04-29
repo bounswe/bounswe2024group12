@@ -40,6 +40,7 @@ def signup(request):
 def login(request):
     if request.method == 'POST':
         data = json.loads(request.body)
+        print(data)
         email = data.get('email')
         password = data.get('hashedPassword')
 
