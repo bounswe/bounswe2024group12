@@ -68,11 +68,7 @@ export default GameScreen = ({ gameId = 'exampleGameId' }) => {
 
     const [game, setGame] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [selectedText, setSelectedText] = useState('Text 1');
-
-    const handleTextPress = (text) => {
-        setSelectedText(text);
-    };
+   
 
     const getGame = async () => {
         // setLoading(true)
@@ -100,23 +96,7 @@ export default GameScreen = ({ gameId = 'exampleGameId' }) => {
                         <CustomButton title="Load Game" onPress={() => getGame().then(game => setGame(game))} /> :
                         <GameScreenComponents game={game} />
             }
-            <View style={{ borderBottomWidth: 1, borderBottomColor: 'white' }}></View>
-            <ScrollView horizontal contentContainerStyle={{ flexGrow: 1 }}>
-                <View style={{ flexDirection: 'row'}}>
-                    <CategoryTab title="Text 2" onPress={() => handleTextPress('Text 2')} isSelected={selectedText === 'Text 2'} />
-                    <CategoryTab title="Text 3" onPress={() => handleTextPress('Text 3')} isSelected={selectedText === 'Text 3'} />
-                    <CategoryTab title="Text 4" onPress={() => handleTextPress('Text 4')} isSelected={selectedText === 'Text 4'} />
-                    <CategoryTab title="Text 5" onPress={() => handleTextPress('Text 5')} isSelected={selectedText === 'Text 5'} />
-                    <CategoryTab title="Text 6" onPress={() => handleTextPress('Text 6')} isSelected={selectedText === 'Text 6'} />
-                    <CategoryTab title="Text 7" onPress={() => handleTextPress('Text 7')} isSelected={selectedText === 'Text 7'} />
-                    <CategoryTab title="Text 8" onPress={() => handleTextPress('Text 8')} isSelected={selectedText === 'Text 8'} />
-                    <CategoryTab title="Text 9" onPress={() => handleTextPress('Text 9')} isSelected={selectedText === 'Text 9'} />
-                    <CategoryTab title="Text 10" onPress={() => handleTextPress('Text 10')} isSelected={selectedText === 'Text 10'} />
-                    <CategoryTab title="Text 11" onPress={() => handleTextPress('Text 11')} isSelected={selectedText === 'Text 11'} />
-                    <CategoryTab title="Text 12" onPress={() => handleTextPress('Text 12')} isSelected={selectedText === 'Text 12'} />
-                </View>
-            </ScrollView>
-            <View style={{ borderTopWidth: 1, borderTopColor: 'white' }}></View>
+            
         </View>
     );
 }
