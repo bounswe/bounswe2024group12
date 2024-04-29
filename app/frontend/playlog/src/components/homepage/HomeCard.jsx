@@ -16,6 +16,11 @@ export default function HomeCard() {
         navigate('/login');
     };
 
+    async function goToMainPage(event) {
+        navigate('/main');
+    }
+    
+
 
     return (
         <div className={style.Container}>
@@ -24,9 +29,10 @@ export default function HomeCard() {
                 <p>Playlog is a platform where you can share your favorite games and playlists with your friends.</p>
                 {!loggedIn && <button type='button' style={{ width: '100%' }} onClick={handleSignUpBtn} >Sign Up</button>}
                 {!loggedIn && <button type='button' style={{ width: '100%' }} onClick={handleLoginBtn}>Login</button>}
+                {loggedIn && <button type='button' style={{ width: '100%', fontSize:'25px', fontWeight:'500' }} onClick={goToMainPage}>Discover the World of Games</button>}
                 {loggedIn && <button type='button' style={{ width: '100%' }} onClick={handleLogout}>Logout</button>}
                 {!loggedIn &&  <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%', marginTop: '5px' }}>
-          <a href="/main" style={{ color: 'var(--highlight-color)' }}>Continue as Guest</a>
+            <a href="/main" style={{ color: 'var(--highlight-color)' }}>Continue as Guest</a>
         </div>}
             </Card>
         </div>
