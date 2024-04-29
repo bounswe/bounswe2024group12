@@ -47,7 +47,7 @@ export default function SignUpCard() {
         console.log("Password", hashedPassword);
 
         try {
-            const response = await fetch('http://localhost:3001/signup', {
+            const response = await fetch('http://127.0.0.1:8000/signup/', {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
@@ -58,7 +58,9 @@ export default function SignUpCard() {
 
             if (!response.ok) {
                 console.log(response.statusText);
-                throw new Error(await response.text());
+                setUsernameErr("Duplicate username or email.");
+                setPasswordErr("");
+                return;
             }
 
             const data = await response.json();

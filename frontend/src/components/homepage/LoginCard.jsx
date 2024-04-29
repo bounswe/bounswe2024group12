@@ -35,7 +35,7 @@ export default function LoginCard() {
     console.log('Password', hashedPassword);
 
     try {
-      const response = await fetch('http://localhost:3001/login', {
+      const response = await fetch('http://127.0.0.1:8000/login/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -45,7 +45,8 @@ export default function LoginCard() {
       });
 
       if (!response.ok) {
-        throw new Error(`${response.statusText} - ${await response.text()}`);
+        setLoginFailed(true);
+        return;
       }
 
       const data = await response.json();
