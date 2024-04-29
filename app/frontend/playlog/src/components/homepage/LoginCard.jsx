@@ -82,7 +82,7 @@ export default function LoginCard() {
 
         </form>
         <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%', marginTop: '5px' }}>
-          <a href="#" style={{ color: 'var(--highlight-color)' }}>Forgot your password?</a>
+          <a href="/forgot-password" style={{ color: 'var(--highlight-color)' }}>Forgot your password?</a>
         </div>
 
 

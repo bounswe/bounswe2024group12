@@ -3,6 +3,7 @@ import LoginPage from './pages/LoginPage';
 import SignUpPage from './pages/SignUpPage';
 import HomePage from './pages/HomePage';
 import SignUpSuccessPage from './pages/SignUpSuccessPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import UserProvider from './components/common/UserContext';
 
@@ -17,6 +18,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/home" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/signup" element={<SignUpPage />} />
           <Route path="/signup-success" element={<SignUpSuccessPage />} />
         </Routes>
