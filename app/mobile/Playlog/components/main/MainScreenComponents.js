@@ -4,6 +4,8 @@ import CustomButton from "../buttons/CustomButton";
 import GameCard from "../commons/GameCard";
 import GameListCard from "../commons/GameListCard";
 import MoreGamesGrid from "./MoreGamesGrid";
+import ReviewListCard from "./ReviewListCard";
+import MainPageBanner from "./MainPageBanner";
 
 export default MainScreenComponents = () => {
 
@@ -11,8 +13,11 @@ export default MainScreenComponents = () => {
         <ScrollView contentContainerStyle={styles.scrollView}>
             <Text style={textStyles.header}>Main Screen</Text>
             <Text style={textStyles.default}>Welcome to the Main Screen</Text>
+            <MainPageBanner />
             <GameListCard title={"Popular Games"} />
             <GameListCard title={"Recent Games"} />
+            <ReviewListCard title={"Recent Reviews"} />
+            <ReviewListCard title={"Friend Reviews"} />
             <MoreGamesGrid />
         </ScrollView>
     )
