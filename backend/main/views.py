@@ -9,8 +9,6 @@ import logging
 from django.utils import timezone
 
 
-logger = logging.getLogger(__name__)
-
 @csrf_exempt  # Only for demonstration. CSRF protection should be enabled in production.
 def signup(request):
     if request.method == 'OPTIONS':
@@ -24,16 +22,16 @@ def signup(request):
         data = json.loads(request.body)
         username = data.get('username')
         email = data.get('email')
-        hashed_password = data.get('password')
+        password = data.get('password')
         user = RegisteredUser.objects.create_user(
             username=username,
             email=email,
-            password=hashed_password,  # Hash the password
+            password=password,  # Hash the password
             is_active=True
         )
         
 
-        return JsonResponse({'success': True, 'message': 'User created successfully'}, status=201)
+        return JsonResponse({'success': True, 'message': 'User created successfully', 'username': user.username, 'email': user.email, "password": user.password}, status=201)
 
     else:
         return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
@@ -44,11 +42,11 @@ def login(request):
         data = json.loads(request.body)
         email = data.get('email')
         password = data.get('password')
-
-        user = authenticate(email=email, password=password)
+        user = authenticate(username=email, password=password)
         if user is not None:
             response = JsonResponse({'success': True, 'message': 'Login successful', 'username': user.username, "token" : "dummy-token"}, status=200)
             response.set_cookie("token", "dummy-token")
+            return response
         else:
             return JsonResponse({'success': False, 'message': 'Invalid credentials'}, status=401)
     else:

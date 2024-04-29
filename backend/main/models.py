@@ -22,8 +22,8 @@ class RegisteredUser(AbstractBaseUser):
     
     objects = RegisteredUserManager()
     
-    USERNAME_FIELD = 'username'
-    REQUIRED_FIELDS = ['email', 'password']
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username', 'password']
 
 
 
