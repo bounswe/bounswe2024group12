@@ -4,6 +4,14 @@
 3- "npm install" command will download all the stuff you need \
 4- Then type "npm start" to start the frontend. You can see the website at http://localhost:3000/ \
 
+## Running Frontend with Docker:
+
+To run React frontend on Docker:
+
+```bash
+docker-compose up --build frontend
+```
+
 #### Running Backend and Frontend Together:
 
 To run both the Django backend and React frontend together:
