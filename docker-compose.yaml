@@ -1,0 +1,56 @@
+version: '3'
+services:
+  db:
+    platform: linux/x86_64
+    image: mysql:latest
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    expose:
+      - "3306"
+    networks:
+      - mynetwork
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command:  >
+            sh -c " python manage.py makemigrations main &&
+            python manage.py migrate &&
+            python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    env_file: .env
+    restart: "on-failure"
+    networks:
+      - mynetwork
+
+  frontend:
+    build: ./frontend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    networks:
+      - mynetwork
+
+volumes:
+  db_data:
+
+networks:
+  mynetwork:
+    driver: bridge
+  
