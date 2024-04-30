@@ -18,7 +18,7 @@ export const ProfileProvider = ({ children }) => {
             console.log(process.env.EXPO_PUBLIC_URL);
             const response = await fetch(`${process.env.EXPO_PUBLIC_URL}/login`, {
                 method: 'POST',
-                body: JSON.stringify({ username, password }),
+                body: JSON.stringify({ email: username, password }),
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -27,14 +27,14 @@ export const ProfileProvider = ({ children }) => {
             // Parse the response
             // const responseJson = await response.json();
             const responseData = response.data;
-            console.log(response.body)
+            console.log(response)
 
             // Get the token from the response
 
 
-            const { token } = response.body;
+            const { token } = response;
 
-            if (response.status === 200 && token) {
+            if (response.status === 200) {
                 setToken(token)
                 setUsername(username)
                 setIsGuest(false)
