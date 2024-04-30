@@ -85,8 +85,8 @@ DATABASES = {
         'NAME': os.getenv('MYSQL_DATABASE'),
         'USER': os.getenv('MYSQL_USER'),
         'PASSWORD': os.getenv('MYSQL_PASSWORD'),
-        'HOST': os.getenv('MYSQL_HOST'),
-        'PORT': os.getenv('MYSQL_PORT'),  # Default MySQL port
+        'HOST': 'db',
+        'PORT': '3306',  # Default MySQL port
     }
 }
 

@@ -1,4 +1,4 @@
-version: '3.1'
+version: '3'
 services:
   db:
     platform: linux/x86_64
@@ -15,19 +15,20 @@ services:
       - db_data:/var/lib/mysql
 
   backend:
-    platform: linux/x86_64
     build:
-      context: ./backend
-      # dockerfile: backend/Dockerfile
-    command: >
-      sh -c " python manage.py makemigrations && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+      context: .
+      dockerfile: backend/Dockerfile
+    command:  >
+            sh -c " python manage.py makemigrations main &&
+            python manage.py migrate &&
+            python manage.py runserver 0.0.0.0:8000"
     volumes:
-      - ./backend:/home/app/backend
+      - .:/code
     ports:
       - "8000:8000"
     depends_on:
       - db
-    env_file: ./backend/.env
+    env_file: .env
     restart: "on-failure"
     network_mode: "host"
 
@@ -40,3 +41,4 @@ services:
       - "3000:3000"
 volumes:
   db_data:
+  
