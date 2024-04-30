@@ -4,6 +4,9 @@
 
 CmpE 352 is a course designed to enhance abilities in collaborative software development and teamwork.
 
+## 🚀 About Project
+Playlog is a social game browsing app. You can semantically browse your favorite games, give ratings, make lists or follow your frineds and check their reviews. Currently you can access our deployment from here: http://165.232.73.154:3000/
+
 ## 👥 Group Members 
 
 - [Ahmet Bayir](https://github.com/bounswe/bounswe2024group12/wiki/Ahmet-Bayir)
