@@ -14,24 +14,31 @@ export default Signup = () => {
 
     const signupHandler = async () => {
         // Call the signup API
-        const response = await fetch(`${process.env.EXPO_APP_PUBLIC_URL}/signup`, {
-            method: 'POST',
-            body: JSON.stringify({ username, password, email }),
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
+        try {
+            const response = await fetch(`${process.env.EXPO_PUBLIC_URL}/signup`, {
+                method: 'POST',
+                body: JSON.stringify({ username, password, email }),
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
 
-        // Parse the response
-        const responseJson = await response.json();
-        const responseData = responseJson.data;
+            console.log(response)
 
-        if(response.status === 200) {
-            alert('Signup successful')
-            navigation.navigate('Login')
-        } else {
-            alert('Signup failed')
-            throw new Error('Signup failed');
+            // Parse the response
+            // const responseJson = await response.json();
+            // const responseData = responseJson.data;
+
+            if (response.status === 200) {
+                alert('Signup successful')
+                navigation.navigate('Login')
+            } else {
+                alert('Signup failed')
+                throw new Error('Signup failed');
+            }
+        } catch (e) {
+            console.error(e);
+            throw e;
         }
     }
 

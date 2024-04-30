@@ -19,6 +19,7 @@ export default Login = () => {
 
     const onLogin = async () => {
         try {
+            console.log('login')
             await loginHandler({ username, password });
         } catch (e) {
             alert(e.message);

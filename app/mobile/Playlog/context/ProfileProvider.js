@@ -14,31 +14,38 @@ export const ProfileProvider = ({ children }) => {
 
     const loginHandler = async ({ username, password }) => {
         // Call the login API
-        const response = await fetch(`${process.env.EXPO_APP_PUBLIC_URL}/login`, {
-            method: 'POST',
-            body: JSON.stringify({ username, password }),
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
+        try {
+            console.log(process.env.EXPO_PUBLIC_URL);
+            const response = await fetch(`${process.env.EXPO_PUBLIC_URL}/login`, {
+                method: 'POST',
+                body: JSON.stringify({ username, password }),
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
 
-        // Parse the response
-        const responseJson = await response.json();
-        const responseData = responseJson.data;
+            // Parse the response
+            // const responseJson = await response.json();
+            const responseData = response.data;
+            console.log(response.body)
 
-        // Get the token from the response
+            // Get the token from the response
 
 
-        const { token } = responseData;
+            const { token } = response.body;
 
-        if (response.status === 200 && token) {
-            setToken(token)
-            setUsername(username)
-            setIsGuest(false)
-            setIsLoggedIn(true)
-        } else {
-            alert('Invalid username or password')
-            throw new Error('Invalid username or password');
+            if (response.status === 200 && token) {
+                setToken(token)
+                setUsername(username)
+                setIsGuest(false)
+                setIsLoggedIn(true)
+            } else {
+                alert('Invalid username or password')
+                throw new Error('Invalid username or password');
+            }
+        } catch (e) {
+            console.error(e);
+            throw e;
         }
     }
 
