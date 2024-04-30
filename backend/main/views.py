@@ -8,6 +8,16 @@ from django.utils import timezone
 from .models import Game, Review
 import re
 
+def extract_unique_values(results, key):
+                values = set()
+                try:
+                    for item in results['results']['bindings']:
+                        if key in item:
+                            values.add(item[key]['value'])
+                    return values
+                except:
+                    return values
+
 @csrf_exempt  # Only for demonstration. CSRF protection should be enabled in production.
 def signup(request):
     if request.method == 'OPTIONS':
