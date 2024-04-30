@@ -4,7 +4,7 @@
 3- "npm install" command will download all the stuff you need \
 4- Then type "npm start" to start the frontend. You can see the website at http://localhost:3000/ \
 
-## Running Frontend with Docker:
+### Running Frontend with Docker:
 
 To run React frontend on Docker:
 
