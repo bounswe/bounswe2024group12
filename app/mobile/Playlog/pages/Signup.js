@@ -12,8 +12,31 @@ export default Signup = () => {
     const [email, setEmail] = useState('')
     const navigation = useNavigation()
 
+    const signupHandler = async () => {
+        // Call the signup API
+        const response = await fetch(`${process.env.EXPO_APP_PUBLIC_URL}/signup`, {
+            method: 'POST',
+            body: JSON.stringify({ username, password, email }),
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        // Parse the response
+        const responseJson = await response.json();
+        const responseData = responseJson.data;
+
+        if(response.status === 200) {
+            alert('Signup successful')
+            navigation.navigate('Login')
+        } else {
+            alert('Signup failed')
+            throw new Error('Signup failed');
+        }
+    }
+
     const navigateLogin = () => {
-        navigation.navigate('Login Page')
+        navigation.navigate('Login')
     }
 
     return (
@@ -40,7 +63,7 @@ export default Signup = () => {
             />
             <CustomButton
                 title="Sign Up"
-                onPress={() => alert(`Username: ${username}\nPassword: ${password}\nE-Mail: ${email}`)}
+                onPress={signupHandler}
                 style={styles.button} />
             <TextButton title={`Already Registered?\nLogin`} onPress={navigateLogin} />
         </Screen>

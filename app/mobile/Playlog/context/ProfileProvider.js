@@ -13,17 +13,23 @@ export const ProfileProvider = ({ children }) => {
 
 
     const loginHandler = async ({ username, password }) => {
-        //TODO:
-        //Send username and password to server
-        //If successful, navigate to the home page
-        //If not, show an error message
-        //Send a dummy success response for now
-        const response = {
-            status: 200,
-            token: 'your_token_here'
-        }
+        // Call the login API
+        const response = await fetch(`${process.env.EXPO_APP_PUBLIC_URL}/login`, {
+            method: 'POST',
+            body: JSON.stringify({ username, password }),
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
 
-        const { token } = response;
+        // Parse the response
+        const responseJson = await response.json();
+        const responseData = responseJson.data;
+
+        // Get the token from the response
+
+
+        const { token } = responseData;
 
         if (response.status === 200 && token) {
             setToken(token)
