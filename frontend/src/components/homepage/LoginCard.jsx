@@ -8,7 +8,7 @@ import { useAuth } from '../common/UserContext';
 export default function LoginCard() {
   const navigate = useNavigate();
   const [loginFailed, setLoginFailed] = useState(false);
-  const { loggedIn, handleLogin, handleLogout, user } = useAuth();
+  const { loggedIn, handleLogin,  } = useAuth();
 
   useEffect(() => {
     if (loggedIn) 
