@@ -1,8 +1,18 @@
 # How to run front end
-1- Install [Node Js and NPM](https://nodejs.org/en/download) (npm needs node js)
-2- Move to frontend file using terminal and cd
-3- "npm install" command will download all the stuff you need
-4- Then type "npm start" to start the frontend. You can see the website at http://localhost:3000/
+1- Install [Node Js and NPM](https://nodejs.org/en/download) (npm needs node js) \
+2- Move to frontend file using terminal and cd \
+3- "npm install" command will download all the stuff you need \
+4- Then type "npm start" to start the frontend. You can see the website at http://localhost:3000/ \
+
+#### Running Backend and Frontend Together:
+
+To run both the Django backend and React frontend together:
+
+```bash
+docker-compose up --build
+```
+
+The Django backend will be accessible at [http://localhost:8000](http://localhost:8000) and the React frontend at [http://localhost:3000](http://localhost:3000).
 
 # Getting Started with Create React App
 
