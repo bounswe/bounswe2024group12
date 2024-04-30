@@ -27,8 +27,8 @@ load_dotenv()
 DEBUG = True
 
 
-ALLOWED_HOSTS = ["*","127.0.0.1"]
-CSRF_TRUSTED_ORIGINS = ["http://localhost:3000"]
+ALLOWED_HOSTS = ["*","127.0.0.1", "165.232.73.154"]
+CSRF_TRUSTED_ORIGINS = ["http://localhost:3000", "http://165.232.73.154:3306/", "http://165.232.73.154:3000"]
 
 # Application definition
 
