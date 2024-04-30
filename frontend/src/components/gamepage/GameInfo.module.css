@@ -56,4 +56,22 @@
     font-size: 40px;
     color: #ffa500;
   }
+
+  .genre{
+    font-size: 12px;
+    color: #666;
+    margin: 5px 5px 5px 5px;
+    border-right: 1px solid #ffa500;
+  }
+
+  .genre:last-child{
+    border-right: none;
+  }
+
+  .platform{
+    font-size: 12px;
+    color: #666;
+    margin: 5px 5px 5px 5px;
+    border-right: 1px solid #ffa500;
+  }
   

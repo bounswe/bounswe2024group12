@@ -1,8 +1,7 @@
-import { FormEvent, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Card from '../common/Card';
 import style from './LoginCard.module.css';
 import { useNavigate } from 'react-router-dom';
-import { sha256 } from 'js-sha256';
 import { useAuth } from '../common/UserContext';
 
 
@@ -30,22 +29,22 @@ export default function LoginCard() {
     const email = formData.get('email');
     const password = formData.get('password');
 
-    let hashedPassword = sha256(password);
     console.log('Email: ', email);
-    console.log('Password', hashedPassword);
+    console.log('Password', password);
 
     try {
-      const response = await fetch('http://localhost:3001/login', {
+      const response = await fetch('http://127.0.0.1:8000/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({ email, hashedPassword }),
+        body: JSON.stringify({ email, password }),
       });
 
       if (!response.ok) {
-        throw new Error(`${response.statusText} - ${await response.text()}`);
+        setLoginFailed(true);
+        return;
       }
 
       const data = await response.json();
