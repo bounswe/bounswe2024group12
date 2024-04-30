@@ -1,3 +1,9 @@
+# How to run front end
+1- Install [Node Js and NPM](https://nodejs.org/en/download) (npm needs node js)
+2- Move to frontend file using terminal and cd
+3- "npm install" command will download all the stuff you need
+4- Then type "npm start" to start the frontend. You can see the website at http://localhost:3000/
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
