@@ -15,7 +15,7 @@ const GameInfo = ({ game = { ...tempGame } }) => {
 
   async function retrieveInfo() {
     try {
-      const response = await fetch('http://165.232.73.154:8000/game-of-day', {
+      const response = await fetch('https://localhost:8000/game-of-day', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

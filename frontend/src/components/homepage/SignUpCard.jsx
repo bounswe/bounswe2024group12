@@ -45,7 +45,7 @@ export default function SignUpCard() {
         console.log("Password", password);
 
         try {
-            const response = await fetch('http://165.232.73.154:8000/signup', {
+            const response = await fetch('https://localhost:8000/signup', {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
