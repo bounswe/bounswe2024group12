@@ -13,26 +13,39 @@ export const ProfileProvider = ({ children }) => {
 
 
     const loginHandler = async ({ username, password }) => {
-        //TODO:
-        //Send username and password to server
-        //If successful, navigate to the home page
-        //If not, show an error message
-        //Send a dummy success response for now
-        const response = {
-            status: 200,
-            token: 'your_token_here'
-        }
+        // Call the login API
+        try {
+            console.log(process.env.EXPO_PUBLIC_URL);
+            const response = await fetch(`${process.env.EXPO_PUBLIC_URL}/login`, {
+                method: 'POST',
+                body: JSON.stringify({ email: username, password }),
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
 
-        const { token } = response;
+            // Parse the response
+            // const responseJson = await response.json();
+            const responseData = response.data;
+            console.log(response)
 
-        if (response.status === 200 && token) {
-            setToken(token)
-            setUsername(username)
-            setIsGuest(false)
-            setIsLoggedIn(true)
-        } else {
-            alert('Invalid username or password')
-            throw new Error('Invalid username or password');
+            // Get the token from the response
+
+
+            const { token } = response;
+
+            if (response.status === 200) {
+                setToken(token)
+                setUsername(username)
+                setIsGuest(false)
+                setIsLoggedIn(true)
+            } else {
+                alert('Invalid username or password')
+                throw new Error('Invalid username or password');
+            }
+        } catch (e) {
+            console.error(e);
+            throw e;
         }
     }
 
