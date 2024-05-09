@@ -1,0 +1,8 @@
+.Container {
+    max-width: 80vw;
+    margin: 60px auto;
+}
+
+button {
+    margin: 10px auto;
+}
