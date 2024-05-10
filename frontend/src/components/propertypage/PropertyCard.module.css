@@ -1,0 +1,35 @@
+.PropertyBlock {
+    max-width: 80%;
+    margin: 20px auto;
+    padding: 1vw 2vw;
+    border: 2px solid var(--highlight-color);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+.PropertyInfo {
+    padding: 20px;
+    flex: 1;
+}
+
+img {
+    margin-right: 1vw;
+    max-width: 200px;
+    width: 30%;
+    height: fit-content;
+}
+
+.PropertyInfo h1{
+    margin-bottom: 0px;
+}
+
+.PropertyInfo h3{
+    margin-top: 0px;
+    padding: 2px 10px 2px 5px;
+    color:var(--highlight-color); 
+    border-bottom: var(--highlight-color) 1px solid;
+    border-left: var(--highlight-color) 1px solid;
+    width: fit-content;
+}

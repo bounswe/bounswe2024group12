@@ -1,8 +1,4 @@
 .Container {
-    max-width: 80vw;
+    max-width: 70vw;
     margin: 60px auto;
-}
-
-button {
-    margin: 10px auto;
 }
