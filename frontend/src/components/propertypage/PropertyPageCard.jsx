@@ -22,7 +22,7 @@ export default function PropertyPageCard({property_type, property_name}) {
             navigate('/home');
         }
 
-        const response = await fetch('http://localhost:3001/property', {
+        const response = await fetch('http://localhost:8000/property', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

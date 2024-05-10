@@ -9,7 +9,6 @@ export default function GamesCard({data}){
 
     function handleClick(game){
         console.log(game.name)
-        // replace spaces with dashes
         const name = game.name.replace(/\s/g, '_');
         navigate(`/game/${name}`);
     }
