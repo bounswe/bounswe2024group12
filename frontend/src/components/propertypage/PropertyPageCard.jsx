@@ -57,7 +57,6 @@ export default function PropertyPageCard({property_type, property_name}) {
                 {isLoading ? <div>Loading...</div> :
                 notExist ? <NotExistCard/> :
                 <div><PropertyCard data ={propertyData} />
-                <h1>Test</h1>
                 <GamesCard data = {gamesData}/></div>}
             </Card>
         </div>
