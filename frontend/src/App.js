@@ -8,6 +8,7 @@ import MainPage from './pages/MainPage'
 import GamePage from './pages/GamePage'
 import UserPage from './pages/UserPage'
 import PropertyPage from './pages/PropertyPage'
+import UserPage from './pages/UserPage'
 
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import UserProvider from './components/common/UserContext';
