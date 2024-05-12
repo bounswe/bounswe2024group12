@@ -120,19 +120,24 @@ export default function UserPageComponents(){
         }
     }
     async function request(type){
-        const response = await fetch('http://localhost:8000/user-' + type, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify({"username": user.username}),
-        });
-        return await response;
-    }
+        try{
+            const response = await fetch('http://localhost:8000/user-' + type, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({"username": user.username}),
+            });
+            return await response;
+        }
+            catch (error) {
+                return error;
+        }
+    }   
 
     useEffect(() => {
-        console.log(user);
+
         fetchUserDetails();
         fetchUserFavorites();
         fetchRecentPopular();
@@ -157,7 +162,7 @@ export default function UserPageComponents(){
                 <button className={styles.tabButton} onClick={() => setCurrentTab('reviews')}>Reviews</button>
                 <button className={styles.tabButton} onClick={() => setCurrentTab('games')}>Games</button>
             </div>
-            
+
             <div className={styles.userDetails}>
                 <img src={userPicture} alt="User Picture" className={styles.userPicture}/> 
                 <h2 className={styles.username}>{user.username}</h2>
