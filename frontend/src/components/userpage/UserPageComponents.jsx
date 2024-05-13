@@ -1,14 +1,16 @@
 import React, {useState, useEffect} from "react";
 import Menu from '../common/Menu';
 import styles from "./UserPageComponents.module.css";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from "../common/UserContext";
 
 export default function UserPageComponents(){
+    const { id } = useParams();
     const { user } = useAuth();
     const navigate = useNavigate();
     const [userPicture, setUserPicture] = useState();
     const [userDetails, setUserDetails] = useState();
+    const [following, setFollowing] = useState(false);
     const [favoriteProperties, setFavoriteProperties] = useState();
     const [favoriteGames, setFavoriteGames] = useState();
     const [recentlyPlayedGames, setRecentlyPlayedGames] = useState();
