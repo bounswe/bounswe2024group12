@@ -33,7 +33,7 @@ export default function UserPageComponents(){
         catch (error) {
             console.error('Error:', error);
             setUserPicture();
-            setUserDetails();
+            setUserDetails({gamesPlayed: 0, reviewCount: 0, followers: 0, following: 0});
         }
     }
     function fetchUserFavorites(){
@@ -46,7 +46,11 @@ export default function UserPageComponents(){
         }
         catch (error) {
             console.error('Error:', error);
-            setFavoriteProperties(["a", "b", "c"]);
+            const prop = ["a", "b", "c", "d", "e"]
+            const names = ["genre", "platform", "developer", "publisher", "composer"]
+            const zipped = names.map((x, i) => [x, prop[i]]);
+
+            setFavoriteProperties(zipped);
             setFavoriteGames(["d", "e", "f"]);
 
         }
@@ -63,8 +67,8 @@ export default function UserPageComponents(){
         catch (error) {
             console.error('Error:', error);
             setRecentlyPlayedGames(["g", "h", "i"]);
-            setRecentlyReviewedGames(["j", "k", "l"]);
-            setPopularReviews(["m", "n", "o"]);
+            setRecentlyReviewedGames([["j", 1], ["k",2], ["l",3]]);
+            setPopularReviews([["m",4], ["n",5], ["o",6]]);
         }
     }
     function fetchUserLists(){
@@ -137,7 +141,10 @@ export default function UserPageComponents(){
     }   
 
     useEffect(() => {
-
+        // TODO useauth runs after this function called so i can't get updated user, please check this out later.
+        if (localStorage.getItem('username') === 'Guest') {
+            navigate('/login');
+        }
         fetchUserDetails();
         fetchUserFavorites();
         fetchRecentPopular();
@@ -166,7 +173,10 @@ export default function UserPageComponents(){
             <div className={styles.userDetails}>
                 <img src={userPicture} alt="User Picture" className={styles.userPicture}/> 
                 <h2 className={styles.username}>{user.username}</h2>
-                <p className={styles.bio}>{userDetails}</p>
+                <p className={styles.bio}>Games Played: {userDetails.gamesPlayed}</p>
+                <p className={styles.bio}>Reviews: {userDetails.reviewCount}</p>
+                <p className={styles.bio}>Followers: {userDetails.followers}</p>
+                <p className={styles.bio}>Following: {userDetails.following}</p>
             </div>
             {(currentTab === 'details') ? 
             <div>
@@ -176,7 +186,9 @@ export default function UserPageComponents(){
                         <h3>Favorite Properties</h3>
                         <ul>
                             {favoriteProperties.map((property) => (
-                                <li>{property}</li>
+                                <li>{property[0]}: <text onClick={
+                                    () => navigate('/property/' + property[1])
+                                }>{property[1]}</text></li>
                             ))}
                         </ul>
                     </div>
@@ -184,30 +196,36 @@ export default function UserPageComponents(){
                         <h3>Favorite Games</h3>
                         <ul>
                             {favoriteGames.map((game) => (
-                                <li>{game}</li>
+                                <li onClick={
+                                    () => navigate('/game/' + game)
+                                }>{game}</li>
                             ))}
                         </ul>
                     </div>
                 </div>
-                
-                
                 <div className={styles.recentPopular}>
                     <h2 className={styles.recentPopularTitle}>Recently Played Games</h2>
                     <ul>
                         {recentlyPlayedGames.map((game) => (
-                            <li>{game}</li>
+                            <li onClick={
+                                () => navigate('/game/' + game)
+                            }>{game}</li>
                         ))}
                     </ul>
                     <h2 className={styles.recentPopularTitle}>Recently Reviewed Games</h2>
                     <ul>
                         {recentlyReviewedGames.map((game) => (
-                            <li>{game}</li>
+                            <li onClick={
+                                () => navigate('/review/' + game[1])
+                            }>{game[0]}</li>
                         ))}
                     </ul>
                     <h2 className={styles.recentPopularTitle}>Popular Reviews</h2>
                     <ul>
-                        {popularReviews.map((review) => (
-                            <li>{review}</li>
+                        {popularReviews.map((game) => (
+                            <li onClick={
+                                () => navigate('/review/' + game[1])
+                            }>{game[0]}</li>
                         ))}
                     </ul>
                 </div>
@@ -225,13 +243,17 @@ export default function UserPageComponents(){
                 <h2 className={styles.userFollowsTitle}>Follows</h2>
                 <ul>
                     {userFollows.map((follow) => (
-                        <li>{follow}</li>
+                        <li onClick={
+                            () => navigate('/user/' + follow)
+                        }>{follow}</li>
                     ))}
                 </ul>
                 <h2 className={styles.userFollowingTitle}>Following</h2>
                 <ul>
                     {userFollowing.map((following) => (
-                        <li>{following}</li>
+                        <li onClick={
+                            () => navigate('/user/' + following)
+                        }>{following}</li>
                     ))}
                 </ul>
             </div>
@@ -240,7 +262,9 @@ export default function UserPageComponents(){
                 <h2 className={styles.userReviewsTitle}>User Reviews</h2>
                 <ul>
                     {userReviews.map((review) => (
-                        <li>{review}</li>
+                        <li onClick={
+                            () => navigate('/review/' + review)
+                        }>{review}</li>
                     ))}
                 </ul>
             </div>
@@ -249,7 +273,9 @@ export default function UserPageComponents(){
                 <h2 className={styles.userGamesTitle}>User Games</h2>
                 <ul>
                     {userGames.map((game) => (
-                        <li>{game}</li>
+                        <li onClick={
+                            () => navigate('/game/' + game)
+                        }>{game}</li>
                     ))}
                 </ul>
             </div>) : null}
