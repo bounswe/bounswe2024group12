@@ -1,14 +1,16 @@
 import React, {useState, useEffect} from "react";
 import Menu from '../common/Menu';
 import styles from "./UserPageComponents.module.css";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from "../common/UserContext";
 
 export default function UserPageComponents(){
+    const { id } = useParams();
     const { user } = useAuth();
     const navigate = useNavigate();
     const [userPicture, setUserPicture] = useState();
     const [userDetails, setUserDetails] = useState();
+    const [following, setFollowing] = useState(false);
     const [favoriteProperties, setFavoriteProperties] = useState();
     const [favoriteGames, setFavoriteGames] = useState();
     const [recentlyPlayedGames, setRecentlyPlayedGames] = useState();
@@ -131,7 +133,7 @@ export default function UserPageComponents(){
                     'Content-Type': 'application/json',
                 },
                 credentials: 'include',
-                body: JSON.stringify({"username": user.username}),
+                body: JSON.stringify({"username": id}),
             });
             return await response;
         }
@@ -140,11 +142,92 @@ export default function UserPageComponents(){
         }
     }   
 
-    useEffect(() => {
-        // TODO useauth runs after this function called so i can't get updated user, please check this out later.
-        if (localStorage.getItem('username') === 'Guest') {
-            navigate('/login');
+    async function checkUser(){
+        try{
+            const response = await fetch('http://localhost:8000/user-check', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({"username": id}),
+            });
+            const data = await response.json();
+            if (data.exist === false){
+                navigate('/404');
+            }
         }
+        catch (error) {
+            console.error('Error:', error);
+            navigate('/404');
+        }
+    }
+
+    async function followUser(){
+        try{
+            const response = await fetch('http://localhost:8000/user-follow', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({"follower": user.username, "followed": id}),
+            });
+            const data = await response.json();
+            if (data.success === true){
+                setFollowing(true);
+            }
+        }
+        catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    async function unfollowUser(){
+        try{
+            const response = await fetch('http://localhost:8000/user-unfollow', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({"follower": user.username, "followed": id}),
+            });
+            const data = await response.json();
+            if (data.success === true){
+                setFollowing(false);
+            }
+        }
+
+        catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    async function checkFollowing(){
+        try{
+            const response = await fetch('http://localhost:8000/user-following', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include',
+                body: JSON.stringify({"follower": user.username, "followed": id}),
+            });
+            const data = await response.json();
+
+            setFollowing(data.following);
+        }
+        catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+
+
+    useEffect(() => {
+        checkUser();
+        checkFollowing();
         fetchUserDetails();
         fetchUserFavorites();
         fetchRecentPopular();
@@ -168,15 +251,24 @@ export default function UserPageComponents(){
                 <button className={styles.tabButton} onClick={() => setCurrentTab('follows')}>Follows</button>
                 <button className={styles.tabButton} onClick={() => setCurrentTab('reviews')}>Reviews</button>
                 <button className={styles.tabButton} onClick={() => setCurrentTab('games')}>Games</button>
+                {user.username === id && user.username !== "Guest" ? <button className={styles.tabButton} onClick={() => navigate('/edit')}>Edit</button> : null}
             </div>
 
             <div className={styles.userDetails}>
                 <img src={userPicture} alt="User Picture" className={styles.userPicture}/> 
-                <h2 className={styles.username}>{user.username}</h2>
+                <h2 className={styles.username}>{id}</h2>
                 <p className={styles.bio}>Games Played: {userDetails.gamesPlayed}</p>
                 <p className={styles.bio}>Reviews: {userDetails.reviewCount}</p>
                 <p className={styles.bio}>Followers: {userDetails.followers}</p>
                 <p className={styles.bio}>Following: {userDetails.following}</p>
+                {(user.username !== id && user.username !== "Guest" && !following ) ? 
+                <button className={styles.followButton} onClick={
+                    () => followUser()
+                }>Follow</button> : 
+                (user.username !== id && user.username !== "Guest" && following) ?
+                <button className={styles.followButton} onClick={
+                    () => unfollowUser()
+                }>Unfollow</button> : null}
             </div>
             {(currentTab === 'details') ? 
             <div>

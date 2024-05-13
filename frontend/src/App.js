@@ -26,7 +26,7 @@ function App() {
           <Route path="/signup" element={<SignUpPage />} />
           <Route path="/signup-success" element={<SignUpSuccessPage />} />
           <Route path="/main" element={<MainPage />} />
-          <Route path="/user" element={<UserPage />} />
+          <Route path="/user/:id" element={<UserPage />} />
         <Route path="/game/:id" element={<GamePage />} /> {/* or name or whatever i dont know how the query will be made*/}
       </Routes>
       </UserProvider>
