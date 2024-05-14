@@ -30,7 +30,7 @@ class Review(models.Model):
     user = models.ForeignKey(RegisteredUser, on_delete=models.CASCADE)
     rating = models.IntegerField()
     text = models.TextField()
-    likes = models.IntegerField()
-    creationDate = models.DateTimeField(auto_now_add=True)
+    likes = models.IntegerField(default=0) # Initialize as zero likes
+    creationDate = models.DateTimeField(auto_now_add=True)  # Initialize as current date
     lastEditDate = models.DateTimeField(auto_now=True)
     likedBy = models.ManyToManyField(RegisteredUser, related_name='liked_reviews')
