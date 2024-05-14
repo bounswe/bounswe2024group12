@@ -7,7 +7,7 @@ import requests
 from django.contrib.auth import authenticate, login, logout
 import logging
 from django.utils import timezone
-from .models import Game, Review
+from .models import Review
 
 def extract_unique_values(results, key):
                 values = set()
@@ -205,12 +205,10 @@ def createReview(request):
         rating = data.get('rating')
         text = data.get('text')
         
-        game = Game.objects.get(title=game)
-        
         review = Review.objects.create(
-            game=game,
-            rating=rating,
-            text=text
+            game_id = game,
+            rating = rating,
+            text = text
         )
         
         return JsonResponse({'success': True, 'message': 'Review created successfully', 'game': game, 'rating': rating, 'text': text}, status=201)
