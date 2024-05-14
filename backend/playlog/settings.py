@@ -27,8 +27,10 @@ load_dotenv()
 DEBUG = True
 
 
-ALLOWED_HOSTS = ["*","127.0.0.1", "165.232.73.154"]
-CSRF_TRUSTED_ORIGINS = ["http://localhost:3000", "http://165.232.73.154:3306/", "http://165.232.73.154:3000"]
+ALLOWED_HOSTS = ["*",".localhost", os.getenv("DEPLOYMENT_URL")]
+CSRF_TRUSTED_ORIGINS \
+    = ["http://"+os.getenv("DEPLOYMENT_URL")+":"+os.getenv("FRONTEND_PORT"),
+       "http://"+os.getenv("DEPLOYMENT_URL")+":"+os.getenv("MYSQL_PORT")+"/"]
 
 # Application definition
 
@@ -87,8 +89,8 @@ DATABASES = {
         'NAME': os.getenv('MYSQL_DATABASE'),
         'USER': os.getenv('MYSQL_USER'),
         'PASSWORD': os.getenv('MYSQL_PASSWORD'),
-        'HOST': 'db',
-        'PORT': '3306',  # Default MySQL port
+        'HOST': os.getenv('MYSQL_HOST'),
+        'PORT': os.getenv("MYSQL_PORT"),  # Default MySQL port
     }
 }
 
