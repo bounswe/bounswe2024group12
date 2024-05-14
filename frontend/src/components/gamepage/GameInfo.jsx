@@ -31,7 +31,7 @@ const GameInfo = ({ game = { ...tempGame } }) => {
       const data = await response.json();
       console.log(data);
       setGameData({...gameData, ...data});
-      console.log("Game Data: ", gameData)
+     
       return 
   
     }
@@ -46,6 +46,40 @@ const GameInfo = ({ game = { ...tempGame } }) => {
   useEffect(() => {
     retrieveInfo();
     
+  }, []);
+
+  // game search api call 
+  const gameName = 'Minecraft';
+  async function searchGame() {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/search-game', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ game_name: gameName }),
+      });
+
+      if (!response.ok) {
+        console.log(response.statusText);
+        return;
+      }
+      const data = await response.json();
+      console.log(data);
+      setGameData({...gameData, ...data});
+      console.log("Game Data: ", gameData)
+      return
+
+    }
+    catch (error) {
+      console.error('Error:', error);
+    }
+
+  }
+  useEffect(() => {
+    searchGame();
+
   }, []);
 
 
