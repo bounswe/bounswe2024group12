@@ -18,6 +18,18 @@ SEARCH_BY_PROPERTIES = {
     'platform': 'P400',
     'composer': 'P86'
 }
+from .models import Review
+
+def extract_unique_values(results, key):
+                values = set()
+                try:
+                    for item in results['results']['bindings']:
+                        if key in item:
+                            values.add(item[key]['value'])
+                    return values
+                except:
+                    return values
+
 
 @csrf_exempt  # Only for demonstration. CSRF protection should be enabled in production.
 def signup(request):
@@ -439,3 +451,20 @@ def user_details(request):
         following = get_following_count(request)
         return JsonResponse({ "gamesLiked": gamesLiked, "reviewCount": reviewCount, "followers": followers, "following": following})
     
+
+def createReview(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        game = data.get('game')
+        rating = data.get('rating')
+        text = data.get('text')
+        
+        review = Review.objects.create(
+            game_id = game,
+            rating = rating,
+            text = text
+        )
+        
+        return JsonResponse({'success': True, 'message': 'Review created successfully', 'game': game, 'rating': rating, 'text': text}, status=201)
+    else:
+        return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)

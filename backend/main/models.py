@@ -28,3 +28,12 @@ class Follow(models.Model):
     follow_id = models.AutoField(primary_key=True)
     user = models.ForeignKey(RegisteredUser, on_delete=models.CASCADE, related_name='follower_set')
     followed_user = models.ForeignKey(RegisteredUser, on_delete=models.CASCADE, related_name='followed_set')
+class Review(models.Model):
+    game_id = models.CharField(max_length=100)
+    user = models.ForeignKey(RegisteredUser, on_delete=models.CASCADE)
+    rating = models.IntegerField()
+    text = models.TextField()
+    likes = models.IntegerField()
+    creationDate = models.DateTimeField(auto_now_add=True)
+    lastEditDate = models.DateTimeField(auto_now=True)
+    likedBy = models.ManyToManyField(RegisteredUser, related_name='liked_reviews')
