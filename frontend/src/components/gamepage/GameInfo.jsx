@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import styles from './GameInfo.module.css';
 import tempGame from "../temporaryassets/game.json";
 import tempImage from "../temporaryassets/gamePicture.jpeg";
-
+import { endpoint } from '../common/EndpointContext';
 
 
 
@@ -15,7 +15,7 @@ const GameInfo = ({ game = { ...tempGame } }) => {
 
   async function retrieveInfo() {
     try {
-      const response = await fetch('http://localhost:8000/game-of-day', {
+      const response = await fetch(endpoint+'game-of-day', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
