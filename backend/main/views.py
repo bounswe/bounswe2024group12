@@ -214,3 +214,32 @@ def createReview(request):
         return JsonResponse({'success': True, 'message': 'Review created successfully', 'game': game, 'rating': rating, 'text': text}, status=201)
     else:
         return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
+    
+def editReview(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        review = data.get('review') # Review ID
+        rating = data.get('rating')
+        text = data.get('text')
+        
+        review = Review.objects.get(id=review)
+        review.rating = rating
+        review.text = text
+        review.lastEditDate = timezone.now()
+        review.save()
+        
+        return JsonResponse({'success': True, 'message': 'Review updated successfully', 'game': review.game_id, 'rating': review.rating, 'text': review.text}, status=200)
+    else:
+        return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
+    
+def deleteReview(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        review = data.get('review') # Review ID
+        
+        review = Review.objects.get(id=review)
+        review.delete()
+        
+        return JsonResponse({'success': True, 'message': 'Review deleted successfully'}, status=200)
+    else:
+        return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
