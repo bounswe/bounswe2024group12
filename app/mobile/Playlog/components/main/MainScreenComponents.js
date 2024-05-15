@@ -22,8 +22,8 @@ export default MainScreenComponents = () => {
 
     return (
         <ScrollView contentContainerStyle={styles.scrollView}>
-            <Text style={textStyles.header}>Main Screen</Text>
-            <Text style={textStyles.default}>Welcome to the Main Screen, {!isGuest ? username : "Guest"}. Your token:{token}</Text>
+            {/* <Text style={textStyles.header}>Main Screen</Text> */}
+            <Text style={textStyles.title}>Welcome {!isGuest ? username : "Guest"}</Text>
             <MainPageBanner />
             <GameListCard title={"Popular Games"} />
             <GameListCard title={"Recent Games"} />

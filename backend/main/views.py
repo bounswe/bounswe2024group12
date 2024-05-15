@@ -6,17 +6,7 @@ import requests
 from django.contrib.auth import authenticate, login as djangologin, logout
 import logging
 from django.utils import timezone
-
-def extract_unique_values(results, key):
-                values = set()
-                try:
-                    for item in results['results']['bindings']:
-                        if key in item:
-                            values.add(item[key]['value'])
-                    return values
-                except:
-                    return values
-
+import re
 
 @csrf_exempt  # Only for demonstration. CSRF protection should be enabled in production.
 def signup(request):
@@ -54,7 +44,7 @@ def signup(request):
 
     else:
         return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
-    
+
 @csrf_exempt 
 def login(request):
     if request.method == 'POST':
@@ -71,15 +61,24 @@ def login(request):
             return JsonResponse({'success': False, 'message': 'Invalid credentials'}, status=401)
     else:
         return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
-    
+
+def extract_unique_values(results, key):
+                values = set()
+                try:
+                    for item in results['results']['bindings']:
+                        if key in item:
+                            values.add(item[key]['value'])
+                    return values
+                except:
+                    return values
+                
 @csrf_exempt
-def property_game(request):
-    if request.method == 'POST':
-        
+def get_game_info(request, game_name):
+    if request.method == 'POST': 
         sparql_query = """
                 SELECT DISTINCT ?game ?gameLabel  ?genreLabel ?publisherLabel ?countryLabel ?publication_date ?screenwriterLabel ?composerLabel ?platformLabel
             WHERE {
-            ?game rdfs:label "The Witcher 3: Wild Hunt"@en;  # Searching by the game name
+            ?game rdfs:label "%s"@en;  # Searching by the game name
                     wdt:P136 ?genre;                            # Genre
                     wdt:P123 ?publisher;                        # Publisher
                     wdt:P495 ?country;                          # Country of origin
@@ -91,9 +90,7 @@ def property_game(request):
             # Fetching the labels for the genre, publisher, country, screenwriter, composer, and platform
             SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
             }
-                """
-        
-        
+                """ % game_name
         url = 'https://query.wikidata.org/sparql'
         headers = {'User-Agent': 'Mozilla/5.0 (Django Application)', 'Accept': 'application/json'}
         response = requests.get(url, headers=headers, params={'query': sparql_query, 'format': 'json'})
@@ -127,6 +124,45 @@ def property_game(request):
             return JsonResponse({'error': 'Failed to query Wikidata'}, status=response.status_code)
 
     return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+def index(request):
+    return JsonResponse({'message': 'Welcome to the PlayLog API!'})
+
+def generate_slug(name):
+    slug = name.lower()
+    slug = slug.replace(' ', '-')
+    slug = re.sub(r'[^\w-]', '', slug)
+    slug = slug.strip('-')
+    return slug
+
+def get_game_slug(request):   
+    data = json.loads(request.body)
+    game_name = data.get('game_name')
+    if not game_name:
+        return JsonResponse({'error': 'Game name is required'}, status=400)
+    slug = generate_slug(game_name)
+    return JsonResponse({'slug': slug})
+
+def get_unique_games(json_list, params):
+    #make a json list 'games'
+    games = []
+
+    check = 'gameLabel'
+    values = set()
+    for item in json_list['results']['bindings']:
+        item_val = item[check]['value']
+        if item_val not in values:
+            values.add(item_val)
+            game = {}
+            for param in params:
+                if param in item:
+                    game[param] = item[param]['value']
+                else:
+                    game[param] = None
+            game['game-slug'] = generate_slug(item['gameLabel']['value'])
+            games.append(game)
+    games_json = {"games": games}
+    return games_json
 
 @csrf_exempt
 def search_game(request):
