@@ -1,10 +1,9 @@
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import RegisteredUser
 import json
 import requests
-from django.contrib.auth import authenticate
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, login as djangologin, logout
 from django.utils import timezone
 import re
 
@@ -22,12 +21,22 @@ def signup(request):
         username = data.get('username')
         email = data.get('email')
         password = data.get('password')
-        user = RegisteredUser.objects.create_user(
-            username=username,
-            email=email,
-            password=password,  # Hash the password
-            is_active=True
-        )
+
+        # Check if the username or email already exists
+        if RegisteredUser.objects.filter(username=username).exists():
+            return JsonResponse({'error': 'Username already exists'}, status=400)
+        if RegisteredUser.objects.filter(email=email).exists():
+            return JsonResponse({'error': 'Email already exists'}, status=400)
+
+        try:
+            user = RegisteredUser.objects.create_user(
+                username=username,
+                email=email,
+                password=password,  # Hash the password
+                is_active=True
+            )
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
         
 
         return JsonResponse({'success': True, 'message': 'User created successfully', 'username': user.username, 'email': user.email, "password": user.password}, status=201)
@@ -43,6 +52,7 @@ def login(request):
         password = data.get('password')
         user = authenticate(username=email, password=password)
         if user is not None:
+            djangologin(request, user)
             response = JsonResponse({'success': True, 'message': 'Login successful', 'username': user.username, "token" : "dummy-token"}, status=200)
             response.set_cookie("token", "dummy-token")
             return response
@@ -261,5 +271,5 @@ def get_new_games(request):
     results = response.json()
     new_games = list(extract_unique_values(results, 'gameLabel'))[:10]
     new_games = [{'game-name': game, 'game-slug': generate_slug(game)} for game in new_games]
-    return JsonResponse({'games': new_games})
+    return JsonResponse({'games': new_games}) 
 
