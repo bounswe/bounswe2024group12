@@ -322,10 +322,7 @@ def get_new_games(request):
     headers = {'User-Agent': 'Mozilla/5.0 (Django Application)', 'Accept': 'application/json'}
     response = requests.get(url, headers=headers, params={'query': sparql_query, 'format': 'json'})
     results = response.json()
-    new_games = get_unique_games(results, ['gameLabel', 'image'])
-    #get the first 10 games
-    new_games['games'] = new_games['games'][:10]
-    return JsonResponse(new_games, safe=False)
-
-
+    new_games = list(extract_unique_values(results, 'gameLabel'))[:10]
+    new_games = [{'game-name': game, 'game-slug': generate_slug(game)} for game in new_games]
+    return JsonResponse({'games': new_games})
 
