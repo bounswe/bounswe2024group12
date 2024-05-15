@@ -77,6 +77,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'playlog.wsgi.application'
 
+IGDB_API_SETTINGS = {
+    'CLIENT_ID': os.getenv('IGDB_CLIENT_ID'),
+    'ACCESS_TOKEN': os.getenv('IGDB_ACCESS_TOKEN'),
+}
 
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases

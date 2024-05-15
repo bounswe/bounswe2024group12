@@ -2,46 +2,10 @@ from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import RegisteredUser
 import json
-from django.contrib.auth.hashers import make_password
 import requests
-from django.contrib.auth import authenticate, login, logout
-import logging
+from django.contrib.auth import authenticate
 from django.utils import timezone
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
-
-def extract_unique_values(results, key):
-                values = set()
-                try:
-                    for item in results['results']['bindings']:
-                        if key in item:
-                            values.add(item[key]['value'])
-                    return values
-                except:
-                    return values
-
-
-@swagger_auto_schema(
-    method='post',
-    operation_description="Register a new user",
-    request_body=openapi.Schema(
-    type=openapi.TYPE_OBJECT,
-    properties = {
-            'username': openapi.Schema(type=openapi.TYPE_STRING),
-            'email': openapi.Schema(type=openapi.TYPE_STRING),
-            'password': openapi.Schema(type=openapi.TYPE_STRING),
-    },
-    required=['username', 'email', 'password']
-    ),
-    responses={
-        201: "User created successfully",
-        400: "Invalid request",
-    },
-    operation_id='signup',
-)
-@api_view(['POST', 'OPTIONS'])
+import re
 
 @csrf_exempt  # Only for demonstration. CSRF protection should be enabled in production.
 def signup(request):
@@ -70,26 +34,6 @@ def signup(request):
     else:
         return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
 
-@swagger_auto_schema(
-        method='post',
-        operation_description="Login a user",
-        request_body=openapi.Schema(
-        type=openapi.TYPE_OBJECT,
-        properties = {
-            'email': openapi.Schema(type=openapi.TYPE_STRING),
-            'password': openapi.Schema(type=openapi.TYPE_STRING)
-        },
-        required=['email', 'password']
-        ),
-
-        responses={
-            200: "Login successful",
-            401: "Invalid credentials",
-            400: "Invalid request"
-        },
-        operation_id='login'
-)
-@api_view(['POST'])
 @csrf_exempt 
 def login(request):
     if request.method == 'POST':
@@ -106,28 +50,23 @@ def login(request):
     else:
         return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
 
-@swagger_auto_schema(
-    method='post',
-    operation_description="Get the properties of a game",
-    request_body=openapi.Schema(
-        type=openapi.TYPE_OBJECT
-    ),
-    responses={
-        200: "Game properties fetched successfully",
-        404: "Game not found",
-        405: "Invalid request method",
-    },
-    operation_id='property_game'
-)
-@api_view(('POST', 'OPTIONS'))
+def extract_unique_values(results, key):
+                values = set()
+                try:
+                    for item in results['results']['bindings']:
+                        if key in item:
+                            values.add(item[key]['value'])
+                    return values
+                except:
+                    return values
+                
 @csrf_exempt
-def property_game(request):
-    if request.method == 'POST':
-        
+def get_game_info(request, game_name):
+    if request.method == 'POST': 
         sparql_query = """
                 SELECT DISTINCT ?game ?gameLabel  ?genreLabel ?publisherLabel ?countryLabel ?publication_date ?screenwriterLabel ?composerLabel ?platformLabel
             WHERE {
-            ?game rdfs:label "The Witcher 3: Wild Hunt"@en;  # Searching by the game name
+            ?game rdfs:label "%s"@en;  # Searching by the game name
                     wdt:P136 ?genre;                            # Genre
                     wdt:P123 ?publisher;                        # Publisher
                     wdt:P495 ?country;                          # Country of origin
@@ -139,9 +78,7 @@ def property_game(request):
             # Fetching the labels for the genre, publisher, country, screenwriter, composer, and platform
             SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
             }
-                """
-        
-        
+                """ % game_name
         url = 'https://query.wikidata.org/sparql'
         headers = {'User-Agent': 'Mozilla/5.0 (Django Application)', 'Accept': 'application/json'}
         response = requests.get(url, headers=headers, params={'query': sparql_query, 'format': 'json'})
@@ -240,10 +177,6 @@ def search_game(request):
                     'characters': list(unique_characters),
                     'screenwriters': list(unique_screenwriters),
                     'composers': list(unique_composers)
-                    
-                
-                    
-
                                 })
             else:
                 return JsonResponse({'error': 'No game found with that name'}, status=404)
@@ -255,3 +188,101 @@ def search_game(request):
 def index(request):
     return JsonResponse({'message': 'Welcome to the PlayLog API!'})
 
+def generate_slug(name):
+    slug = name.lower()
+    slug = slug.replace(' ', '-')
+    slug = re.sub(r'[^\w-]', '', slug)
+    slug = slug.strip('-')
+    return slug
+
+@csrf_exempt
+def get_all_games(request):
+    sparql_query = """
+        SELECT DISTINCT ?game ?gameLabel
+        WHERE {
+        ?game wdt:P31 wd:Q7889.  # Instance of video game
+        SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+        }
+    """
+    url = 'https://query.wikidata.org/sparql'
+    headers = {'User-Agent': 'Mozilla/5.0 (Django Application)', 'Accept': 'application/json'}
+    response = requests.get(url, headers=headers, params={'query': sparql_query, 'format': 'json'})
+    results = response.json()
+    all_games = list(extract_unique_values(results, 'gameLabel'))
+    all_games = [{'game-name': game, 'game-slug': generate_slug(game)} for game in unique_games]
+    return JsonResponse({'games': all_games})
+
+@csrf_exempt
+def get_game_of_the_day(request):
+    today = timezone.now().date()
+    sparql_query = f"""
+        SELECT DISTINCT ?game ?gameLabel
+        WHERE {{
+            ?game wdt:P31 wd:Q7889;  # Instance of video game
+                wdt:P577 ?publication_date.  # Publication date
+            FILTER (YEAR(?publication_date) != {today.year} && MONTH(?publication_date) = {today.month} && DAY(?publication_date) = {today.day})
+            SERVICE wikibase:label {{ bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }}
+        }}
+        LIMIT 1
+    """
+    url = 'https://query.wikidata.org/sparql'
+    headers = {'User-Agent': 'Mozilla/5.0 (Django Application)', 'Accept': 'application/json'}
+    response = requests.get(url, headers=headers, params={'query': sparql_query, 'format': 'json'})
+    results = response.json()
+    game_of_the_day = list(extract_unique_values(results, 'gameLabel'))[0]
+    game_slug = generate_slug(game_of_the_day)
+
+    context = {
+        'game_name': game_of_the_day,
+        'game_slug': game_slug
+    }
+
+    return JsonResponse(context)
+
+@csrf_exempt
+def get_popular_games(request):
+    sparql_query = """
+                SELECT ?game ?gameLabel (COUNT(?statement) as ?statementCount)
+        WHERE {
+        ?game wdt:P31 wd:Q7889;               # Instance of video game
+                rdfs:label ?gameLabel.         # Game label
+        OPTIONAL { ?game ?p ?statement }      # Optional statement
+        FILTER(LANG(?gameLabel) = "en")      # Filter labels to English
+        }
+        GROUP BY ?game ?gameLabel
+        ORDER BY DESC(?statementCount)
+        LIMIT 20
+    """
+    url = 'https://query.wikidata.org/sparql'
+    headers = {'User-Agent': 'Mozilla/5.0 (Django Application)', 'Accept': 'application/json'}
+    response = requests.get(url, headers=headers, params={'query': sparql_query, 'format': 'json'})
+    results = response.json()
+    popular_games = list(extract_unique_values(results, 'gameLabel'))[:10]
+    popular_games = [{'game-name': game, 'game-slug': generate_slug(game)} for game in popular_games]
+
+    return JsonResponse({'games': popular_games})
+
+def get_new_games(request):
+    today = timezone.now().date()
+    sparql_query = """
+        SELECT DISTINCT ?game ?gameLabel ?publicationDate
+        WHERE {
+          ?game wdt:P31 wd:Q7889;               # Instance of video game
+                wdt:P577 ?publicationDate;     # Publication date
+                rdfs:label ?gameLabel.         # Game label
+          FILTER(?publicationDate >= "%s"^^xsd:dateTime && ?publicationDate <= "%s"^^xsd:dateTime)
+          FILTER(LANG(?gameLabel) = "en")      # Filter labels to English
+        }
+        ORDER BY DESC(?publicationDate)
+        LIMIT 20
+    """ % (today - timezone.timedelta(days=60), today)
+    url = 'https://query.wikidata.org/sparql'
+    headers = {'User-Agent': 'Mozilla/5.0 (Django Application)', 'Accept': 'application/json'}
+    response = requests.get(url, headers=headers, params={'query': sparql_query, 'format': 'json'})
+    results = response.json()
+    new_games = list(extract_unique_values(results, 'gameLabel'))[:10]
+    new_games = [{'game-name': game, 'game-slug': generate_slug(game)} for game in new_games]
+    return JsonResponse({'games': new_games})
+
+
+    
