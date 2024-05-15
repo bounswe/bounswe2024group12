@@ -3,13 +3,15 @@
     justify-content: space-between;
     align-items: center;
     padding: 10px;
-    background-color: var(--navbar-color); 
+    background-color: var(--card-color); 
+    box-shadow: 0px 4px 6px var(--highlight-color); /* Lighter grey */
   }
   
   .siteName {
     font-size: 24px;
+    padding-left: 20px;
     font-weight: bold;
-    color: var(--text-color); /* White */
+    color: var(--highlight-color); /* White */
   }
   
   .menuItems {
@@ -31,10 +33,85 @@
     color: var(--text-color); /* White */
   }
   
-  .searchBar {
+  /* .searchBar {
     padding: 5px;
     margin-right: 10px;
+  } */
+
+ 
+
+  .searchContainer {
+    position: relative;
+    width: 400px;
+    margin:20px;
+    background: var(--card-color);
+    
   }
+  .searchBar {
+    display: flex;
+    align-items: center;
+    background: var(--card-color);
+    padding-top: 8px;
+    margin-top: 5px;
+  }
+  
+  .searchIcon {
+    margin-right: 8px; /* Spacing between the icon and the input field */
+    color: var(--highlight-color);
+    cursor: pointer;
+  }
+  
+  .searchField {
+    display: flex;
+    flex: 1; /* Allows the input to take up the remaining space */
+    align-items: center;
+    background: var(--card-color);
+
+
+
+  }
+  
+  .searchInput {
+    width: 100%; /* Full width of the flex container */
+    background: transparent; /* No background color */
+    border: none; /* Removes border */
+    color: inherit; /* Inherits text color from parent */
+    outline: none;
+    font-size: 17px; /* Removes focus outline */
+  }
+  
+  .suggestions {
+    position: absolute;
+    z-index: 1000;
+    background: var(--background-color); /* Black */
+    width: 100%;
+    padding: 5px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    z-index: 1000;
+    max-height: 300px; /* Limit the height and enable scrolling */
+    overflow-y: auto;
+    /* dont focus when clicked */
+    
+  }
+  
+  .suggestionItem {
+    padding: 10px 20px;
+    background-color: var(--card-color);
+    cursor: pointer;
+    border-bottom: 1px solid var(--card-color); 
+  }
+  
+  .suggestionItem:last-child {
+    border-bottom: none;
+  }
+  
+  .suggestionItem:hover {
+     /* White */
+    color: var(--highlight-color); /* Black */
+    background-color: var(--background-color);
+  }
+  
   
   .userInfo {
     margin-right: 10px;
