@@ -29,7 +29,7 @@ class Follow(models.Model):
     user = models.ForeignKey(RegisteredUser, on_delete=models.CASCADE, related_name='follower_set')
     followed_user = models.ForeignKey(RegisteredUser, on_delete=models.CASCADE, related_name='followed_set')
 class Review(models.Model):
-    game_id = models.CharField(max_length=100)
+    game_slug = models.CharField(max_length=100)
     user = models.ForeignKey(RegisteredUser, on_delete=models.CASCADE)
     rating = models.IntegerField()
     text = models.TextField()

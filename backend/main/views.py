@@ -460,7 +460,7 @@ def createReview(request):
         text = data.get('text')
         
         review = Review.objects.create(
-            game_id = game,
+            game_slug = game,
             rating = rating,
             text = text
         )
@@ -538,11 +538,20 @@ def recentReviews(request):
         data = json.loads(request.body)
         game = data.get('game')
         
-        reviews = Review.objects.filter(game_id=game, creationDate__gte=timezone.now() - timezone.timedelta(days=7))
+        reviews = Review.objects.filter(game_slug=game, creationDate__gte=timezone.now() - timezone.timedelta(days=7))
         
         return JsonResponse({'reviews': list(reviews.values())}, status=200)
     else:
         return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
+    
+def recentReviewsOfUser(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        user = data.get('user')
+        
+        reviews = Review.objects.filter(user_id=user, creationDate__gte=timezone.now() - timezone.timedelta(days=7))
+        
+        return JsonResponse({'reviews': list(reviews.values())}, status=200)
 
 # Returns reviews that have more than 50 likes   
 def popularReviews(request):
@@ -550,11 +559,20 @@ def popularReviews(request):
         data = json.loads(request.body)
         game = data.get('game')
         
-        reviews = Review.objects.filter(game_id=game, likes__gt=50)
+        reviews = Review.objects.filter(game_slug=game, likes__gt=50)
         
         return JsonResponse({'reviews': list(reviews.values())}, status=200)
     else:
         return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
+    
+def popularReviewsOfUser(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        user = data.get('user')
+        
+        reviews = Review.objects.filter(user_id=user, likes__gt=50)
+        
+        return JsonResponse({'reviews': list(reviews.values())}, status=200)
     
 def getUserReviews(request):
     if request.method == 'POST':
@@ -562,7 +580,7 @@ def getUserReviews(request):
         user = data.get('user')
         game = data.get('game')
         
-        reviews = Review.objects.filter(user_id=user, game_id=game)
+        reviews = Review.objects.filter(user_id=user, game_slug=game)
         
         return JsonResponse({'reviews': list(reviews.values())}, status=200)
     else:
