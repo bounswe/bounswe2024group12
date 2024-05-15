@@ -6,7 +6,6 @@ import requests
 from django.contrib.auth import authenticate
 from django.contrib.auth import authenticate
 from django.utils import timezone
-from .models import Game, Review
 import re
 
 @csrf_exempt  # Only for demonstration. CSRF protection should be enabled in production.
@@ -115,101 +114,8 @@ def get_game_info(request, game_name):
 
     return JsonResponse({'error': 'Invalid request method'}, status=405)
 
-@csrf_exempt
-def search_game(request):
-    if request.method == 'POST':
-        print("REQUEST BODY" , request.body)
-        data = json.loads(request.body)  # Parse the JSON data from the request body
-        game_name = data.get('game_name')
-        print("GAME NAME", game_name)
-        if not game_name:
-            return JsonResponse({'error': 'Game name is required'}, status=400)
-        
-        sparql_query = f"""
-                SELECT DISTINCT ?game ?gameLabel ?genreLabel ?publisherLabel ?countryLabel ?publication_date ?logo ?image ?charactersLabel ?screenwriterLabel ?composerLabel
-                WHERE {{
-                    ?game wdt:P31 wd:Q7889.
-                    ?game rdfs:label "{game_name}"@en;
-
-                    OPTIONAL {{ ?game wdt:P136 ?genre. }}
-                    OPTIONAL {{ ?game wdt:P123 ?publisher. }}
-                    OPTIONAL {{ ?game wdt:P495 ?country. }}
-                    OPTIONAL {{ ?game wdt:P577 ?publication_date. }}
-                    OPTIONAL {{ ?game wdt:P58  ?screenwriter. }}
-                    OPTIONAL {{ ?game wdt:P86  ?composer. }}
-                    OPTIONAL {{ ?game wdt:P154 ?logo. }}
-                    OPTIONAL {{ ?game wdt:P18  ?image. }}
-                    OPTIONAL {{ ?game wdt:P674 ?characters. }}
-
-                    SERVICE wikibase:label {{ bd:serviceParam wikibase:language "en". }}
-                }}
-                LIMIT 40
-            """
-
-        url = 'https://query.wikidata.org/sparql'
-        headers = {'User-Agent': 'Mozilla/5.0 (Django Application)', 'Accept': 'application/json'}
-        response = requests.get(url, headers=headers, params={'query': sparql_query, 'format': 'json'})
-
-        if response.status_code == 200:
-            results = response.json()
-
-            if results:
-                unique_games = extract_unique_values(results, 'gameLabel')
-                unique_genres = extract_unique_values(results, 'genreLabel')
-                unique_publishers = extract_unique_values(results, 'publisherLabel')
-                unique_countries = extract_unique_values(results, 'countryLabel')
-                unique_publication_dates = extract_unique_values(results, 'publication_date')
-                unique_logos = extract_unique_values(results, 'logo')
-                unique_images = extract_unique_values(results, 'image')
-                unique_characters = extract_unique_values(results, 'charactersLabel')
-                unique_screenwriters = extract_unique_values(results, 'screenwriterLabel')
-                unique_composers = extract_unique_values(results, 'composerLabel')
-
-
-
-                
-                return JsonResponse({
-                    'games': list(unique_games),
-                    'genres': list(unique_genres),
-                    'publishers': list(unique_publishers),
-                    'countries': list(unique_countries),
-                    'publication_dates': list(unique_publication_dates),
-                    'logos': list(unique_logos),
-                    'images': list(unique_images),
-                    'characters': list(unique_characters),
-                    'screenwriters': list(unique_screenwriters),
-                    'composers': list(unique_composers)
-                                })
-            else:
-                return JsonResponse({'error': 'No game found with that name'}, status=404)
-        else:
-            return JsonResponse({'error': 'Failed to query Wikidata'}, status=response.status_code)
-
-    return JsonResponse({'error': 'Invalid request method'}, status=405)
-
 def index(request):
     return JsonResponse({'message': 'Welcome to the PlayLog API!'})
-
-def createReview(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        game = data.get('game')
-        rating = data.get('rating')
-        text = data.get('text')
-        
-        game = Game.objects.get(title=game)
-        
-        review = Review.objects.create(
-            game=game,
-            rating=rating,
-            text=text
-        )
-
-        review.save()
-        
-        return JsonResponse({'success': True, 'message': 'Review created successfully', 'game': game, 'rating': rating, 'text': text}, status=201)
-    else:
-        return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
 
 def generate_slug(name):
     slug = name.lower()
@@ -217,6 +123,14 @@ def generate_slug(name):
     slug = re.sub(r'[^\w-]', '', slug)
     slug = slug.strip('-')
     return slug
+
+def get_game_slug(request):   
+    data = json.loads(request.body)
+    game_name = data.get('game_name')
+    if not game_name:
+        return JsonResponse({'error': 'Game name is required'}, status=400)
+    slug = generate_slug(game_name)
+    return JsonResponse({'slug': slug})
 
 def get_unique_games(json_list, params):
     #make a json list 'games'
@@ -238,6 +152,29 @@ def get_unique_games(json_list, params):
             games.append(game)
     games_json = {"games": games}
     return games_json
+
+@csrf_exempt
+def search_game(request):
+    data = json.loads(request.body)
+    game_name = data.get('game_name')
+    if not game_name:
+        return JsonResponse({'error': 'Game name is required'}, status=400)
+    sparql_query = """
+            SELECT DISTINCT ?game ?gameLabel
+            WHERE {
+                ?game wdt:P31 wd:Q7889;  # Instance of video game
+                    rdfs:label ?gameLabel. # Game label
+                FILTER(LANG(?gameLabel) = "en")  # Filter labels to English
+                FILTER(CONTAINS(LCASE(?gameLabel), LCASE("%s")))  # Case-insensitive search by name
+                } 
+                LIMIT 10
+                """ % game_name
+    url = 'https://query.wikidata.org/sparql'
+    headers = {'User-Agent': 'Mozilla/5.0 (Django Application)', 'Accept': 'application/json'}
+    response = requests.get(url, headers=headers, params={'query': sparql_query, 'format': 'json'})
+    results = response.json()
+    games = get_unique_games(results, ['gameLabel'])
+    return JsonResponse(games, safe=False)
 
 @csrf_exempt
 def get_all_games(request):

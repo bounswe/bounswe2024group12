@@ -23,18 +23,3 @@ class RegisteredUser(AbstractBaseUser):
     
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'password']
-
-class Game(models.Model):
-    slug = models.SlugField(max_length=200, primary_key=True)
-    name = models.CharField(max_length=200)
-    image = models.URLField()
-
-class Review(models.Model):
-    game = models.ForeignKey(Game, on_delete=models.CASCADE)
-    user = models.ForeignKey(RegisteredUser, on_delete=models.CASCADE)
-    rating = models.IntegerField()
-    text = models.TextField()
-    likes = models.IntegerField()
-    creationDate = models.DateTimeField(auto_now_add=True)
-    lastEditDate = models.DateTimeField(auto_now=True)
-    likedBy = models.ManyToManyField(RegisteredUser, related_name='liked_reviews')
