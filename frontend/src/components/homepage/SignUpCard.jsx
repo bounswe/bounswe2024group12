@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../common/UserContext';
 import TermsAndConditions from './agreements/TermsAndConditions';
 import PrivacyAgreement from './agreements/PrivacyAgreement';
+import { endpoint } from '../common/EndpointContext';
 
 
 export default function SignUpCard() {
@@ -13,7 +14,6 @@ export default function SignUpCard() {
     const [usernameErr, setUsernameErr] = useState("");
     const [showTerms, setShowTerms] = useState(false);
     const [showPrivacy, setShowPrivacy] = useState(false);
-
     const { loggedIn, } = useAuth();
 
     useEffect(() => {
@@ -45,7 +45,7 @@ export default function SignUpCard() {
         console.log("Password", password);
 
         try {
-            const response = await fetch('https://localhost:8000/signup', {
+            const response = await fetch(endpoint+'signup', {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
