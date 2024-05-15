@@ -277,3 +277,27 @@ def unlikeReview(request):
         return JsonResponse({'success': True, 'message': 'Review unliked successfully', 'likes': review.likes}, status=200)
     else:
         return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
+    
+# Returns reviews posted within 1 week for a specific game
+def recentReviews(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        game = data.get('game')
+        
+        reviews = Review.objects.filter(game_id=game, creationDate__gte=timezone.now() - timezone.timedelta(days=7))
+        
+        return JsonResponse({'reviews': list(reviews.values())}, status=200)
+    else:
+        return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
+
+# Returns reviews that have more than 50 likes   
+def popularReviews(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        game = data.get('game')
+        
+        reviews = Review.objects.filter(game_id=game, likes__gt=50)
+        
+        return JsonResponse({'reviews': list(reviews.values())}, status=200)
+    else:
+        return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
