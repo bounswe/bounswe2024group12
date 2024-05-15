@@ -26,7 +26,7 @@ class RegisteredUser(AbstractBaseUser):
     REQUIRED_FIELDS = ['username', 'password']
 
 class Review(models.Model):
-    game_id = models.CharField(max_length=100)
+    game_slug = models.CharField(max_length=100)
     user = models.ForeignKey(RegisteredUser, on_delete=models.CASCADE)
     rating = models.IntegerField()
     text = models.TextField()
