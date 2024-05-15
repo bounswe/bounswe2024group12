@@ -301,3 +301,15 @@ def popularReviews(request):
         return JsonResponse({'reviews': list(reviews.values())}, status=200)
     else:
         return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
+    
+def getUserReviews(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        user = data.get('user')
+        game = data.get('game')
+        
+        reviews = Review.objects.filter(user_id=user, game_id=game)
+        
+        return JsonResponse({'reviews': list(reviews.values())}, status=200)
+    else:
+        return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
