@@ -13,6 +13,7 @@ export default function TabBar({user, id, setCurrentTab}){
             <button className={styles.tabButton} onClick={() => setCurrentTab('follows')}>Follows</button>
             <button className={styles.tabButton} onClick={() => setCurrentTab('reviews')}>Reviews</button>
             <button className={styles.tabButton} onClick={() => setCurrentTab('games')}>Games</button>
+            {user.username === id && user.username !== "Guest" ? <button className={styles.tabButton} onClick={() => setCurrentTab('bookmarks')}>Bookmarks</button> : null}
             {user.username === id && user.username !== "Guest" ? <button className={styles.tabButton} onClick={() => navigate('/edit')}>Edit</button> : null}
         </div>
 )

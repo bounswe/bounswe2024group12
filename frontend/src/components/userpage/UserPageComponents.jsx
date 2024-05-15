@@ -10,6 +10,7 @@ import ListsTab from "./ListsTab";
 import FollowsTab from "./FollowsTab";
 import ReviewsTab from "./ReviewsTab";
 import GamesTab from "./GamesTab";
+import BookmarksTab from "./BookmarksTab";
 
 export default function UserPageComponents(){
     const { id } = useParams();
@@ -28,6 +29,7 @@ export default function UserPageComponents(){
     const [userFollowing, setUserFollowing] = useState();
     const [userReviews, setUserReviews] = useState();
     const [userGames, setUserGames] = useState();
+    const [bookmarks, setBookmarks] = useState();
     const [loading, setLoading] = useState(true);
     const [currentTab, setCurrentTab] = useState('details')
 
@@ -132,6 +134,19 @@ export default function UserPageComponents(){
 
         }
     }
+    function fetchBookmarks(){
+        try{
+            const response = request('bookmarks')
+            const data = response.json();
+            console.log(data);
+            setBookmarks(data.bookmarks);
+        }
+        catch (error) {
+            console.error('Error:', error);
+            setBookmarks(["ae", "af", "ag"]);
+        }
+    }
+        
     async function request(type){
         try{
             const response = await fetch('http://localhost:8000/user-' + type, {
@@ -160,13 +175,13 @@ export default function UserPageComponents(){
                 body: JSON.stringify({"username": id}),
             });
             const data = await response.json();
-            // if (data.exist === false){
-            //     navigate('/404');
-            // }
+            if (data.exist === false){
+                navigate('/404');
+            }
         }
         catch (error) {
             console.error('Error:', error);
-            // navigate('/404');
+            navigate('/404');
         }
     }
 
@@ -240,6 +255,7 @@ export default function UserPageComponents(){
         fetchUserFollows();
         fetchUserReviews();
         fetchUserGames();
+        fetchBookmarks();
         setLoading(false);
     }, []);
 
@@ -261,7 +277,10 @@ export default function UserPageComponents(){
             ) : (currentTab === 'reviews') ? (
            <ReviewsTab userReviews={userReviews}/>
             ) : (currentTab === 'games') ? (
-            <GamesTab userGames={userGames}/>) : null}
+            <GamesTab userGames={userGames}/>) : 
+            (currentTab === 'bookmarks') ? (
+            <BookmarksTab userReviews={bookmarks}/>) :
+            null}
         </div> 
         </div>
     );
