@@ -3,6 +3,7 @@ import Menu from '../common/Menu';
 import styles from "./UserPageComponents.module.css";
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from "../common/UserContext";
+import TabBar from "./TabBar";
 
 export default function UserPageComponents(){
     const { id } = useParams();
@@ -22,7 +23,7 @@ export default function UserPageComponents(){
     const [userReviews, setUserReviews] = useState();
     const [userGames, setUserGames] = useState();
     const [loading, setLoading] = useState(true);
-    const [currentTab, setCurrentTab] = useState('details');
+    const [currentTab, setCurrentTab] = useState('details')
 
     function fetchUserDetails(){
         try {
@@ -153,13 +154,13 @@ export default function UserPageComponents(){
                 body: JSON.stringify({"username": id}),
             });
             const data = await response.json();
-            if (data.exist === false){
-                navigate('/404');
-            }
+            // if (data.exist === false){
+            //     navigate('/404');
+            // }
         }
         catch (error) {
             console.error('Error:', error);
-            navigate('/404');
+            // navigate('/404');
         }
     }
 
@@ -245,15 +246,7 @@ export default function UserPageComponents(){
     return (
         <div>
             <Menu/>
-            <div className={styles.tabBar}>
-                <button className={styles.tabButton} onClick={() => setCurrentTab('details')}>Details</button>
-                <button className={styles.tabButton} onClick={() => setCurrentTab('lists')}>Lists</button>
-                <button className={styles.tabButton} onClick={() => setCurrentTab('follows')}>Follows</button>
-                <button className={styles.tabButton} onClick={() => setCurrentTab('reviews')}>Reviews</button>
-                <button className={styles.tabButton} onClick={() => setCurrentTab('games')}>Games</button>
-                {user.username === id && user.username !== "Guest" ? <button className={styles.tabButton} onClick={() => navigate('/edit')}>Edit</button> : null}
-            </div>
-
+            
             <div className={styles.userDetails}>
                 <img src={userPicture} alt="User Picture" className={styles.userPicture}/> 
                 <h2 className={styles.username}>{id}</h2>
@@ -270,6 +263,8 @@ export default function UserPageComponents(){
                     () => unfollowUser()
                 }>Unfollow</button> : null}
             </div>
+
+            <TabBar user={user} id={id} setCurrentTab={setCurrentTab}/>
             {(currentTab === 'details') ? 
             <div>
                 <div className={styles.userFavorites}>
