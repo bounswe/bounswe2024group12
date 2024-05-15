@@ -4,6 +4,7 @@ from .models import RegisteredUser
 import json
 import requests
 from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate
 from django.utils import timezone
 from .models import Game, Review
 import re
