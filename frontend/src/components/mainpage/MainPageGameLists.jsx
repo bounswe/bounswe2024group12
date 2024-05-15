@@ -64,7 +64,7 @@ const MainPageGameLists = ({title="Featured Games", type=""}) => {
       navigator(`/game/${id}`);
     }
     return (<>
-    {error ?  <div className={styles.title}> <h6>{error}</h6> </div> :(<div>
+    {error!=="" ?  <div className={styles.title}> <h6>{error}</h6> </div> :(<div>
         <h2 className={styles.title}>{title}</h2>
         <div className={styles.container}>
             {
