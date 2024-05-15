@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import React,{useState, useEffect} from 'react';
 
 export default function GamePage() {
-    let { id, name } = useParams();
+    let { id } = useParams();
     const [error, setError] = useState("")
     const [game, setGame] = useState()
     async function fetchGame() {
