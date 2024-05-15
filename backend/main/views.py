@@ -5,6 +5,7 @@ import json
 import requests
 from django.contrib.auth import authenticate
 from django.utils import timezone
+from .models import Game, Review
 import re
 
 @csrf_exempt  # Only for demonstration. CSRF protection should be enabled in production.
@@ -188,6 +189,25 @@ def search_game(request):
 def index(request):
     return JsonResponse({'message': 'Welcome to the PlayLog API!'})
 
+def createReview(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        game = data.get('game')
+        rating = data.get('rating')
+        text = data.get('text')
+        
+        game = Game.objects.get(title=game)
+        
+        review = Review.objects.create(
+            game=game,
+            rating=rating,
+            text=text
+        )
+        
+        return JsonResponse({'success': True, 'message': 'Review created successfully', 'game': game, 'rating': rating, 'text': text}, status=201)
+    else:
+        return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
+    
 def generate_slug(name):
     slug = name.lower()
     slug = slug.replace(' ', '-')
