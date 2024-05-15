@@ -27,7 +27,7 @@ function App() {
           <Route path="/signup-success" element={<SignUpSuccessPage />} />
           <Route path="/main" element={<MainPage />} />
         <Route path="/game/:id" element={<GamePage />} /> {/* or name or whatever i dont know how the query will be made*/}
-          <Route path="/property/:id" element={<PropertyPage />} />
+          <Route path="/property" element={<PropertyPage />} />
       </Routes>
       </UserProvider>
     </Router>

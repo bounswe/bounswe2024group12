@@ -6,6 +6,7 @@ import { useAuth} from '../common/UserContext';
 import PropertyCard from './PropertyCard';
 import GamesCard  from './GamesCard';
 import NotExistCard from './NotExistCard';
+import { endpoint } from '../common/EndpointContext';
 
 
 export default function PropertyPageCard({property_type, property_name}) {
@@ -18,11 +19,10 @@ export default function PropertyPageCard({property_type, property_name}) {
 
 
     async function retrieveGames() {
-        if (property_name === null) {
-            navigate('/home');
+        if (property_name == null) {
+            navigate('/main');
         }
-
-        const response = await fetch('http://localhost:8000/property', {
+        const response = await fetch(endpoint + 'property', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
