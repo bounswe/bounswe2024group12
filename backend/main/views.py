@@ -203,11 +203,13 @@ def createReview(request):
             rating=rating,
             text=text
         )
+
+        review.save()
         
         return JsonResponse({'success': True, 'message': 'Review created successfully', 'game': game, 'rating': rating, 'text': text}, status=201)
     else:
         return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
-    
+
 def generate_slug(name):
     slug = name.lower()
     slug = slug.replace(' ', '-')
@@ -215,12 +217,34 @@ def generate_slug(name):
     slug = slug.strip('-')
     return slug
 
+def get_unique_games(json_list, params):
+    #make a json list 'games'
+    games = []
+
+    check = 'gameLabel'
+    values = set()
+    for item in json_list['results']['bindings']:
+        item_val = item[check]['value']
+        if item_val not in values:
+            values.add(item_val)
+            game = {}
+            for param in params:
+                if param in item:
+                    game[param] = item[param]['value']
+                else:
+                    game[param] = None
+            game['game-slug'] = generate_slug(item['gameLabel']['value'])
+            games.append(game)
+    games_json = {"games": games}
+    return games_json
+
 @csrf_exempt
 def get_all_games(request):
     sparql_query = """
-        SELECT DISTINCT ?game ?gameLabel
+        SELECT DISTINCT ?game ?gameLabel ?image
         WHERE {
-        ?game wdt:P31 wd:Q7889.  # Instance of video game
+        ?game wdt:P31 wd:Q7889;  # Instance of video game
+        wdt:P18 ?image. # Retrieve game image if available
         SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
         }
     """
@@ -228,18 +252,18 @@ def get_all_games(request):
     headers = {'User-Agent': 'Mozilla/5.0 (Django Application)', 'Accept': 'application/json'}
     response = requests.get(url, headers=headers, params={'query': sparql_query, 'format': 'json'})
     results = response.json()
-    all_games = list(extract_unique_values(results, 'gameLabel'))
-    all_games = [{'game-name': game, 'game-slug': generate_slug(game)} for game in unique_games]
-    return JsonResponse({'games': all_games})
+    all_games = get_unique_games(results, ['gameLabel', 'image'])
+    return JsonResponse(all_games, safe=False)
 
 @csrf_exempt
 def get_game_of_the_day(request):
     today = timezone.now().date()
     sparql_query = f"""
-        SELECT DISTINCT ?game ?gameLabel
+        SELECT DISTINCT ?game ?gameLabel ?publisherLabel ?image
         WHERE {{
             ?game wdt:P31 wd:Q7889;  # Instance of video game
-                wdt:P577 ?publication_date.  # Publication date
+            wdt:P577 ?publication_date;  # Publication date
+            wdt:P18 ?image. # Retrieve game image if available
             FILTER (YEAR(?publication_date) != {today.year} && MONTH(?publication_date) = {today.month} && DAY(?publication_date) = {today.day})
             SERVICE wikibase:label {{ bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }}
         }}
@@ -249,27 +273,21 @@ def get_game_of_the_day(request):
     headers = {'User-Agent': 'Mozilla/5.0 (Django Application)', 'Accept': 'application/json'}
     response = requests.get(url, headers=headers, params={'query': sparql_query, 'format': 'json'})
     results = response.json()
-    game_of_the_day = list(extract_unique_values(results, 'gameLabel'))[0]
-    game_slug = generate_slug(game_of_the_day)
-
-    context = {
-        'game_name': game_of_the_day,
-        'game_slug': game_slug
-    }
-
-    return JsonResponse(context)
+    game_of_the_day = get_unique_games(results, ['gameLabel', 'publisherLabel', 'image'])
+    context = game_of_the_day['games'][0]
+    return JsonResponse(context, safe=False)
 
 @csrf_exempt
 def get_popular_games(request):
     sparql_query = """
-                SELECT ?game ?gameLabel (COUNT(?statement) as ?statementCount)
+                SELECT ?game ?gameLabel ?image (COUNT(?statement) as ?statementCount) 
         WHERE {
         ?game wdt:P31 wd:Q7889;               # Instance of video game
+        wdt:P18 ?image; # Retrieve game image if available
                 rdfs:label ?gameLabel.         # Game label
-        OPTIONAL { ?game ?p ?statement }      # Optional statement
         FILTER(LANG(?gameLabel) = "en")      # Filter labels to English
         }
-        GROUP BY ?game ?gameLabel
+        GROUP BY ?game ?gameLabel ?image
         ORDER BY DESC(?statementCount)
         LIMIT 20
     """
@@ -277,32 +295,36 @@ def get_popular_games(request):
     headers = {'User-Agent': 'Mozilla/5.0 (Django Application)', 'Accept': 'application/json'}
     response = requests.get(url, headers=headers, params={'query': sparql_query, 'format': 'json'})
     results = response.json()
-    popular_games = list(extract_unique_values(results, 'gameLabel'))[:10]
-    popular_games = [{'game-name': game, 'game-slug': generate_slug(game)} for game in popular_games]
+    popular_games = get_unique_games(results, ['gameLabel', 'image'])
+    #get the first 10 games
+    popular_games['games'] = popular_games['games'][:10]
+    return JsonResponse(popular_games, safe=False)
 
-    return JsonResponse({'games': popular_games})
+
 
 def get_new_games(request):
     today = timezone.now().date()
     sparql_query = """
-        SELECT DISTINCT ?game ?gameLabel ?publicationDate
+        SELECT DISTINCT ?game ?gameLabel ?publicationDate ?image
         WHERE {
-          ?game wdt:P31 wd:Q7889;               # Instance of video game
+        ?game wdt:P31 wd:Q7889;               # Instance of video game
                 wdt:P577 ?publicationDate;     # Publication date
+                wdt:P18 ?image;                # Retrieve game image if available
                 rdfs:label ?gameLabel.         # Game label
-          FILTER(?publicationDate >= "%s"^^xsd:dateTime && ?publicationDate <= "%s"^^xsd:dateTime)
-          FILTER(LANG(?gameLabel) = "en")      # Filter labels to English
+        FILTER(?publicationDate <= NOW())   # Filter by publication date less than or equal to current date
+        FILTER(LANG(?gameLabel) = "en")      # Filter labels to English
         }
         ORDER BY DESC(?publicationDate)
         LIMIT 20
-    """ % (today - timezone.timedelta(days=60), today)
+    """
     url = 'https://query.wikidata.org/sparql'
     headers = {'User-Agent': 'Mozilla/5.0 (Django Application)', 'Accept': 'application/json'}
     response = requests.get(url, headers=headers, params={'query': sparql_query, 'format': 'json'})
     results = response.json()
-    new_games = list(extract_unique_values(results, 'gameLabel'))[:10]
-    new_games = [{'game-name': game, 'game-slug': generate_slug(game)} for game in new_games]
-    return JsonResponse({'games': new_games})
+    new_games = get_unique_games(results, ['gameLabel', 'image'])
+    #get the first 10 games
+    new_games['games'] = new_games['games'][:10]
+    return JsonResponse(new_games, safe=False)
 
 
     

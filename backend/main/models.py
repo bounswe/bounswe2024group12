@@ -1,7 +1,5 @@
 from django.contrib.auth.models import UserManager, AbstractBaseUser
 from django.db import models
-from django.contrib.auth.models import User
-from .models import Review
     
 class RegisteredUserManager(UserManager):  
     def create_user(self, email, username, password=None, **extra_fields):
@@ -27,13 +25,9 @@ class RegisteredUser(AbstractBaseUser):
     REQUIRED_FIELDS = ['username', 'password']
 
 class Game(models.Model):
-    title = models.CharField(max_length=100)
-    logo = models.ImageField(upload_to='game_logos/')
-    banner = models.ImageField(upload_to='game_banners/')
-    shortDescription = models.TextField()
-    logngDescription = models.TextField()
-    reviews = models.ManyToManyField(Review, related_name='game_reviews')
-    # other fields
+    slug = models.SlugField(max_length=200, primary_key=True)
+    name = models.CharField(max_length=200)
+    image = models.URLField()
 
 class Review(models.Model):
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
