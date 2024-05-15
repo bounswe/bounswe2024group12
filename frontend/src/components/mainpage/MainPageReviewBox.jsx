@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './MainPageReviewBox.module.css';
 import tempImage from "../temporaryassets/gamePicture.jpeg";
 import tempReview from "../temporaryassets/review.json";
@@ -141,11 +142,38 @@ const MainPageReviewBox = ({ review = tempReview }) => {
   return (
     <div className={styles.card}>
       <h3 className={styles.title}>{game.name || ""}</h3>
+      <h3 className={styles.title}>{game.name || ""}</h3>
       <div className={styles.content}>
         <div className={styles.imageContainer}>
           <img src={game.image || tempImage} alt={game.name || ""} className={styles.gameImage} />
+          <img src={game.image || tempImage} alt={game.name || ""} className={styles.gameImage} />
         </div>
         <div className={styles.reviewDetails}>
+          <h2 className={styles.username}>{review.user_id}</h2>
+          <div className={styles.likeRatingContainer}>
+            <p className={styles.likeCount}>{review.rating + "/5 rating"}</p>
+            {(user && user.username) && (
+              <>
+                <button onClick={liked ? unlikeReview : likeReview}>{liked ? 'Unlike' : 'Like'}</button>
+                {user.username === review.user_id && (
+                  <>
+                    <button onClick={() => setIsEditing(!isEditing)}>Edit</button>
+                    <button onClick={deleteReview}>Delete</button>
+                  </>
+                )}
+              </>
+            )}
+            <p className={styles.likeCount}>{likes + " likes"}</p>
+          </div>
+          {isEditing ? (
+            <div>
+              <textarea value={editedText} onChange={(e) => setEditedText(e.target.value)} />
+              <button onClick={editReview}>Save</button>
+            </div>
+          ) : (
+            <p className={styles.review}>{review.text}</p>
+          )}
+        </div>
           <h2 className={styles.username}>{review.user_id}</h2>
           <div className={styles.likeRatingContainer}>
             <p className={styles.likeCount}>{review.rating + "/5 rating"}</p>
