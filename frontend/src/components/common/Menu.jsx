@@ -86,7 +86,7 @@ const Menu = () => {
           // Add inline style to add loader as 5px-5px
           style={{position:'relative', top:'-5px', left:'-5px' }}
           >
-            <AnimatedLoader />
+            <AnimatedLoader/>
             </div>
             }  
 
