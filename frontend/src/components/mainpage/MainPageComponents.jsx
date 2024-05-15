@@ -15,8 +15,8 @@ export default function MainPageComponents(){
     <>
       <Menu/>
       <GameOfTheDay/>
-      <MainPageGameLists title ="Popular Games"/>
-      <MainPageGameLists title ="New Games"/>
+      <MainPageGameLists title ="Popular Games" type={"popular"}/>
+      <MainPageGameLists title ="New Games" type={"new"}/>
       <div className={styles.reviewList}> 
         <MainPageReviewList className={styles.reviewItem} title="Recent Reviews"/>
         {loggedIn && <MainPageReviewList className={styles.reviewItem} title="Friends Reviews"/>}
