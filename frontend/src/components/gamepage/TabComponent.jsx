@@ -74,7 +74,7 @@ const ReviewsComponent = ({ id }) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ game: id, rating, text, user_id: user.username }),
+        body: JSON.stringify({ game_id: id, rating, text, user_id: user.username }),
         credentials: 'include'
       });
 
