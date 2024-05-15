@@ -497,3 +497,37 @@ def deleteReview(request):
         return JsonResponse({'success': True, 'message': 'Review deleted successfully'}, status=200)
     else:
         return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
+    
+def likeReview(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        review = data.get('review')
+        user = data.get('user')
+        
+        review = Review.objects.get(id=review)
+        user = RegisteredUser.objects.get(id=user)
+        
+        review.likedBy.add(user)
+        review.likes += 1
+        review.save()
+        
+        return JsonResponse({'success': True, 'message': 'Review liked successfully', 'likes': review.likes}, status=200)
+    else:
+        return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
+    
+def unlikeReview(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        review = data.get('review')
+        user = data.get('user')
+        
+        review = Review.objects.get(id=review)
+        user = RegisteredUser.objects.get(id=user)
+        
+        review.likedBy.remove(user)
+        review.likes -= 1
+        review.save()
+        
+        return JsonResponse({'success': True, 'message': 'Review unliked successfully', 'likes': review.likes}, status=200)
+    else:
+        return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
