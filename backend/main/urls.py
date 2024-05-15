@@ -28,6 +28,11 @@ urlpatterns = [
     path('new-games', views.get_new_games, name='new-games'),
     path('game-slug', views.get_game_slug, name='game-slug'),
     path('game-info/<str:game_slug>/', views.get_game_info, name='game_info'),
+    path('follow-user', views.follow_user, name='follow-user'),
+    path('unfollow-user', views.unfollow_user, name='unfollow-user'),
+    path('get-followers', views.get_followers, name='get-followers'),
+    path('get-following', views.get_following, name='get-following'),
+    path('user-check', views.user_check, name='user-check'),
     ]
 
 

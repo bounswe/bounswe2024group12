@@ -1,6 +1,6 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import RegisteredUser
+from .models import RegisteredUser, Follow
 import json
 import requests
 from django.contrib.auth import authenticate, login as djangologin, logout
@@ -272,4 +272,83 @@ def get_new_games(request):
     new_games = list(extract_unique_values(results, 'gameLabel'))[:10]
     new_games = [{'game-name': game, 'game-slug': generate_slug(game)} for game in new_games]
     return JsonResponse({'games': new_games}) 
+
+def follow_user(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        username = data.get('username')
+        followed_user = data.get('followed_user')
+        user = RegisteredUser.objects.get(username=username)
+        followed_user = RegisteredUser.objects.get(username=followed_user)
+        Follow.objects.create(user_id=user.user_id, followed_user_id=followed_user.user_id)
+        return JsonResponse({'message': 'User followed successfully'})
+    else:
+        return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
+
+def unfollow_user(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        username = data.get('username')
+        followed_user = data.get('followed_user')
+        user = RegisteredUser.objects.get(username=username)
+        followed_user = RegisteredUser.objects.get(username=followed_user)
+        Follow.objects.filter(user_id=user.user_id, followed_user_id=followed_user.user_id).delete()
+        return JsonResponse({'message': 'User unfollowed successfully'})
+    else:
+        return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
+    
+def get_followers(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        username = data.get('username')
+        user = RegisteredUser.objects.get(username=username)
+        followers = Follow.objects.filter(followed_user_id=user.user_id)
+        followers_list = [follower.user_id.username for follower in followers]
+        return JsonResponse({'followers': followers_list})
+    else:
+        return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
+    
+def get_following(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        username = data.get('username')
+        user = RegisteredUser.objects.get(username=username)
+        following = Follow.objects.filter(user_id=user.user_id)
+        following_list = [followed_user.user_id.username for followed_user in following]
+        return JsonResponse({'following': following_list})
+    else:
+        return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
+    
+def get_follower_count(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        username = data.get('username')
+        user = RegisteredUser.objects.get(username=username)
+        followers = Follow.objects.filter(followed_user_id=user.user_id)
+        return JsonResponse({'follower_count': len(followers)})
+    else:
+        return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
+    
+def get_following_count(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        username = data.get('username')
+        user = RegisteredUser.objects.get(username=username)
+        following = Follow.objects.filter(user_id=user.user_id)
+        return JsonResponse({'following_count': len(following)})
+    else:
+        return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
+
+def user_check(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        username = data.get('username')
+        if RegisteredUser.objects.filter(username=username).exists():
+            return JsonResponse({'exists': True})
+        else:
+            return JsonResponse({'exists': False})
+    else:
+        return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
+
+
 
