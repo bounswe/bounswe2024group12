@@ -9,7 +9,7 @@ const GameOfTheDay = () => {
   const navigator = useNavigate();
   const [gameOfTheDay, setGameOfTheDay] = useState({ ...tempGame });
   const [gameOfTheDayError, setGameOfTheDayError] = useState("")
-  async function fetchGameOfTheDay(event) {
+  async function fetchGameOfTheDay() {
     try {
       const response = await fetch('http://localhost:8000/game-of-the-day', {
         method: 'GET',
