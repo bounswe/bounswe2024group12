@@ -8,12 +8,13 @@ export default function GamePage() {
     const [game, setGame] = useState()
     async function fetchGame() {
         try {
-            const response = await fetch('http://localhost:8000/game-info/'+ id, {
+            const response = await fetch('http://localhost:8000/game-info', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
               },
-              credentials: 'include'
+              credentials: 'include',
+              body: JSON.stringify({ "game-name":id }),
             });
       
           if (!response.ok) {

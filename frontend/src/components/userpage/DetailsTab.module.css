@@ -1,0 +1,108 @@
+.Tab{
+    width: 100%;
+    height: fit-content;
+    margin: 10px 5px;
+    padding: 1vw 2vw;
+    border: 2px solid var(--highlight-color);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: space-between;
+    box-sizing: border-box;
+}
+
+.userFavorites{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin: 10px 0px;
+    background-color: #232323;
+    border-radius: 25px;
+}
+
+.userFavorites h2{
+    margin: 10px 0px 5px 0px;
+    font-size: 2em;
+    color: var(--highlight-color);
+}
+
+.userFavorites h3{
+    margin: 5px 0px 2px 0px;
+    font-size: 1.2em;
+    padding: 2px 15px 2px 5px;
+    color: var(--highlight-color);
+    border-bottom: var(--highlight-color) 1px solid;
+    border-left: var(--highlight-color) 1px solid;
+}
+
+.favoriteCard{
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    align-items: center;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.favorites {
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.favorites ul{
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-radius: 10px;
+    margin: 5px 10px;
+}
+
+.favorites li{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.favorites .underlined{
+    text-decoration: underline;
+}
+
+.clickable:hover{
+    cursor: pointer;
+}
+
+.vertical_list{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.vertical_list ul{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-radius: 10px;
+    margin: 5px 10px;
+}
+
+.vertical_list li{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
