@@ -19,6 +19,7 @@ export default Login = () => {
 
     const onLogin = async () => {
         try {
+            console.log('login')
             await loginHandler({ username, password });
         } catch (e) {
             alert(e.message);
@@ -38,7 +39,7 @@ export default Login = () => {
         <Screen>
             <Text style={[textStyles.title, styles.title]}>Login Page</Text>
             <TextInput
-                placeholder="Username"
+                placeholder="e-mail"
                 placeholderTextColor={'#888'}
                 style={[textStyles.default, styles.input]}
                 onChangeText={(text) => setUsername(text)}

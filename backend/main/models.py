@@ -1,6 +1,5 @@
 from django.contrib.auth.models import UserManager, AbstractBaseUser
 from django.db import models
-from django.contrib.auth.models import User
     
 class RegisteredUserManager(UserManager):  
     def create_user(self, email, username, password=None, **extra_fields):
@@ -24,6 +23,11 @@ class RegisteredUser(AbstractBaseUser):
     
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'password']
+
+class Follow(models.Model):
+    follow_id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(RegisteredUser, on_delete=models.CASCADE, related_name='follower_set')
+    followed_user = models.ForeignKey(RegisteredUser, on_delete=models.CASCADE, related_name='followed_set')
 
 class Review(models.Model):
     game_slug = models.CharField(max_length=100)
