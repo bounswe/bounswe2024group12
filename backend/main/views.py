@@ -2,9 +2,9 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import RegisteredUser, Follow
 import json
-from django.contrib.auth import authenticate, login as djangologin
 from django.utils import timezone
 import re
+from django.contrib.auth import authenticate, login as djangologin, logout
 
 
 SPARQL_ENDPOINT = "https://query.wikidata.org/sparql"
