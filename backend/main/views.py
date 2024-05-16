@@ -2,10 +2,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import RegisteredUser, Follow
 import json
-import requests
 from django.contrib.auth import authenticate, login as djangologin, logout
-from django.utils import timezone
-import re
 
 def index(request):
     return JsonResponse({'message': 'Welcome to the PlayLog API!'})
