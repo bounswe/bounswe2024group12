@@ -43,15 +43,14 @@
 }
 
 .propertyDropdown {
-  margin: 0px;
-  min-width: 200px;
-  max-width: 250px;
-  border-radius: 4px;
-  font-size: 14px;
-  background-color: var(--card-color);
+  display: flex;
+  align-items: center;
+  background: var(--card-color);
+  padding-top: 0px;
+  margin-top: 10px;
+  margin-bottom: 0px;
+  max-width: max-content;
   border-bottom: 1px solid var(--highlight-color);
-  color: var(--text-color);
-  cursor: pointer;
 }
 
 .searchBar {
@@ -61,6 +60,7 @@
   padding-top: 8px;
   margin-top: 5px;
   border-bottom: 1px solid var(--highlight-color);
+  
 }
 
 .searchIcon {

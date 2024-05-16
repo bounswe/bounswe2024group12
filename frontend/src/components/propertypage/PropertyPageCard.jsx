@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useState } from 'react';
 import Card from '../common/Card';
 import style from './PropertyPageCard.module.css';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth} from '../common/UserContext';
 import PropertyCard from './PropertyCard';
 import GamesCard  from './GamesCard';
@@ -9,8 +9,11 @@ import NotExistCard from './NotExistCard';
 import { endpoint } from '../common/EndpointContext';
 
 
-export default function PropertyPageCard({property_type, property_name}) {
+
+
+export default function PropertyPageCard() {
     const navigate = useNavigate();
+    const location = useLocation();
     const { loggedIn, handleLogin, handleLogout, } = useAuth();
     const [ notExist, setNotExist ] = useState(false);
     const [ propertyData, setPropertyData ] = useState(null);
@@ -19,9 +22,20 @@ export default function PropertyPageCard({property_type, property_name}) {
 
 
     async function retrieveGames() {
+
+        const { property_type, property_name } = location.state || {};
+        if (!property_name) {
+            navigate('/main');
+            return;
+        }
+        
+
         if (property_name == null) {
             navigate('/main');
         }
+
+        console.log("Property Name: ", property_name);
+        console.log("Property Type: ", property_type);
         const response = await fetch(endpoint + 'property', {
             method: 'POST',
             headers: {

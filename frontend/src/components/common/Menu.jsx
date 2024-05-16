@@ -1,16 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './Menu.module.css';
 import { useAuth } from './UserContext';
 import AnimatedLoader from './AnimatedLoader/AnimatedLoader';
 import { endpoint } from './EndpointContext';
+import debounce from 'lodash/debounce';
 
-// Properties:
-// genre: 
-// publisher
-// developer
-// platform 
-// game mode 
+// import search icon from react-icons
+import { FaSearch } from 'react-icons/fa';
 
 const Menu = () => {
 
@@ -35,51 +32,90 @@ const Menu = () => {
     };
   }, [ref]);
 
-  const handleSearchChange = async (e) => {
-    setLoading(true);
+  
+
+  // const searchGame = async (query) => {
+  //   try {
+  //     const searchEndpoint = searchProperty ? `${endpoint}search-game-by/${searchProperty}/` : `${endpoint}search-game`;
+  //     const response = await fetch(searchEndpoint, {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       credentials: 'include',
+  //       body: JSON.stringify({ search_term: query }),
+  //     });
+
+  //     if (!response.ok) {
+  //       console.log('Search failed:', response.statusText);
+  //       return;
+  //     }
+
+  //     const data = await response.json();
+  //     if(searchProperty === '') {
+  //     setSuggestions(data.games);
+  //     }
+  //     else {
+  //       setSuggestions(data.results);
+  //     }
+  //     console.log('Suggestions:', suggestions);
+  //   } catch (error) {
+  //     console.error('Error:', error);
+  //   }
+  // };
+  const debouncedSearchGame = useCallback(
+    debounce(async (query) => {
+      setLoading(true);
+      try {
+        const searchEndpoint = searchProperty ? `${endpoint}search-game-by/${searchProperty}/` : `${endpoint}search-game`;
+        const response = await fetch(searchEndpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({ search_term: query }),
+        });
+  
+        if (!response.ok) {
+          console.log('Search failed:', response.statusText);
+          return;
+        }
+  
+        const data = await response.json();
+        if (searchProperty === '') {
+          setSuggestions(data.games);
+        } else {
+          setSuggestions(data.results);
+        }
+        console.log('Suggestions:', suggestions);
+      } catch (error) {
+        console.error('Error:', error);
+      }
+      setLoading(false);
+    }, 200), // 200ms debounce delay
+    [searchProperty]
+  );
+  
+  const handleSearchChange = (e) => {
     const query = e.target.value;
     setGameName(query);
     if (query.length > 2) {
-      await searchGame(query);
+      debouncedSearchGame(query);
     } else {
       setSuggestions([]);
     }
-    setLoading(false);
   };
 
-  const searchGame = async (query) => {
-    try {
-      const searchEndpoint = searchProperty ? `${endpoint}search-game-by/${searchProperty}/` : `${endpoint}search-game`;
-      const response = await fetch(searchEndpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ search_term: query }),
-      });
-
-      if (!response.ok) {
-        console.log('Search failed:', response.statusText);
-        return;
-      }
-
-      const data = await response.json();
-      if(searchProperty === '') {
-      setSuggestions(data.games);
-      }
-      else {
-        setSuggestions(data.results);
-      }
-      console.log('Suggestions:', suggestions);
-    } catch (error) {
-      console.error('Error:', error);
+  const handleSuggestionClick = (selectedItem) => {
+    if (searchProperty === '') {
+      navigate(`/game/${selectedItem}`);
     }
-  };
+    else {
+      navigate('/property', { state: { property_type:searchProperty , property_name: selectedItem} });
 
-  const handleSuggestionClick = (gameSlug) => {
-    navigate(`/game/${gameSlug}`);
-    setSuggestions([]); // Clear suggestions after click
+
+    }
   };
 
   const handlePropertyChange = (e) => {
@@ -90,6 +126,7 @@ const Menu = () => {
     <div className={styles.menu}>
       <div className={styles.siteName}> PlayLog</div>
       <div className={styles.menuItems}>
+        
 
       <select className={styles.propertyDropdown} onChange={handlePropertyChange} value={searchProperty}>
             <option value="">Search in Games...</option>
@@ -103,6 +140,7 @@ const Menu = () => {
           
 
           <div className={styles.searchBar}>
+          <FaSearch className={styles.searchIcon} />
             <input
               className={styles.searchInput}
               placeholder="Search..."
