@@ -1,0 +1,102 @@
+.GamesBlock{
+    max-width: 80%;
+    margin: 30px auto;
+    padding: 1vw 2vw ;
+    border: 2px solid var(--highlight-color);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+.GameBlock {
+    width:95%;
+    margin: 10px 10px;
+    padding: 1vw;
+    background-color: #232323;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.GameBlock:hover{
+    background-color: #313131;
+    cursor: pointer;
+}
+
+.GameInfoBlock{
+    margin: 20px 0px 20px 0px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.GameBlock h1{
+    margin-bottom: 5px;
+    font-size: 2em;
+}
+
+.GameBlock h3{
+    font-size: 1em;
+    margin: 0px;
+    margin-right: 10px;
+    padding: 5px 5px 10px 10px;
+    color:var(--highlight-color);
+    border-top: var(--highlight-color) 1px solid;
+    border-right: var(--highlight-color) 1px solid;
+    height: fit-content;
+}
+
+.GameBlock h4{
+    margin: 0px;
+    padding: 2px 10px 2px 5px;
+    color:var(--highlight-color); 
+    border-bottom: var(--highlight-color) 1px solid;
+    border-left: var(--highlight-color) 1px solid;
+    width: fit-content;
+}
+
+.GameBlock p{
+    margin: 5px;
+    margin-top: 20px;
+}
+
+.GameTitleBlock{
+    display: flex;
+    justify-content: space-between;
+}
+
+
+@media screen and (max-width: 800px){
+    .GamesBlock{
+        max-width: 100%;
+        margin: 10px auto;
+    }
+    .GameBlock{
+        flex-direction: column;
+        margin: 10px 0px;
+    }
+    .GameInfoBlock{
+        margin: 10px 0px;
+        align-items: start;
+    }
+    .GameTitleBlock{
+        width: 100%;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .GameBlock h1{
+        font-size: 1.5em;
+    }
+    .GameBlock h3{
+        font-size: 0.8em;
+    }
+    .GameBlock h4{
+        font-size: 0.8em;
+    }
+    .GameBlock p{
+        font-size: 1em;
+    }
+}

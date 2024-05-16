@@ -46,6 +46,7 @@ services:
       - "3000:3000"
     networks:
       - mynetwork
+    
 
 volumes:
   db_data:
