@@ -1,7 +1,7 @@
 import GamePageComponents from "../components/gamepage/GamePageComponents";
 import { useParams } from "react-router-dom";
 import React,{useState, useEffect} from 'react';
-import { endpoint } from '../common/EndpointContext';
+import { endpoint } from '../components/common/EndpointContext';
 
 export default function GamePage() {
     let { id } = useParams();
