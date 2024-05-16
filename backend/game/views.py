@@ -246,7 +246,7 @@ def get_new_games(request):
     new_games = get_unique_games(results, ['gameLabel', 'image'])
     #get the first 10 games
     new_games['games'] = new_games['games'][:10]
-    return JsonResponse({'games': new_games})
+    return JsonResponse(new_games, safe=False)
 
 def get_game_characters(request, game_slug):
     if request.method != 'GET':
