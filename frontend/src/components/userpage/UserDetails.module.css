@@ -11,6 +11,12 @@
     box-sizing: border-box;
 }
 
+.userPicture{
+    max-width: 300px;
+    
+    aspect-ratio: 1/1;
+}
+
 .info{
     display: flex;
     flex-direction: row;

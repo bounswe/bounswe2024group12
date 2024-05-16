@@ -75,6 +75,48 @@ def login(request):
         return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
 
 @csrf_exempt
+def search_game_by(request, search_by):
+    data = json.loads(request.body)
+    
+    search_term = data.get('search_term')
+    if not search_term:
+        return JsonResponse({'error': 'Search term is required'}, status=400)
+
+    if search_by not in SEARCH_BY_PROPERTIES:
+        return JsonResponse({'error': 'Invalid search parameter'}, status=400)
+
+    property_id = SEARCH_BY_PROPERTIES[search_by]
+    query = f"""
+    SELECT DISTINCT ?label
+    WHERE {{
+        ?game wdt:P31 wd:Q7889;  # Instance of video game
+              wdt:{property_id} ?propertyValue;  # Property (genre, developer, etc.)
+              rdfs:label ?gameLabel.  # Game label
+        ?propertyValue rdfs:label ?label.  # Property label
+        FILTER(LANG(?gameLabel) = "en")  # Filter labels to English
+        FILTER(LANG(?label) = "en")  # Filter property labels to English
+        FILTER(CONTAINS(LCASE(?label), LCASE("{search_term}")))  # Case-insensitive search by property
+    }}
+    LIMIT 4
+    """
+
+    headers = {'User-Agent': 'Mozilla/5.0 (Django Application)', 'Accept': 'application/json'}
+    
+    response = requests.get(SPARQL_ENDPOINT, params={'query': query}, headers=headers)
+
+    if response.status_code != 200:
+        return JsonResponse({'error': 'Failed to fetch data from SPARQL endpoint'}, status=response.status_code)
+
+    try:
+        results = response.json()
+        labels = [result['label']['value'] for result in results['results']['bindings']]
+        return JsonResponse({'results': labels})
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Failed to parse response from SPARQL endpoint'}, status=500)
+    except KeyError:
+        return JsonResponse({'error': 'Unexpected response format from SPARQL endpoint'}, status=500)
+    
+@csrf_exempt
 def follow_user(request):
     if request.method == 'POST':
         data = json.loads(request.body)
