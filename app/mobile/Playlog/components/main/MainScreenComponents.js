@@ -6,11 +6,12 @@ import GameListCard from "../commons/GameListCard";
 import MoreGamesGrid from "./MoreGamesGrid";
 import ReviewListCard from "./ReviewListCard";
 import MainPageBanner from "./MainPageBanner";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { ProfileContext } from "../../context/ProfileProvider";
+import SearchBar from "../commons/SearchBar";
 
 export default MainScreenComponents = () => {
-
+    const [isSearch, setIsSearch] = useState(false)
     const { username, token, isGuest, logoutHandler } = useContext(ProfileContext)
 
     const navigation = useNavigation();
@@ -20,17 +21,31 @@ export default MainScreenComponents = () => {
         navigation.replace('Login');
     }
 
+    const onSearch = (query) => {
+        console.log(query);
+    }
+
+    const onFocus = () => { 
+        setIsSearch(true)
+    }
+
+    const onBlur = () => {
+        setIsSearch(false)
+    }
+
     return (
-        <ScrollView contentContainerStyle={styles.scrollView}>
-            {/* <Text style={textStyles.header}>Main Screen</Text> */}
-            <Text style={textStyles.title}>Welcome {!isGuest ? username : "Guest"}</Text>
-            <MainPageBanner />
-            <GameListCard title={"Popular Games"} />
-            <GameListCard title={"Recent Games"} />
-            <ReviewListCard title={"Recent Reviews"} />
-            <ReviewListCard title={"Friend Reviews"} />
-            <MoreGamesGrid />
-            <CustomButton title="Logout" onPress={onLogout} />
+        <ScrollView contentContainerStyle={styles.scrollViewContainer} style={styles.scrollView}>
+            <SearchBar onSearch={onSearch} onFocus={onFocus} onBlur={onBlur} />
+            {!isSearch && <>
+                <Text style={textStyles.title}>Welcome {!isGuest ? username : "Guest"}</Text>
+                <MainPageBanner />
+                <GameListCard title={"Popular Games"} />
+                <GameListCard title={"Recent Games"} />
+                <ReviewListCard title={"Recent Reviews"} />
+                <ReviewListCard title={"Friend Reviews"} />
+                <MoreGamesGrid />
+                <CustomButton title="Logout" onPress={onLogout} />
+            </>}
         </ScrollView>
     )
 }
@@ -38,6 +53,10 @@ export default MainScreenComponents = () => {
 
 const styles = StyleSheet.create({
     scrollView: {
-
+        width:'100%'
+    },
+    scrollViewContainer: {
+        // alignItems: 'center',
+        // justifyContent: 'center',
     }
 })
