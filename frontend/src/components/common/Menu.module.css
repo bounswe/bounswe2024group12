@@ -1,57 +1,133 @@
 .menu {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    background-color: var(--navbar-color); 
-  }
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background-color: var(--card-color); 
+  box-shadow: 0px 4px 6px var(--highlight-color); /* Lighter grey */
+}
+
+.siteName {
+  font-size: 24px;
+  padding-left: 20px;
+  font-weight: bold;
+  color: var(--highlight-color); /* White */
+}
+
+.menuItems {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 20px; /* Space between items */
+}
+
+.menuButton {
+  margin-right: 10px;
+  border: 1px solid var(--card-color); /* Greyish purple */
+  background-color: var(--card-color); /* Greyish purple */
+  color: var(--text-color); /* White */
+  padding: 5px 10px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--highlight-color); /* Lighter grey */
+}
+
+.menuLink {
+  text-decoration: none;
+  color: var(--text-color); /* White */
+}
+
+.searchContainer {
+  position: relative;
+  width: 400px;
+  background: var(--card-color);
+}
+
+.propertyDropdown {
+  display: flex;
+  align-items: center;
+  background: var(--card-color);
+  padding-top: 0px;
+  margin-top: 10px;
+  margin-bottom: 0px;
+  max-width: max-content;
+  border-bottom: 1px solid var(--highlight-color);
+}
+
+.searchBar {
+  display: flex;
+  align-items: center;
+  background: var(--card-color);
+  padding-top: 8px;
+  margin-top: 5px;
+  border-bottom: 1px solid var(--highlight-color);
   
-  .siteName {
-    font-size: 24px;
-    font-weight: bold;
-    color: var(--text-color); /* White */
-  }
-  
-  .menuItems {
-    display: flex;
-    align-items: center;
-  }
-  
-  .menuButton {
-    margin-right: 10px;
-    border: 1px solid var(--card-color); /* Greyish purple */
-    background-color: var(--card-color); /* Greyish purple */
-    color: var(--text-color); /* White */
-    padding: 5px 10px;
-    cursor: pointer;
-  }
-  
-  .menuLink {
-    text-decoration: none;
-    color: var(--text-color); /* White */
-  }
-  
-  .searchBar {
-    padding: 5px;
-    margin-right: 10px;
-  }
-  
-  .userInfo {
-    margin-right: 10px;
-    color: var(--text-color); /* White */
-  }
-  
-  .loginButton {
-    border: 1px solid var(--card-color); /* Greyish purple */
-    background: var(--card-color); /* Greyish purple */
-    color: var(--text-color); /* White */
-    padding: 5px 10px;
-    cursor: pointer;
-    white-space: nowrap;
-  }
-  
-  .loginLink {
-    text-decoration: none;
-    color: var(--text-color); /* White */
-  }
-  
+}
+
+.searchIcon {
+  margin-right: 8px; /* Spacing between the icon and the input field */
+  color: var(--highlight-color);
+  cursor: pointer;
+}
+
+.searchField {
+  display: flex;
+  flex: 1; /* Allows the input to take up the remaining space */
+  align-items: center;
+  background: var(--card-color);
+}
+
+.searchInput {
+  width: 100%; /* Full width of the flex container */
+  background: transparent; /* No background color */
+  border: none; /* Removes border */
+  color: inherit; /* Inherits text color from parent */
+  outline: none;
+  font-size: 17px; /* Removes focus outline */
+}
+
+.suggestions {
+  position: absolute;
+  z-index: 1000;
+  background: var(--background-color); /* Black */
+  width: 100%;
+  padding: 5px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  max-height: 300px; /* Limit the height and enable scrolling */
+  overflow-y: auto;
+}
+
+.suggestionItem {
+  padding: 10px 20px;
+  background-color: var(--card-color);
+  cursor: pointer;
+  border-bottom: 1px solid var(--card-color); 
+}
+
+.suggestionItem:last-child {
+  border-bottom: none;
+}
+
+.suggestionItem:hover {
+  color: var(--highlight-color); /* White */
+  background-color: var(--background-color); /* Black */
+}
+
+.userInfo {
+  margin-right: 10px;
+  color: var(--text-color); /* White */
+}
+
+.loginButton {
+  border: 1px solid var(--card-color); /* Greyish purple */
+  background: var(--card-color); /* Greyish purple */
+  color: var(--text-color); /* White */
+  padding: 5px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.loginLink {
+  text-decoration: none;
+  color: var(--text-color); /* White */
+}

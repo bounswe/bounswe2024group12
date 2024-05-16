@@ -6,9 +6,19 @@ from django.contrib.auth import authenticate, login as djangologin
 from django.utils import timezone
 from .models import Review
 
-
 def index(request):
     return JsonResponse({'message': 'Welcome to the PlayLog API!'})
+
+SPARQL_ENDPOINT = "https://query.wikidata.org/sparql"
+
+# Map search_by parameters to their corresponding Wikidata properties
+SEARCH_BY_PROPERTIES = {
+    'genre': 'P136',
+    'developer': 'P178',
+    'publisher': 'P123',
+    'platform': 'P400',
+    'composer': 'P86'
+}
 
 @csrf_exempt  # Only for demonstration. CSRF protection should be enabled in production.
 def signup(request):
