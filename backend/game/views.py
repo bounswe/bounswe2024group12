@@ -107,6 +107,8 @@ def search_game(request):
     return JsonResponse(games, safe=False)
 
 def fetch_all_games():
+    if Game.objects.exists():
+        return JsonResponse({'message': 'Games already fetched'})
     sparql_query = """
         SELECT DISTINCT ?game ?gameLabel ?image
         WHERE {
