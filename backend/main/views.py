@@ -6,6 +6,7 @@ from django.contrib.auth import authenticate, login as djangologin
 from django.utils import timezone
 from .models import Review
 
+
 def index(request):
     return JsonResponse({'message': 'Welcome to the PlayLog API!'})
 
