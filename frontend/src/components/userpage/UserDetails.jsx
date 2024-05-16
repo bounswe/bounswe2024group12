@@ -2,7 +2,6 @@ import styles from './UserDetails.module.css';
 import propertyPlaceholder from '../../assets/property_placeholder.png'
 
 export default function UserDetails({user, id, userDetails, userPicture, following, followUser, unfollowUser}){
-    console.log(userPicture);
 
     return (
         <div className={styles.userDetails}>
@@ -14,7 +13,7 @@ export default function UserDetails({user, id, userDetails, userPicture, followi
                             </div>
                         </div>
                         <div className={styles.stats}>
-                                <p className={styles.bio}>Games Played: {userDetails.gamesPlayed}</p>
+                                <p className={styles.bio}>Games Played: {userDetails.gamesLiked}</p>
                                 <p className={styles.bio}>Reviews: {userDetails.reviewCount}</p>
                                 <p className={styles.bio}>Followers: {userDetails.followers}</p>
                                 <p className={styles.bio}>Following: {userDetails.following}</p>

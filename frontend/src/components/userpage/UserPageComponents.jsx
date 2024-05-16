@@ -33,24 +33,24 @@ export default function UserPageComponents(){
     const [loading, setLoading] = useState(true);
     const [currentTab, setCurrentTab] = useState('details')
 
-    function fetchUserDetails(){
+    async function fetchUserDetails(){
         try {
-            const response = request('details')
-            const data = response.json();
-            console.log(data);
-            setUserPicture(data.userPicture);
-            setUserDetails(data.userDetails);
+            let response = await request("details")
+            const data = await response.json();
+            console.log("a",data);
+            setUserPicture("");
+            setUserDetails(data);
         }
         catch (error) {
             console.error('Error:', error);
             setUserPicture("");
-            setUserDetails({gamesPlayed: 0, reviewCount: 0, followers: 0, following: 0});
+            setUserDetails({gamesLiked: 0, reviewCount: 0, followers: 0, following: 0});
         }
     }
-    function fetchUserFavorites(){
+    async function fetchUserFavorites(){
         try{
-            const response = request('favorites')
-            const data = response.json();
+            const response = await request('favorites')
+            const data = await response.json();
             console.log(data);
             setFavoriteProperties(data.favoriteProperties);
             setFavoriteGames(data.favoriteGames);
@@ -66,10 +66,10 @@ export default function UserPageComponents(){
 
         }
     }
-    function fetchRecentPopular(){
+    async function fetchRecentPopular(){
         try{
-            const response = request('recent-popular')
-            const data = response.json();
+            const response = await request('recent-popular')
+            const data = await response.json();
             console.log(data);
             setRecentlyPlayedGames(data.recentlyPlayedGames);
             setRecentlyReviewedGames(data.recentlyReviewedGames);
@@ -82,10 +82,10 @@ export default function UserPageComponents(){
             setPopularReviews([["m",4], ["n",5], ["o",6]]);
         }
     }
-    function fetchUserLists(){
+    async function fetchUserLists(){
         try{
-            const response = request('lists')
-            const data = response.json();
+            const response = await request('lists')
+            const data = await response.json();
             console.log(data);
             setUserLists(data.userLists);
         }
@@ -94,24 +94,26 @@ export default function UserPageComponents(){
             setUserLists(["p", "q", "r"]);
         }
     }
-    function fetchUserFollows(){
+    async function fetchUserFollows(){
         try{
-            const response = request('follows')
-            const data = response.json();
-            console.log(data);
-            setUserFollows(data.userFollows);
-            setUserFollowing(data.userFollowing);
+            let response = await request('followers-list')
+            let data = await response.json()
+            setUserFollows(data.followers);
+            response = await request('following-list')
+            data = await response.json()
+            console.log("aa",data)
+            setUserFollowing(data.following);
         }
         catch (error) {
-            console.error('Error:', error);
+            console.error('Error zp:', error);
             setUserFollows(["s", "t", "u"]);
             setUserFollowing(["v", "w", "x"]);
         }
     }
-    function fetchUserReviews(){
+    async function fetchUserReviews(){
         try{
-            const response = request('reviews')
-            const data = response.json();
+            const response = await request('reviews')
+            const data = await response.json();
             console.log(data);
             setUserReviews(data.userReviews);
         }
@@ -121,10 +123,10 @@ export default function UserPageComponents(){
 
         }
     }
-    function fetchUserGames(){
+    async function fetchUserGames(){
         try{
-            const response = request('games')
-            const data = response.json();
+            const response = await request('games')
+            const data = await response.json();
             console.log(data);
             setUserGames(data.userGames);
         }
@@ -134,10 +136,10 @@ export default function UserPageComponents(){
 
         }
     }
-    function fetchBookmarks(){
+    async function fetchBookmarks(){
         try{
-            const response = request('bookmarks')
-            const data = response.json();
+            const response = await request('bookmarks')
+            const data = await response.json();
             console.log(data);
             setBookmarks(data.bookmarks);
         }
@@ -165,6 +167,7 @@ export default function UserPageComponents(){
     }   
 
     async function checkUser(){
+        console.log("Target",id);
         try{
             const response = await fetch('http://localhost:8000/user-check', {
                 method: 'POST',
@@ -175,7 +178,7 @@ export default function UserPageComponents(){
                 body: JSON.stringify({"username": id}),
             });
             const data = await response.json();
-            if (data.exist === false){
+            if (data.exists === false){
                 navigate('/404');
             }
         }
@@ -187,13 +190,13 @@ export default function UserPageComponents(){
 
     async function followUser(){
         try{
-            const response = await fetch('http://localhost:8000/user-follow', {
+            const response = await fetch('http://localhost:8000/follow-user', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 credentials: 'include',
-                body: JSON.stringify({"follower": user.username, "followed": id}),
+                body: JSON.stringify({"username": user.username, "followed_user": id}),
             });
             const data = await response.json();
             if (data.success === true){
@@ -207,13 +210,13 @@ export default function UserPageComponents(){
 
     async function unfollowUser(){
         try{
-            const response = await fetch('http://localhost:8000/user-unfollow', {
+            const response = await fetch('http://localhost:8000/unfollow-user', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 credentials: 'include',
-                body: JSON.stringify({"follower": user.username, "followed": id}),
+                body: JSON.stringify({"username": user.username, "followed_user": id}),
             });
             const data = await response.json();
             if (data.success === true){
@@ -228,17 +231,17 @@ export default function UserPageComponents(){
 
     async function checkFollowing(){
         try{
-            const response = await fetch('http://localhost:8000/user-following', {
+            const response = await fetch('http://localhost:8000/is-following', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 credentials: 'include',
-                body: JSON.stringify({"follower": user.username, "followed": id}),
+                body: JSON.stringify({"username": user.username, "followed_user": id}),
             });
             const data = await response.json();
 
-            setFollowing(data.following);
+            setFollowing(data.is_following);
         }
         catch (error) {
             console.error('Error:', error);
@@ -246,6 +249,9 @@ export default function UserPageComponents(){
     }
 
     useEffect(() => {
+        if (user.username === ""){
+            return;
+        }
         checkUser();
         checkFollowing();
         fetchUserDetails();
@@ -257,9 +263,9 @@ export default function UserPageComponents(){
         fetchUserGames();
         fetchBookmarks();
         setLoading(false);
-    }, []);
+    }, [user, id, following]);
 
-    if (loading) {
+    if (loading || userDetails === undefined ) {
         return <div>Loading...</div>;
     }
 
