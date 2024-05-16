@@ -6,13 +6,16 @@ import GameListCard from "../commons/GameListCard";
 import MoreGamesGrid from "./MoreGamesGrid";
 import ReviewListCard from "./ReviewListCard";
 import MainPageBanner from "./MainPageBanner";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { ProfileContext } from "../../context/ProfileProvider";
 import SearchBar from "../commons/SearchBar";
 
 export default MainScreenComponents = () => {
     const [isSearch, setIsSearch] = useState(false)
     const { username, token, isGuest, logoutHandler } = useContext(ProfileContext)
+
+    const [gameOfTheDay, setGameOfTheDay] = useState(null);
+    const [popularGames, setPopularGames] = useState(null);
 
     const navigation = useNavigation();
 
@@ -25,13 +28,32 @@ export default MainScreenComponents = () => {
         console.log(query);
     }
 
-    const onFocus = () => { 
+    const onFocus = () => {
         setIsSearch(true)
     }
 
     const onBlur = () => {
         setIsSearch(false)
     }
+
+    useEffect(() => {
+        const f = async () => {
+            try {
+                console.log(process.env.EXPO_PUBLIC_URL);
+                const fetchedGame = await fetch(`${process.env.EXPO_PUBLIC_URL}/game-of-the-day`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                setGameOfTheDay(fetchedGame);
+            } catch (e) {
+                console.error(e);
+                throw e;
+            }
+        };
+        f();
+    });
 
     return (
         <ScrollView contentContainerStyle={styles.scrollViewContainer} style={styles.scrollView}>
@@ -47,7 +69,7 @@ export default MainScreenComponents = () => {
                 <CustomButton title="Logout" onPress={onLogout} />
             </>}
         </ScrollView>
-    )
+    );
 }
 
 
@@ -59,4 +81,4 @@ const styles = StyleSheet.create({
         // alignItems: 'center',
         // justifyContent: 'center',
     }
-})
+});

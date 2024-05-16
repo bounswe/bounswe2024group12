@@ -58,7 +58,7 @@ const exampleGame = {
     canYouRunItUrl: "https://www.systemrequirementslab.com/cyri/requirements/the-witcher-3-wild-hunt/12404",
     likes: 0,
     characters: [
-  
+
     ],
     averageRating: () => 4.5,
     gameReleaseDate: new Date("2015-05-19"),
@@ -68,23 +68,27 @@ export default GameScreen = ({ gameId = 'exampleGameId' }) => {
 
     const [game, setGame] = useState(null);
     const [loading, setLoading] = useState(false);
-   
+
 
     const getGame = async () => {
-        // setLoading(true)
-        // const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/game/${gameId}`)
-        // const game = await response.json()
-        // setLoading(false)
-        // return game
-
-
-        return exampleGame;
+        setLoading(true)
+        let game;
+        try {
+          console.log(`${process.env.EXPO_PUBLIC_URL}`);
+          const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/game_info/${gameId}`)
+          game = await response.json()
+        } catch (e) {
+          console.error(e)
+        }
+        setLoading(false)
+        console.log(game);
+        return game
+        // return exampleGame;
     }
 
     useEffect(() => {
         getGame().then(game => setGame(game))
     }, [])
-
 
     return (
         <View>
@@ -96,7 +100,7 @@ export default GameScreen = ({ gameId = 'exampleGameId' }) => {
                         <CustomButton title="Load Game" onPress={() => getGame().then(game => setGame(game))} /> :
                         <GameScreenComponents game={game} />
             }
-            
+
         </View>
     );
 }

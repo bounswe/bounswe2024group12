@@ -66,7 +66,7 @@ export default MainPageBanner = ({ game = exampleGame }) => {
     <TouchableOpacity style={styles.container} onPress={onPress}>
       <Text style={styles.header}>Game of The Day</Text>
       <Image
-        source={{ uri: game.banner }} // Replace with your image path
+        source={{ uri: exampleGame.banner }} // Replace with your image path
         style={styles.gameBanner}
       />
       <View style={styles.bottomContainer}>

@@ -1,4 +1,4 @@
-import { StyleSheet, Text, Image, ScrollView, View } from "react-native";
+import { StyleSheet, Text, Image, ScrollView, View, Touchable, TouchableOpacity } from "react-native";
 import textStyles from "../../styles/textStyles";
 import GameScreenBanner from "./GameScreenBanner";
 import { useState } from "react";
@@ -7,27 +7,35 @@ import GameTab from "./GameTab";
 import Characters from "./Characters";
 import Credits from "./Credits";
 import GameReviewListCard from "./Reviews"
+import ReviewGamePopup from "./ReviewGamePopup";
 
 export default GameScreenComponents = ({ game }) => {
     const [selectedText, setSelectedText] = useState('Game');
+    const [modalVisible, setModalVisible] = useState(false);
 
     const handleTextPress = (text) => {
         setSelectedText(text);
     };
 
+
+    const reviewGame = () => {
+        setModalVisible(true);
+    }
+
     return (
         <ScrollView>
             <GameScreenBanner game={game} />
-            <Text style={[textStyles.default, styles.description]}>{game.shortDescription}</Text>
+            <Text style={[textStyles.default, styles.description]}>{game.gameDescription}</Text>
             <View style={styles.ratingContainer}>
                 <View style={styles.rating}>
                     <Text style={[textStyles.default, styles.rating]}>{game.averageRating()}</Text>
-                    <SmallRatings rating={game.averageRating()} /> 
+                    <SmallRatings rating={game.averageRating()} />
                 </View>
-                <View style={styles.review}>
-                  <Text style={textStyles.default}>Your Review</Text> 
-                  <SmallRatings rating={0} /> 
-                </View> 
+                <TouchableOpacity style={styles.review} onPress={reviewGame}>
+                  <Text style={textStyles.default}>Create Review</Text>
+                  {/* <SmallRatings rating={0} /> */}
+                  <ReviewGamePopup game={game} visible={modalVisible} onClose={() => setModalVisible(false)} />
+                </TouchableOpacity>
             </View>
 
             <View style={{ borderBottomWidth: 1, borderBottomColor: 'white' }}></View>
@@ -124,4 +132,3 @@ const styles = StyleSheet.create({
       alignItems: 'center',
     },
   });
-  
