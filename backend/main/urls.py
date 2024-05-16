@@ -29,7 +29,6 @@ urlpatterns = [
     path('is-following', views.is_following, name='is-following'),
     path('user-check', views.user_check, name='user-check'),
     path('user-details', views.user_details, name='user-details'),
-    path('search-game-by/<str:search_by>/', views.search_game_by, name='search-game-by'),
     ]
 
 
