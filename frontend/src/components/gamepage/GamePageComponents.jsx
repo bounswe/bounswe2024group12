@@ -6,8 +6,7 @@ import styles from './GamePageComponents.module.css';
 import GameInfo from './GameInfo';
 import TabComponent from "./TabComponent";
 
-export default function GamePageComponents({game}){
-  //todo fill here when isil returns
+export default function GamePageComponents(){
   const [loggedIn, setLoggedIn] = useState(true);
   return (
     <>

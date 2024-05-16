@@ -2,7 +2,7 @@ import React from "react";
 import { useState } from "react";
 import style from "./ForgotPasswordCard.module.css";
 import Card from "../common/Card";
-import { endpoint } from "../common/EndpointContext";
+
 
 
 
@@ -18,7 +18,7 @@ export default function ForgotPasswordCard() {
      
   
       try {
-        const response = await fetch(endpoint + 'forgot-password', {
+        const response = await fetch('http://localhost:3001/forgot-password', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

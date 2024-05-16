@@ -3,11 +3,9 @@ import Card from '../common/Card';
 import style from './LoginCard.module.css';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../common/UserContext';
-import { endpoint } from '../common/EndpointContext';
 
 
 export default function LoginCard() {
-  console.log(endpoint);
   const navigate = useNavigate();
   const [loginFailed, setLoginFailed] = useState(false);
   const { loggedIn, handleLogin,  } = useAuth();
@@ -35,7 +33,7 @@ export default function LoginCard() {
     console.log('Password', password);
 
     try {
-      const response = await fetch(endpoint+'login', {
+      const response = await fetch('http://165.232.73.154:8000/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

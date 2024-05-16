@@ -4,7 +4,7 @@ const UserContext = createContext();
 
 export default function UserProvider({ children }){
   const [loggedIn, setLoggedIn] = useState(false);
-  const [user, setUser] = useState({ username: ''});
+  const [user, setUser] = useState({ username: 'Guest'});
 
   const handleLogin = (username) => {;
     localStorage.setItem('username', username);
@@ -25,7 +25,7 @@ export default function UserProvider({ children }){
     console.log('Token:', token);
     console.log('Username:', username);
   
-    if (username) {
+    if (token && username) {
       setUser( { username: username });
       setLoggedIn(true);
     }
