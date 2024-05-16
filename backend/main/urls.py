@@ -21,6 +21,7 @@ urlpatterns = [
     path('login', views.login, name='login'),
     path('', views.index, name='index'),
     path('search-game', views.search_game, name='search-game'),
+    path('search-game-by/<str:search_by>/', views.search_game_by, name='search-game-by'),
     path('game-of-the-day', views.get_game_of_the_day, name='game-of-the-day'),
     path('all-games', views.get_all_games, name='all-games'),
     path('popular-games', views.get_popular_games, name='popular-games'),

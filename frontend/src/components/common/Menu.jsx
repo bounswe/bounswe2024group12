@@ -3,13 +3,21 @@ import { useNavigate } from 'react-router-dom';
 import styles from './Menu.module.css';
 import { useAuth } from './UserContext';
 import AnimatedLoader from './AnimatedLoader/AnimatedLoader';
+import { endpoint } from './EndpointContext';
 
-
+// Properties:
+// genre: 
+// publisher
+// developer
+// platform 
+// game mode 
 
 const Menu = () => {
+
   const [gameName, setGameName] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [searchProperty, setSearchProperty] = useState('');
   const { user } = useAuth();
   const navigate = useNavigate();
   const ref = useRef(null);
@@ -41,13 +49,14 @@ const Menu = () => {
 
   const searchGame = async (query) => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/search-game', {
+      const searchEndpoint = searchProperty ? `${endpoint}search-game-by/${searchProperty}/` : `${endpoint}search-game`;
+      const response = await fetch(searchEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({ game_name: query }),
+        body: JSON.stringify({ search_term: query }),
       });
 
       if (!response.ok) {
@@ -56,56 +65,81 @@ const Menu = () => {
       }
 
       const data = await response.json();
+      if(searchProperty === '') {
       setSuggestions(data.games);
+      }
+      else {
+        setSuggestions(data.results);
+      }
+      console.log('Suggestions:', suggestions);
     } catch (error) {
       console.error('Error:', error);
     }
   };
 
   const handleSuggestionClick = (gameSlug) => {
-    navigate(`/game-details/${gameSlug}`);
+    navigate(`/game/${gameSlug}`);
     setSuggestions([]); // Clear suggestions after click
+  };
+
+  const handlePropertyChange = (e) => {
+    setSearchProperty(e.target.value);
   };
 
   return (
     <div className={styles.menu}>
       <div className={styles.siteName}> PlayLog</div>
       <div className={styles.menuItems}>
-      <div className={styles.searchContainer}>
-        <div className={styles.searchBar}>
+
+      <select className={styles.propertyDropdown} onChange={handlePropertyChange} value={searchProperty}>
+            <option value="">Search in Games...</option>
+            <option value="genre">Search in Genre</option>
+            <option value="publisher">Search in Publisher</option>
+            <option value="developer">Search in Developer</option>
+            <option value="platform">Search in Platform</option>
+          </select>
+        <div className={styles.searchContainer}>
+          {/* search by property dropdown */}
           
-        
-        <input
-            className={styles.searchInput}
-            placeholder="Search games"
-            value={gameName}
-            onChange={handleSearchChange}
-            
-          />
-          {loading && <div
-          // Add inline style to add loader as 5px-5px
-          style={{position:'relative', top:'-5px', left:'-5px' }}
-          >
-            <AnimatedLoader/>
-            </div>
+
+          <div className={styles.searchBar}>
+            <input
+              className={styles.searchInput}
+              placeholder="Search..."
+              value={gameName}
+              onChange={handleSearchChange}
+            />
+            {loading && 
+              <div
+                style={{position:'relative', top:'-5px', left:'-5px' }}
+              >
+                <AnimatedLoader/>
+              </div>
             }  
+          </div>  
 
-
-        </div>  
-        
           <div ref={ref} className={styles.suggestions}>
             {suggestions.map((suggestion) => (
+              searchProperty === '' ?(
               <div
                 key={suggestion['game-slug']}
                 onClick={() => handleSuggestionClick(suggestion['game-slug'])}
                 className={styles.suggestionItem}
               >
                 {suggestion.gameLabel}
+              </div>) : (
+                <div
+                key={suggestion}
+                onClick={() => handleSuggestionClick(suggestion)}
+                className={styles.suggestionItem}
+              >
+                {suggestion}
               </div>
+              )
             ))}
+          </div>
         </div>
-          
-        </div>
+
         <button className={styles.menuButton}><a href="/lists" className={styles.menuLink}>Lists</a></button>
         <button className={styles.menuButton}><a href="/games" className={styles.menuLink}>Games</a></button>
        
