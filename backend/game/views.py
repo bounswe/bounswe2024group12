@@ -90,7 +90,7 @@ def get_game_info(request, game_slug):
 @csrf_exempt
 def search_game(request):
     data = json.loads(request.body)
-    game_name = data.get('game_name')
+    game_name = data.get('search_term')
     if not game_name:
         return JsonResponse({'error': 'Game name is required'}, status=400)
     sparql_query = """
@@ -99,9 +99,9 @@ def search_game(request):
         ?game wdt:P31 wd:Q7889;   # Instance of video game
             rdfs:label ?gameLabel.   # Game label
         FILTER(LANG(?gameLabel) = "en")   # Filter labels to English
-        FILTER(STRSTARTS(LCASE(?gameLabel), LCASE("%s")))   # Case-insensitive search starting with the given game name
+        FILTER(CONTAINS(LCASE(?gameLabel), LCASE("%s")))   # Case-insensitive search starting with the given game name
     } 
-    LIMIT 10
+    LIMIT 5
     """ % game_name
     headers = {'User-Agent': 'Mozilla/5.0 (Django Application)', 'Accept': 'application/json'}
     response = requests.get(SPARQL_ENDPOINT, headers=headers, params={'query': sparql_query, 'format': 'json'})
