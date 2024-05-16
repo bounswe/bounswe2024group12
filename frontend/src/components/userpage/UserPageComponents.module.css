@@ -1,0 +1,15 @@
+.Container {
+    max-width: 70vw;
+    margin: 60px auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: var(--background-color);
+}
+
+@media screen and (max-width: 800px){
+    .Container{
+        max-width: 90vw;
+        margin: 20px auto;
+    }
+}

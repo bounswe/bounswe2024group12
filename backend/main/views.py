@@ -7,7 +7,31 @@ import requests
 from django.contrib.auth import authenticate, login, logout
 import logging
 from django.utils import timezone
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
+
+@swagger_auto_schema(
+    method='post',
+    operation_description="Register a new user",
+    request_body=openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties = {
+            'username': openapi.Schema(type=openapi.TYPE_STRING),
+            'email': openapi.Schema(type=openapi.TYPE_STRING),
+            'password': openapi.Schema(type=openapi.TYPE_STRING),
+    },
+    required=['username', 'email', 'password']
+    ),
+    responses={
+        201: "User created successfully",
+        400: "Invalid request",
+    },
+    operation_id='signup',
+)
+@api_view(['POST', 'OPTIONS'])
 
 @csrf_exempt  # Only for demonstration. CSRF protection should be enabled in production.
 def signup(request):
@@ -35,7 +59,27 @@ def signup(request):
 
     else:
         return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
-    
+
+@swagger_auto_schema(
+        method='post',
+        operation_description="Login a user",
+        request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties = {
+            'email': openapi.Schema(type=openapi.TYPE_STRING),
+            'password': openapi.Schema(type=openapi.TYPE_STRING)
+        },
+        required=['email', 'password']
+        ),
+
+        responses={
+            200: "Login successful",
+            401: "Invalid credentials",
+            400: "Invalid request"
+        },
+        operation_id='login'
+)
+@api_view(['POST'])
 @csrf_exempt 
 def login(request):
     if request.method == 'POST':
@@ -51,7 +95,21 @@ def login(request):
             return JsonResponse({'success': False, 'message': 'Invalid credentials'}, status=401)
     else:
         return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
-    
+
+@swagger_auto_schema(
+    method='post',
+    operation_description="Get the properties of a game",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT
+    ),
+    responses={
+        200: "Game properties fetched successfully",
+        404: "Game not found",
+        405: "Invalid request method",
+    },
+    operation_id='property_game'
+)
+@api_view(('POST', 'OPTIONS'))
 @csrf_exempt
 def property_game(request):
     if request.method == 'POST':
