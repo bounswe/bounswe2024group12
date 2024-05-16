@@ -5,6 +5,17 @@ import requests
 from django.utils.text import slugify
 from .models import Game
 
+SPARQL_ENDPOINT = "https://query.wikidata.org/sparql"
+
+# Map search_by parameters to their corresponding Wikidata properties
+SEARCH_BY_PROPERTIES = {
+    'genre': 'P136',
+    'developer': 'P178',
+    'publisher': 'P123',
+    'platform': 'P400',
+    'composer': 'P86'
+}
+
 def generate_slug(name):
     slug = slugify(name)
     if Game.objects.filter(game_slug=slug).exists():
@@ -43,9 +54,6 @@ def get_unique_games(json_list, params, fetch_all=False):
 
 @csrf_exempt
 def get_game_info(request, game_slug):
-    if request.method != 'GET':
-        return JsonResponse({'error': 'Only GET requests are allowed'}, status=400)
-    
     game = Game.objects.filter(game_slug=game_slug).first()
     if not game:
         return JsonResponse({'error': 'Game not found'}, status=404)
@@ -72,9 +80,8 @@ def get_game_info(request, game_slug):
             }
             LIMIT 1
             """ % game_name
-    url = 'https://query.wikidata.org/sparql'
     headers = {'User-Agent': 'Mozilla/5.0 (Django Application)', 'Accept': 'application/json'}
-    response = requests.get(url, headers=headers, params={'query': sparql_query, 'format': 'json'})
+    response = requests.get(SPARQL_ENDPOINT, headers=headers, params={'query': sparql_query, 'format': 'json'})
     results = response.json()
     game_info = get_unique_games(results, ['gameLabel', 'genreLabel', 'publisherLabel', 'countryLabel', 'publication_date', 'screenwriterLabel', 'composerLabel', 'platformLabel', 'image', 'logo', 'gameDescription'])
     context = game_info['games'][0]
@@ -96,13 +103,54 @@ def search_game(request):
     } 
     LIMIT 10
     """ % game_name
-    url = 'https://query.wikidata.org/sparql'
     headers = {'User-Agent': 'Mozilla/5.0 (Django Application)', 'Accept': 'application/json'}
-    response = requests.get(url, headers=headers, params={'query': sparql_query, 'format': 'json'})
+    response = requests.get(SPARQL_ENDPOINT, headers=headers, params={'query': sparql_query, 'format': 'json'})
     results = response.json()
     games = get_unique_games(results, ['gameLabel'])
     return JsonResponse(games, safe=False)
 
+@csrf_exempt
+def search_game_by(request, search_by):
+    data = json.loads(request.body)
+    
+    search_term = data.get('search_term')
+    if not search_term:
+        return JsonResponse({'error': 'Search term is required'}, status=400)
+
+    if search_by not in SEARCH_BY_PROPERTIES:
+        return JsonResponse({'error': 'Invalid search parameter'}, status=400)
+
+    property_id = SEARCH_BY_PROPERTIES[search_by]
+    query = f"""
+    SELECT DISTINCT ?label
+    WHERE {{
+        ?game wdt:P31 wd:Q7889;  # Instance of video game
+              wdt:{property_id} ?propertyValue;  # Property (genre, developer, etc.)
+              rdfs:label ?gameLabel.  # Game label
+        ?propertyValue rdfs:label ?label.  # Property label
+        FILTER(LANG(?gameLabel) = "en")  # Filter labels to English
+        FILTER(LANG(?label) = "en")  # Filter property labels to English
+        FILTER(CONTAINS(LCASE(?label), LCASE("{search_term}")))  # Case-insensitive search by property
+    }}
+    LIMIT 4
+    """
+
+    headers = {'User-Agent': 'Mozilla/5.0 (Django Application)', 'Accept': 'application/json'}
+    
+    response = requests.get(SPARQL_ENDPOINT, params={'query': query}, headers=headers)
+
+    if response.status_code != 200:
+        return JsonResponse({'error': 'Failed to fetch data from SPARQL endpoint'}, status=response.status_code)
+
+    try:
+        results = response.json()
+        labels = [result['label']['value'] for result in results['results']['bindings']]
+        return JsonResponse({'results': labels})
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Failed to parse response from SPARQL endpoint'}, status=500)
+    except KeyError:
+        return JsonResponse({'error': 'Unexpected response format from SPARQL endpoint'}, status=500)
+    
 def fetch_all_games():
     if Game.objects.exists():
         return JsonResponse({'message': 'Games already fetched'})
@@ -116,9 +164,8 @@ def fetch_all_games():
         SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
         }
     """
-    url = 'https://query.wikidata.org/sparql'
     headers = {'User-Agent': 'Mozilla/5.0 (Django Application)', 'Accept': 'application/json'}
-    response = requests.get(url, headers=headers, params={'query': sparql_query, 'format': 'json'})
+    response = requests.get(SPARQL_ENDPOINT, headers=headers, params={'query': sparql_query, 'format': 'json'})
     results = response.json()
     all_games = get_unique_games(results, ['gameLabel', 'image'], fetch_all=True) 
     game = [Game(game_name=game['gameLabel'], game_image=game['image'], game_slug=game['game_slug']) for game in all_games['games']]
@@ -146,9 +193,8 @@ def get_game_of_the_day(request):
         }
         LIMIT 3
     """
-    url = 'https://query.wikidata.org/sparql'
     headers = {'User-Agent': 'Mozilla/5.0 (Django Application)', 'Accept': 'application/json'}
-    response = requests.get(url, headers=headers, params={'query': sparql_query, 'format': 'json'})
+    response = requests.get(SPARQL_ENDPOINT, headers=headers, params={'query': sparql_query, 'format': 'json'})
     results = response.json()
     game_of_the_day = get_unique_games(results, ['gameLabel', 'publisherLabel', 'image'])
     context = game_of_the_day['games'][0]
@@ -170,9 +216,8 @@ def get_popular_games(request):
     ORDER BY DESC(?statementCount)
     LIMIT 20
     """
-    url = 'https://query.wikidata.org/sparql'
     headers = {'User-Agent': 'Mozilla/5.0 (Django Application)', 'Accept': 'application/json'}
-    response = requests.get(url, headers=headers, params={'query': sparql_query, 'format': 'json'})
+    response = requests.get(SPARQL_ENDPOINT, headers=headers, params={'query': sparql_query, 'format': 'json'})
     results = response.json()
     popular_games = get_unique_games(results, ['gameLabel', 'image'])
     #get the first 10 games
@@ -195,14 +240,13 @@ def get_new_games(request):
         ORDER BY DESC(?publicationDate)
         LIMIT 20
     """
-    url = 'https://query.wikidata.org/sparql'
     headers = {'User-Agent': 'Mozilla/5.0 (Django Application)', 'Accept': 'application/json'}
-    response = requests.get(url, headers=headers, params={'query': sparql_query, 'format': 'json'})
+    response = requests.get(SPARQL_ENDPOINT, headers=headers, params={'query': sparql_query, 'format': 'json'})
     results = response.json()
     new_games = get_unique_games(results, ['gameLabel', 'image'])
     #get the first 10 games
     new_games['games'] = new_games['games'][:10]
-    return JsonResponse({'games': new_games})
+    return JsonResponse(new_games, safe=False)
 
 def get_game_characters(request, game_slug):
     if request.method != 'GET':
@@ -229,9 +273,8 @@ def get_game_characters(request, game_slug):
           }
         LIMIT 20
     """ % game_name
-    url = 'https://query.wikidata.org/sparql'
     headers = {'User-Agent': 'Mozilla/5.0 (Django Application)', 'Accept': 'application/json'}
-    response = requests.get(url, headers=headers, params={'query': sparql_query, 'format': 'json'})
+    response = requests.get(SPARQL_ENDPOINT, headers=headers, params={'query': sparql_query, 'format': 'json'})
     results = response.json()
     game = {
         'gameLabel': game_name,
@@ -247,3 +290,7 @@ def get_game_characters(request, game_slug):
         game['characters'].append(character)
 
     return JsonResponse(game, safe=False)
+
+def get_property_games(request):
+    return JsonResponse({'properties': list(SEARCH_BY_PROPERTIES.keys())})
+    
