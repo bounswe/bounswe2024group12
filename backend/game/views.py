@@ -144,7 +144,7 @@ def search_game_by(request, search_by):
 
     try:
         results = response.json()
-        labels = [result['label']['value'] for result in results['results']['bindings']]
+        labels = [{'gameLabel': result['label']['value'], 'game-slug': ''} for result in results['results']['bindings']]
         return JsonResponse({'results': labels})
     except json.JSONDecodeError:
         return JsonResponse({'error': 'Failed to parse response from SPARQL endpoint'}, status=500)

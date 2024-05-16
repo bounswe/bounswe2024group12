@@ -109,10 +109,10 @@ const Menu = () => {
 
   const handleSuggestionClick = (selectedItem) => {
     if (searchProperty === '') {
-      navigate(`/game/${selectedItem}`);
+      navigate(`/game/${selectedItem['game-slug']}`);
     }
     else {
-      navigate('/property', { state: { property_type:searchProperty , property_name: selectedItem} });
+      navigate('/property', { state: { property_type:searchProperty , property_name: selectedItem.gameLabel} });
 
 
     }
@@ -158,23 +158,15 @@ const Menu = () => {
 
           <div ref={ref} className={styles.suggestions}>
             {suggestions.map((suggestion) => (
-              searchProperty === '' ?(
+             
               <div
-                key={suggestion['game-slug']}
-                onClick={() => handleSuggestionClick(suggestion['game-slug'])}
-                className={styles.suggestionItem}
-              >
-                {suggestion.gameLabel}
-              </div>) : (
-                <div
-                key={suggestion}
+                key={suggestion['gameLabel']}
                 onClick={() => handleSuggestionClick(suggestion)}
                 className={styles.suggestionItem}
               >
-                {suggestion}
-              </div>
-              )
-            ))}
+                {suggestion.gameLabel}
+              </div>) 
+            )}
           </div>
         </div>
 
