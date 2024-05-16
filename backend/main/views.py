@@ -2,7 +2,10 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import RegisteredUser, Follow
 import json
-from django.contrib.auth import authenticate, login as djangologin, logout
+from django.contrib.auth import authenticate, login as djangologin
+from django.utils import timezone
+from .models import Review
+
 
 def index(request):
     return JsonResponse({'message': 'Welcome to the PlayLog API!'})
@@ -119,7 +122,8 @@ def get_following(request):
         return JsonResponse({'following': following_list})
     else:
         return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
- 
+
+@csrf_exempt
 def get_follower_count(request):
     if request.method == 'POST':
         data = json.loads(request.body)
@@ -127,7 +131,8 @@ def get_follower_count(request):
         user = RegisteredUser.objects.get(username=username)
         followers = Follow.objects.filter(followed_user_id=user.user_id)
         return followers.count()
-    
+
+@csrf_exempt
 def get_following_count(request):
     if request.method == 'POST':
         data = json.loads(request.body)
@@ -171,4 +176,147 @@ def user_details(request):
         followers = get_follower_count(request)
         following = get_following_count(request)
         return JsonResponse({ "gamesLiked": gamesLiked, "reviewCount": reviewCount, "followers": followers, "following": following})
-      
+
+@csrf_exempt
+def createReview(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        game = data.get('game')
+        rating = data.get('rating')
+        text = data.get('text')
+        
+        review = Review.objects.create(
+            game_slug = game,
+            rating = rating,
+            text = text
+        )
+        
+        return JsonResponse({'success': True, 'message': 'Review created successfully', 'game': game, 'rating': rating, 'text': text}, status=201)
+    else:
+        return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
+
+@csrf_exempt   
+def editReview(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        review = data.get('review') # Review ID
+        rating = data.get('rating')
+        text = data.get('text')
+        
+        review = Review.objects.get(id=review)
+        review.rating = rating
+        review.text = text
+        review.lastEditDate = timezone.now()
+        review.save()
+        
+        return JsonResponse({'success': True, 'message': 'Review updated successfully', 'game': review.game_id, 'rating': review.rating, 'text': review.text}, status=200)
+    else:
+        return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
+
+@csrf_exempt    
+def deleteReview(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        review = data.get('review') # Review ID
+        
+        review = Review.objects.get(id=review)
+        review.delete()
+        
+        return JsonResponse({'success': True, 'message': 'Review deleted successfully'}, status=200)
+    else:
+        return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
+
+@csrf_exempt   
+def likeReview(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        review = data.get('review')
+        user = data.get('user')
+        
+        review = Review.objects.get(id=review)
+        user = RegisteredUser.objects.get(id=user)
+        
+        review.likedBy.add(user)
+        review.likes += 1
+        review.save()
+        
+        return JsonResponse({'success': True, 'message': 'Review liked successfully', 'likes': review.likes}, status=200)
+    else:
+        return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
+
+@csrf_exempt    
+def unlikeReview(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        review = data.get('review')
+        user = data.get('user')
+        
+        review = Review.objects.get(id=review)
+        user = RegisteredUser.objects.get(id=user)
+        
+        review.likedBy.remove(user)
+        review.likes -= 1
+        review.save()
+        
+        return JsonResponse({'success': True, 'message': 'Review unliked successfully', 'likes': review.likes}, status=200)
+    else:
+        return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
+    
+# Returns reviews posted within 1 week for a specific game
+@csrf_exempt
+def recentReviews(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        game = data.get('game')
+        
+        reviews = Review.objects.filter(game_slug=game, creationDate__gte=timezone.now() - timezone.timedelta(days=7))
+        
+        return JsonResponse({'reviews': list(reviews.values())}, status=200)
+    else:
+        return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
+
+@csrf_exempt   
+def recentReviewsOfUser(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        user = data.get('user')
+        
+        reviews = Review.objects.filter(user_id=user, creationDate__gte=timezone.now() - timezone.timedelta(days=7))
+        
+        return JsonResponse({'reviews': list(reviews.values())}, status=200)
+
+# Returns reviews that have more than 50 likes   
+@csrf_exempt
+def popularReviews(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        game = data.get('game')
+        
+        reviews = Review.objects.filter(game_slug=game, likes__gt=50)
+        
+        return JsonResponse({'reviews': list(reviews.values())}, status=200)
+    else:
+        return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
+
+@csrf_exempt
+def popularReviewsOfUser(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        user = data.get('user')
+        
+        reviews = Review.objects.filter(user_id=user, likes__gt=50)
+        
+        return JsonResponse({'reviews': list(reviews.values())}, status=200)
+
+@csrf_exempt    
+def getUserReviews(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        user = data.get('user')
+        game = data.get('game')
+        
+        reviews = Review.objects.filter(user_id=user, game_slug=game)
+        
+        return JsonResponse({'reviews': list(reviews.values())}, status=200)
+    else:
+        return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
