@@ -1,6 +1,7 @@
 import React,{useState, useEffect} from 'react';
 import styles from './MainPageGameLists.module.css';
 import {useNavigate} from 'react-router-dom';
+import { endpoint } from '../common/EndpointContext';
 
 const MainPageGameLists = ({title="Featured Games", type=""}) => {
   const navigator = useNavigate();
@@ -9,7 +10,7 @@ const MainPageGameLists = ({title="Featured Games", type=""}) => {
     const [error, setError] = useState("")
     async function fetchPopularGames() {
       try {
-        const response = await fetch('http://localhost:8000/popular-games', {
+        const response = await fetch(endpoint + 'popular-games', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -31,7 +32,7 @@ const MainPageGameLists = ({title="Featured Games", type=""}) => {
     }
     async function fetchNewGames() {
       try {
-        const response = await fetch('http://localhost:8000/new-games', {
+        const response = await fetch(endpoint + 'new-games', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

@@ -3,6 +3,7 @@ import styles from './TabComponent.module.css';
 import MainPageReviewLists from '../mainpage/MainPageReviewList';
 import styles2 from '../mainpage/MainPageComponents.module.css'; 
 import { useAuth } from '../common/UserContext';
+import { endpoint } from '../common/EndpointContext';
 
 const TabComponent = () => {
   const [activeTab, setActiveTab] = useState('Game');
@@ -69,7 +70,7 @@ const ReviewsComponent = ({ id }) => {
 
   const createReview = async () => {
     try {
-      const response = await fetch('http://localhost:8000/createReview', {
+      const response = await fetch(endpoint + 'createReview', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -3,6 +3,7 @@ import styles from './GameOfTheDay.module.css';
 import tempGame from "../temporaryassets/game.json";
 import tempImage from "../temporaryassets/gamePicture.jpeg";
 import {useNavigate} from 'react-router-dom';
+import { endpoint } from '../common/EndpointContext';
 
 const GameOfTheDay = () => {
   //Todo: avg rating of the gameOfTheDay
@@ -11,7 +12,7 @@ const GameOfTheDay = () => {
   const [gameOfTheDayError, setGameOfTheDayError] = useState("")
   async function fetchGameOfTheDay() {
     try {
-      const response = await fetch('http://localhost:8000/game-of-the-day', {
+      const response = await fetch(endpoint + 'game-of-the-day', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

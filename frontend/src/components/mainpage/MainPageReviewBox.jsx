@@ -3,6 +3,7 @@ import styles from './MainPageReviewBox.module.css';
 import tempImage from "../temporaryassets/gamePicture.jpeg";
 import tempReview from "../temporaryassets/review.json";
 import { useAuth } from '../common/UserContext';
+import { endpoint } from '../common/EndpointContext';
 
 const MainPageReviewBox = ({ review = tempReview }) => {
   const [game, setGame] = useState({});
@@ -15,7 +16,7 @@ const MainPageReviewBox = ({ review = tempReview }) => {
 
   async function fetchGame(id) {
     try {
-      const response = await fetch('http://localhost:8000/game-info/' + id, {
+      const response = await fetch(endpoint + 'game-info/' + id, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -44,7 +45,7 @@ const MainPageReviewBox = ({ review = tempReview }) => {
 
   const likeReview = async () => {
     try {
-      const response = await fetch('http://localhost:8000/likeReview', {
+      const response = await fetch(endpoint + 'likeReview', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -68,7 +69,7 @@ const MainPageReviewBox = ({ review = tempReview }) => {
 
   const unlikeReview = async () => {
     try {
-      const response = await fetch('http://localhost:8000/unlikeReview', {
+      const response = await fetch(endpoint + 'unlikeReview', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -92,7 +93,7 @@ const MainPageReviewBox = ({ review = tempReview }) => {
 
   const editReview = async () => {
     try {
-      const response = await fetch('http://localhost:8000/editReview', {
+      const response = await fetch(endpoint + 'editReview', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -116,7 +117,7 @@ const MainPageReviewBox = ({ review = tempReview }) => {
 
   const deleteReview = async () => {
     try {
-      const response = await fetch('http://localhost:8000/deleteReview', {
+      const response = await fetch(endpoint + 'deleteReview', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -11,6 +11,7 @@ import FollowsTab from "./FollowsTab";
 import ReviewsTab from "./ReviewsTab";
 import GamesTab from "./GamesTab";
 import BookmarksTab from "./BookmarksTab";
+import { endpoint } from "../common/EndpointContext";
 
 export default function UserPageComponents(){
     const { id } = useParams();
@@ -151,7 +152,7 @@ export default function UserPageComponents(){
         
     async function request(type){
         try{
-            const response = await fetch('http://localhost:8000/user-' + type, {
+            const response = await fetch(endpoint + 'user-' + type, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -169,7 +170,7 @@ export default function UserPageComponents(){
     async function checkUser(){
         console.log("Target",id);
         try{
-            const response = await fetch('http://localhost:8000/user-check', {
+            const response = await fetch(endpoint + 'user-check', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -190,7 +191,7 @@ export default function UserPageComponents(){
 
     async function followUser(){
         try{
-            const response = await fetch('http://localhost:8000/follow-user', {
+            const response = await fetch(endpoint + 'follow-user', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -210,7 +211,7 @@ export default function UserPageComponents(){
 
     async function unfollowUser(){
         try{
-            const response = await fetch('http://localhost:8000/unfollow-user', {
+            const response = await fetch(endpoint + 'unfollow-user', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -231,7 +232,7 @@ export default function UserPageComponents(){
 
     async function checkFollowing(){
         try{
-            const response = await fetch('http://localhost:8000/is-following', {
+            const response = await fetch(endpoint + 'is-following', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

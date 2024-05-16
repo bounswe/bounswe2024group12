@@ -1,6 +1,7 @@
 import GamePageComponents from "../components/gamepage/GamePageComponents";
 import { useParams } from "react-router-dom";
 import React,{useState, useEffect} from 'react';
+import { endpoint } from '../common/EndpointContext';
 
 export default function GamePage() {
     let { id } = useParams();
@@ -8,7 +9,7 @@ export default function GamePage() {
     const [game, setGame] = useState()
     async function fetchGame() {
         try {
-            const response = await fetch('http://localhost:8000/game-info', {
+            const response = await fetch(endpoint + 'game-info', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',

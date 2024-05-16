@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import styles from './MainPageReviewList.module.css';
 import tempImage from "../temporaryassets/gamePicture.jpeg";
 import MainPageReviewBox from './MainPageReviewBox';
+import { endpoint } from '../common/EndpointContext';
 
 const MainPageReviewLists = ({title="Featured Reviews", id, type}) => {
     const [list, setList] =useState([])
     const [error, setError] =useState("")
     async function fetchReviews() {
       try {
-          const response = await fetch('http://localhost:8000/' + type==="recent" ? "recentReviews" : "popularReviews", {
+          const response = await fetch(endpoint + type==="recent" ? "recentReviews" : "popularReviews", {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
