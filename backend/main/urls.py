@@ -31,11 +31,11 @@ urlpatterns = [
     path('game-info/<str:game_slug>/', views.get_game_info, name='game_info'),
     path('follow-user', views.follow_user, name='follow-user'),
     path('unfollow-user', views.unfollow_user, name='unfollow-user'),
-    path('user-followers-list', views.get_followers, name='get-followers-list'),
-    path('user-following-list', views.get_following, name='get-following-list'),
+    path('user-followers-list', views.get_followers, name='user-followers-list'),
+    path('user-following-list', views.get_following, name='user-following-list'),
     path('is-following', views.is_following, name='is-following'),
     path('user-check', views.user_check, name='user-check'),
-    path('user-details', views.user_details, name='user_details'),
+    path('user-details', views.user_details, name='user-details'),
     ]
 
 
