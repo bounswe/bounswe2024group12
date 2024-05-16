@@ -7,8 +7,6 @@ import GameInfo from './GameInfo';
 import TabComponent from "./TabComponent";
 
 export default function GamePageComponents({game}){
-  //todo fill here when isil returns
-  const [loggedIn, setLoggedIn] = useState(true);
   return (
     <>
       <Menu/>

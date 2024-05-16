@@ -8,6 +8,12 @@
   display: flex;
 }
 
+.Form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .tabButton {
   padding: 10px 20px;
   border: none;
@@ -29,4 +35,12 @@
 
 .tabContent {
   margin-top: 20px;
+}
+
+.Error {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 10px;
 }
