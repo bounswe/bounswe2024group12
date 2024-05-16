@@ -2,7 +2,7 @@ import PropertyPageCard from "../components/propertypage/PropertyPageCard";
 
 
 
-export default function HomePage() {
+export default function PropertyPage() {
     return (
         <PropertyPageCard/>
     );
