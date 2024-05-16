@@ -1,10 +1,9 @@
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import RegisteredUser
+from .models import RegisteredUser, Follow
 import json
 import requests
-from django.contrib.auth import authenticate
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, login as djangologin, logout
 from django.utils import timezone
 import re
 
@@ -25,12 +24,24 @@ def signup(request):
         username = data.get('username')
         email = data.get('email')
         password = data.get('password')
-        user = RegisteredUser.objects.create_user(
-            username=username,
-            email=email,
-            password=password,  # Hash the password
-            is_active=True
-        )
+
+        # Check if the username or email already exists
+        if RegisteredUser.objects.filter(username=username).exists():
+            return JsonResponse({'error': 'Username already exists'}, status=400)
+        if RegisteredUser.objects.filter(email=email).exists():
+            return JsonResponse({'error': 'Email already exists'}, status=400)
+
+        try:
+            user = RegisteredUser.objects.create_user(
+                username=username,
+                email=email,
+                password=password,  # Hash the password
+                is_active=True
+            )
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+        
+
         return JsonResponse({'success': True, 'message': 'User created successfully', 'username': user.username, 'email': user.email, "password": user.password}, status=201)
 
     else:
@@ -44,6 +55,7 @@ def login(request):
         password = data.get('password')
         user = authenticate(username=email, password=password)
         if user is not None:
+            djangologin(request, user)
             response = JsonResponse({'success': True, 'message': 'Login successful', 'username': user.username, "token" : "dummy-token"}, status=200)
             response.set_cookie("token", "dummy-token")
             return response
@@ -51,3 +63,115 @@ def login(request):
             return JsonResponse({'success': False, 'message': 'Invalid credentials'}, status=401)
     else:
         return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
+
+@csrf_exempt
+def follow_user(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        username = data.get('username')
+        followed_user = data.get('followed_user')
+        user = RegisteredUser.objects.get(username=username)
+        followed_user = RegisteredUser.objects.get(username=followed_user)
+        Follow.objects.create(user_id=user.user_id, followed_user_id=followed_user.user_id)
+        return JsonResponse({'message': 'User followed successfully', "success": True})
+    else:
+        return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
+
+@csrf_exempt
+def unfollow_user(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        username = data.get('username')
+        followed_user = data.get('followed_user')
+        user = RegisteredUser.objects.get(username=username)
+        followed_user = RegisteredUser.objects.get(username=followed_user)
+        Follow.objects.filter(user_id=user.user_id, followed_user_id=followed_user.user_id).delete()
+        return JsonResponse({'message': 'User unfollowed successfully', "success": True})
+    else:
+        return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
+
+@csrf_exempt   
+def get_followers(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        username = data.get('username')
+        user = RegisteredUser.objects.get(username=username)
+        followers = Follow.objects.filter(followed_user_id=user.user_id)
+        if not followers:
+            return JsonResponse({'followers': []})
+        followers_list = []
+        for follower in followers:
+            followers_list.append(RegisteredUser.objects.get(user_id=follower.user_id).username)
+        return JsonResponse({'followers': followers_list})
+        
+    else:
+        return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
+
+@csrf_exempt    
+def get_following(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        username = data.get('username')
+        user = RegisteredUser.objects.get(username=username)
+        following = Follow.objects.filter(user_id=user.user_id).values_list('followed_user_id', flat=True)
+        if not following:
+            return JsonResponse({'following': []})
+        following_list = []
+        for followed_user_id in following:
+            following_list.append(RegisteredUser.objects.get(user_id=followed_user_id).username)
+        return JsonResponse({'following': following_list})
+    else:
+        return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
+ 
+def get_follower_count(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        username = data.get('username')
+        user = RegisteredUser.objects.get(username=username)
+        followers = Follow.objects.filter(followed_user_id=user.user_id)
+        return followers.count()
+    
+def get_following_count(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        username = data.get('username')
+        user = RegisteredUser.objects.get(username=username)
+        following = Follow.objects.filter(user_id=user.user_id)
+        return following.count()
+
+@csrf_exempt
+def is_following(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        username = data.get('username')
+        followed_user = data.get('followed_user')
+        user = RegisteredUser.objects.get(username=username)
+        followed_user = RegisteredUser.objects.get(username=followed_user)
+        is_following = Follow.objects.filter(user_id=user.user_id, followed_user=followed_user.user_id).exists()
+        return JsonResponse({'is_following': is_following})
+    else:
+        return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
+
+@csrf_exempt
+def user_check(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        username = data.get('username')
+        if RegisteredUser.objects.filter(username=username).exists():
+            return JsonResponse({'exists': True})
+        else:
+            return JsonResponse({'exists': False})
+    else:
+        return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
+
+    
+@csrf_exempt
+def user_details(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        gamesLiked = 2
+        reviewCount = 3
+        followers = get_follower_count(request)
+        following = get_following_count(request)
+        return JsonResponse({ "gamesLiked": gamesLiked, "reviewCount": reviewCount, "followers": followers, "following": following})
+      
