@@ -35,7 +35,7 @@ export default function LoginCard() {
     console.log('Password', password);
 
     try {
-      const response = await fetch(endpoint + 'login', {
+      const response = await fetch(endpoint+'login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

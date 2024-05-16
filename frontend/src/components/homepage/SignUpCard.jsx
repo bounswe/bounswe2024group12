@@ -45,7 +45,7 @@ export default function SignUpCard() {
         console.log("Password", password);
 
         try {
-            const response = await fetch(endpoint + 'signup', {
+            const response = await fetch(endpoint+'signup', {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
