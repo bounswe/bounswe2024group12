@@ -93,7 +93,7 @@ const Menu = () => {
         console.error('Error:', error);
       }
       setLoading(false);
-    }, 200), // 200ms debounce delay
+    }, 1000), // 200ms debounce delay
     [searchProperty]
   );
   

@@ -221,7 +221,7 @@ def search_game_by(request, search_by):
         FILTER(LANG(?label) = "en")  # Filter property labels to English
         FILTER(CONTAINS(LCASE(?label), LCASE("{search_term}")))  # Case-insensitive search by property
     }}
-    LIMIT 10
+    LIMIT 4
     """
 
     headers = {'User-Agent': 'Mozilla/5.0 (Django Application)', 'Accept': 'application/json'}
