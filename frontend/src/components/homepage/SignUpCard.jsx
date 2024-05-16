@@ -45,7 +45,7 @@ export default function SignUpCard() {
         console.log("Password", password);
 
         try {
-            const response = await fetch(endpoint+'signup', {
+            const response = await fetch(endpoint + 'signup', {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
@@ -113,68 +113,70 @@ export default function SignUpCard() {
 
     }
     const toggleTerms = (event) => {
-        event.stopPropagation(); 
-        setShowTerms(!showTerms)};
+        event.stopPropagation();
+        setShowTerms(!showTerms)
+    };
     const togglePrivacy = (event) => {
-        event.stopPropagation(); 
-        setShowPrivacy(!showPrivacy);}
+        event.stopPropagation();
+        setShowPrivacy(!showPrivacy);
+    }
 
     return (
         <>
-        <div className={style.Container}>
-            <Card>
-                <form onSubmit={handleSubmit} className={style.Form}>
-                    <h1>Sign Up</h1>
-                    <div style={{ width: '100%' }}>
-                        <label>Username</label>
-                        <input type='text' name='username' placeholder='Username' required />
-                        <label>E-Mail</label>
-                        <input type='email' name='email' placeholder='E-Mail' required />
-                        <label>Password</label>
-                        <input type='password' name='password' placeholder='Password' required />
-                        {/* Privacy and terms*/}
+            <div className={style.Container}>
+                <Card>
+                    <form onSubmit={handleSubmit} className={style.Form}>
+                        <h1>Sign Up</h1>
+                        <div style={{ width: '100%' }}>
+                            <label>Username</label>
+                            <input type='text' name='username' placeholder='Username' required />
+                            <label>E-Mail</label>
+                            <input type='email' name='email' placeholder='E-Mail' required />
+                            <label>Password</label>
+                            <input type='password' name='password' placeholder='Password' required />
+                            {/* Privacy and terms*/}
 
-                        <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'row' }}>
-              <input
-                type='checkbox'
-                id='privacyPolicy'
-                name='privacy'
-                required
-                style={{ width: '20px', height: '20px', cursor: 'pointer' }}
-              />
-              <label htmlFor='privacyPolicy' style={{ marginLeft: '5px', paddingRight:'0px' }}>
-                I agree to the
-              </label>
-              <span className={style.linkText} onClick={toggleTerms}>
-                Terms & Conditions
-              </span>
-              <span> and </span>
-              <span className={style.linkText} onClick={togglePrivacy}>
-                Privacy Policy
-              </span>.
+                            <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'row' }}>
+                                <input
+                                    type='checkbox'
+                                    id='privacyPolicy'
+                                    name='privacy'
+                                    required
+                                    style={{ width: '20px', height: '20px', cursor: 'pointer' }}
+                                />
+                                <label htmlFor='privacyPolicy' style={{ marginLeft: '5px', paddingRight: '0px' }}>
+                                    I agree to the
+                                </label>
+                                <span className={style.linkText} onClick={toggleTerms}>
+                                    Terms & Conditions
+                                </span>
+                                <span> and </span>
+                                <span className={style.linkText} onClick={togglePrivacy}>
+                                    Privacy Policy
+                                </span>.
+                            </div>
+
+                        </div>
+
+                        <button type='submit' style={{ width: '100%' }}>Sign Up</button>
+                        {passwordErr !== "" && <div className={style.Error}>{passwordErr}</div>}
+                        {usernameErr !== "" && <div className={style.Error}>{usernameErr}</div>}
+                    </form>
+
+                </Card>
+
             </div>
+            {showTerms && (
+                <div className={style.contentCard}>
+                    <TermsAndConditions />
 
-                    </div>
-
-                    <button type='submit' style={{ width: '100%' }}>Sign Up</button>
-                    {passwordErr !== "" && <div className={style.Error}>{passwordErr}</div>}
-                    {usernameErr !== "" && <div className={style.Error}>{usernameErr}</div>}
-                </form>
-                
-            </Card>
-            
-        </div>
-        {showTerms && (
-        <div className={style.contentCard}>
-            <TermsAndConditions />
-          
-        </div>
-      )}
-      {showPrivacy && (
-        <div className={style.contentCard}>
-          <PrivacyAgreement />
-        </div>
-      )}
+                </div>
+            )}
+            {showPrivacy && (
+                <div className={style.contentCard}>
+                    <PrivacyAgreement />
+                </div>
+            )}
         </>
     );
 }

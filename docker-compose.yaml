@@ -32,7 +32,7 @@ services:
       - "8000:8000"
     depends_on:
       - db
-    env_file: .env
+    env_file: backend/.env
     restart: "on-failure"
     networks:
       - mynetwork
@@ -46,6 +46,7 @@ services:
       - "3000:3000"
     networks:
       - mynetwork
+    
 
 volumes:
   db_data:

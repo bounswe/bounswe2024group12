@@ -9,6 +9,7 @@ import GamePage from './pages/GamePage'
 import PropertyPage from './pages/PropertyPage'
 import UserPage from './pages/UserPage'
 import PropertyPage from './pages/PropertyPage'
+import GameDetails from './components/gamepage/GameDetails'
 
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import UserProvider from './components/common/UserContext';
@@ -30,6 +31,7 @@ function App() {
           <Route path="/signup-success" element={<SignUpSuccessPage />} />
           <Route path="/main" element={<MainPage />} />
           <Route path="/user/:id" element={<UserPage />} />
+          <Route path="/game-details" element={<GameDetails />} />
         <Route path="/game/:id" element={<GamePage />} /> {/* or name or whatever i dont know how the query will be made*/}
           <Route path="/property" element={<PropertyPage />} />
           <Route path="*" element={<InvalidAccessCard />} />

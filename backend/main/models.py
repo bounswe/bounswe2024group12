@@ -1,6 +1,5 @@
 from django.contrib.auth.models import UserManager, AbstractBaseUser
 from django.db import models
-from django.contrib.auth.models import User
     
 class RegisteredUserManager(UserManager):  
     def create_user(self, email, username, password=None, **extra_fields):
@@ -24,6 +23,3 @@ class RegisteredUser(AbstractBaseUser):
     
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'password']
-
-
-
