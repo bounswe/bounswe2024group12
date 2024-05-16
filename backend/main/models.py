@@ -28,6 +28,8 @@ class Follow(models.Model):
     follow_id = models.AutoField(primary_key=True)
     user = models.ForeignKey(RegisteredUser, on_delete=models.CASCADE, related_name='follower_set')
     followed_user = models.ForeignKey(RegisteredUser, on_delete=models.CASCADE, related_name='followed_set')
+
+    
 class Review(models.Model):
     game_slug = models.CharField(max_length=100)
     user = models.ForeignKey(RegisteredUser, on_delete=models.CASCADE)

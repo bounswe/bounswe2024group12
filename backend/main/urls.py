@@ -37,6 +37,16 @@ urlpatterns = [
     path('is-following', views.is_following, name='is-following'),
     path('user-check', views.user_check, name='user-check'),
     path('user-details', views.user_details, name='user-details'),
+    path('create-review', views.create_review, name='create-review'),
+    path('edit-review', views.edit_review, name='edit-review'),
+    path('delete-review', views.delete_review, name='delete-review'),
+    path('like-review', views.like_review, name='like-review'),
+    path('unlike-review', views.unlike_review, name='unlike-review'),
+    path('recent-reviews', views.recent_reviews, name='recent-reviews'),
+    path('recent-reviews-user', views.recent_reviews_user, name='recent-reviews-user'),
+    path('popular-reviews', views.popular_reviews, name='popular-reviews'),
+    path('popular-reviews-user', views.popular_reviews_user, name='popular-reviews-user'),
+    path('get-user-reviews', views.get_user_reviews, name='get-user-reviews'),
     ]
 
 
