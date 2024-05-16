@@ -14,32 +14,29 @@ def generate_slug(name):
             i += 1
     return slug
 
-@csrf_exempt
-def get_game_slug(request):   
-    data = json.loads(request.body)
-    game_name = data.get('game_name')
-    if not game_name:
-        return JsonResponse({'error': 'Game name is required'}, status=400)
-    slug = generate_slug(game_name)
-    return JsonResponse({'slug': slug})
+def get_game_slug(name):   
+    game = Game.objects.filter(game_name=name).first()
+    return game.game_slug
 
-def get_unique_games(json_list, params):
-    #make a json list 'games'
+def get_unique_games(json_list, params, fetch_all=False):
     games = []
 
-    check = 'gameLabel'
-    values = set()
+    slugs = set()
     for item in json_list['results']['bindings']:
-        item_val = generate_slug(item[check]['value'])
-        if item_val not in values and item_val != '':
-            values.add(item_val)
+        if fetch_all:
+            item_slug = generate_slug(item['gameLabel']['value'])
+        else:
+            item_slug = get_game_slug(item['gameLabel']['value'])
+
+        if item_slug not in slugs and item_slug != '':
+            slugs.add(item_slug)
             game = {}
             for param in params:
                 if param in item:
                     game[param] = item[param]['value']
                 else:
                     game[param] = None
-            game['game_slug'] = item_val
+            game['game_slug'] = item_slug
             games.append(game)
     games_json = {"games": games}
     return games_json
@@ -123,7 +120,7 @@ def fetch_all_games():
     headers = {'User-Agent': 'Mozilla/5.0 (Django Application)', 'Accept': 'application/json'}
     response = requests.get(url, headers=headers, params={'query': sparql_query, 'format': 'json'})
     results = response.json()
-    all_games = get_unique_games(results, ['gameLabel', 'image']) 
+    all_games = get_unique_games(results, ['gameLabel', 'image'], fetch_all=True) 
     game = [Game(game_name=game['gameLabel'], game_image=game['image'], game_slug=game['game_slug']) for game in all_games['games']]
     Game.objects.bulk_create(game)
     #return success message
@@ -207,3 +204,46 @@ def get_new_games(request):
     new_games['games'] = new_games['games'][:10]
     return JsonResponse({'games': new_games})
 
+def get_game_characters(request, game_slug):
+    if request.method != 'GET':
+        return JsonResponse({'error': 'Only GET requests are allowed'}, status=400)
+    
+    game = Game.objects.filter(game_slug=game_slug).first()
+    if not game:
+        return JsonResponse({'error': 'Game not found'}, status=404)
+    game_name = game.game_name
+
+    sparql_query = """
+        SELECT DISTINCT ?character ?characterLabel ?image ?characterDescription ?gameLabel
+        WHERE {
+            ?game rdfs:label "%s"@en;  # Searching by the game name
+                wdt:P674 ?character.  # Retrieve characters associated with the game
+            OPTIONAL { ?character wdt:P18 ?image. }  # Retrieve character image if available
+            ?character rdfs:label ?characterLabel.  # Character label
+            OPTIONAL {
+                    ?character schema:description ?characterDescription. # Game description
+                    FILTER(LANG(?characterDescription) = "en").     # Filter English descriptions
+                }
+            FILTER(LANG(?characterLabel) = "en")  # Filter labels to English
+            SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+          }
+        LIMIT 20
+    """ % game_name
+    url = 'https://query.wikidata.org/sparql'
+    headers = {'User-Agent': 'Mozilla/5.0 (Django Application)', 'Accept': 'application/json'}
+    response = requests.get(url, headers=headers, params={'query': sparql_query, 'format': 'json'})
+    results = response.json()
+    game = {
+        'gameLabel': game_name,
+        'game_slug': game_slug,
+        'characters': []
+    }
+    for item in results['results']['bindings']:
+        character = {
+            'characterLabel' : item['characterLabel']['value'],
+            'characterDescription' : item['characterDescription']['value'] if 'characterDescription' in item else None,
+            'image' : item['image']['value'] if 'image' in item else None,
+            }
+        game['characters'].append(character)
+
+    return JsonResponse(game, safe=False)
