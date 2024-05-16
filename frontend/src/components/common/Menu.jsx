@@ -34,38 +34,38 @@ const Menu = () => {
 
   
 
-  // const searchGame = async (query) => {
-  //   try {
-  //     const searchEndpoint = searchProperty ? `${endpoint}search-game-by/${searchProperty}/` : `${endpoint}search-game`;
-  //     const response = await fetch(searchEndpoint, {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //       },
-  //       credentials: 'include',
-  //       body: JSON.stringify({ search_term: query }),
-  //     });
-
-  //     if (!response.ok) {
-  //       console.log('Search failed:', response.statusText);
-  //       return;
-  //     }
-
-  //     const data = await response.json();
-  //     if(searchProperty === '') {
-  //     setSuggestions(data.games);
-  //     }
-  //     else {
-  //       setSuggestions(data.results);
-  //     }
-  //     console.log('Suggestions:', suggestions);
-  //   } catch (error) {
-  //     console.error('Error:', error);
-  //   }
-  // };
+  
   const debouncedSearchGame = useCallback(
     debounce(async (query) => {
       setLoading(true);
+      // if (query === 'users')
+      //   {
+      //     try {
+      //       const response = await fetch(`${endpoint}search-user`, {
+      //         method: 'POST',
+      //         headers: {
+      //           'Content-Type': 'application/json',
+      //         },
+      //         credentials: 'include',
+      //         body: JSON.stringify({ search_term: query }),
+      //       });
+
+      //       if (!response.ok) {
+      //         console.log('Search failed:', response.statusText);
+      //         return;
+      //       }
+
+      //       const data = await response.json();
+      //       setSuggestions(data.users);
+
+      //     } catch (error) {
+      //       console.error('Error:', error);
+      //     }
+      
+
+      //   } 
+
+      // else {
       try {
         const searchEndpoint = searchProperty ? `${endpoint}search-game-by/${searchProperty}/` : `${endpoint}search-game`;
         const response = await fetch(searchEndpoint, {
@@ -91,7 +91,8 @@ const Menu = () => {
         console.log('Suggestions:', suggestions);
       } catch (error) {
         console.error('Error:', error);
-      }
+      } 
+    // }
       setLoading(false);
     }, 1000), // 200ms debounce delay
     [searchProperty]
@@ -134,6 +135,7 @@ const Menu = () => {
             <option value="publisher">Search in Publisher</option>
             <option value="developer">Search in Developer</option>
             <option value="platform">Search in Platform</option>
+            {/* <option value="users">Search in Users</option> */}
           </select>
         <div className={styles.searchContainer}>
           {/* search by property dropdown */}
