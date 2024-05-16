@@ -23,9 +23,9 @@ services:
       context: .
       dockerfile: backend/Dockerfile
     command:  >
-            sh -c " python manage.py makemigrations main &&
-            python manage.py migrate &&
-            python manage.py runserver 0.0.0.0:8000"
+            sh -c " python3 manage.py makemigrations &&
+            python3 manage.py migrate --run-syncdb &&
+            python3 manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/code
     ports:

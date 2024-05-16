@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'main.apps.MainConfig',
+    'game.apps.GameConfig',
     'corsheaders',
     'rest_framework',
     'drf_yasg',
@@ -95,6 +96,9 @@ DATABASES = {
         'PASSWORD': os.getenv('MYSQL_PASSWORD'),
         'HOST': os.getenv('MYSQL_HOST'),
         'PORT': os.getenv("MYSQL_PORT"),  # Default MySQL port
+        'OPTIONS': {
+        'charset': 'utf8mb4',  # The characterset you need
+    },
     }
 }
 
