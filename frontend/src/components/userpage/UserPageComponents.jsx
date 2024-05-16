@@ -266,7 +266,7 @@ export default function UserPageComponents(){
         setLoading(false);
     }, [user, id, following]);
 
-    if (loading || userDetails === undefined ) {
+    if (loading || userDetails === undefined || userFollowing === undefined ) {
         return <div>Loading...</div>;
     }
 
