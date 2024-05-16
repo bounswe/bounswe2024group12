@@ -43,8 +43,10 @@ urlpatterns = [
     path('like-review', views.like_review, name='like-review'),
     path('unlike-review', views.unlike_review, name='unlike-review'),
     path('recent-reviews', views.recent_reviews, name='recent-reviews'),
+    path('recent-reviews-game', views.recent_reviews_game, name='recent-reviews-game'),
     path('recent-reviews-user', views.recent_reviews_user, name='recent-reviews-user'),
     path('popular-reviews', views.popular_reviews, name='popular-reviews'),
+    path('popular-reviews-game', views.popular_reviews_game, name='popular-reviews-game'),
     path('popular-reviews-user', views.popular_reviews_user, name='popular-reviews-user'),
     path('get-user-reviews', views.get_user_reviews, name='get-user-reviews'),
     ]
