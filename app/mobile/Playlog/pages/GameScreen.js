@@ -45,7 +45,8 @@ export default GameScreen = () => {
                 throw new Error(`HTTP error on game characters! status: ${response.status}`);
             }
             const characters = await response.json(); // Await the response.json() method
-            setCharacters(characters);
+            console.log("Characters: ",characters)
+            setCharacters(characters.characters);
         } catch (err) {
             setError(err);
         } finally {
