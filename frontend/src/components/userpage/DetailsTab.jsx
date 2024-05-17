@@ -15,7 +15,7 @@ export default function DetailsTab({favoriteProperties, favoriteGames, recentlyP
                             <ul>
                                 {favoriteProperties.map((property) => (
                                     <li><text className={styles.underlined}>{property[0]}</text> <text className={styles.clickable} onClick={
-                                        () => navigate('/property/',{property_type:property[0],property_name:property[1]})
+                                        () => navigate('/property',{state: {property_type:property[0],property_name:property[1]}})
                                     }>{property[1]}</text></li>
                                 ))}
                             </ul>
