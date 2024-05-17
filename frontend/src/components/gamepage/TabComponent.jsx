@@ -225,7 +225,7 @@ const CreditsComponent = () => {
 
 const ReviewsComponent = ({ game }) => {
   const { game_slug } = game;
-  const [rating, setRating] = useState(1);
+  const [rating, setRating] = useState(0);
   const [text, setText] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false); // New state for success message
@@ -265,11 +265,11 @@ const ReviewsComponent = ({ game }) => {
             type="number"
             id="rating"
             value={rating}
-            min="1"
+            min="0"
             max="5"
             onChange={(e) => {
               const value = parseInt(e.target.value);
-              if (value >= 1 && value <= 5) {
+              if (value >= 0 && value <= 5) {
                 setRating(value);
               }
             }}
