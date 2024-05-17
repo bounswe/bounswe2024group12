@@ -1,0 +1,927 @@
+openapi: 3.0.1
+info:
+  title: Playlog API
+  version: 1.0.0
+  description: API documentation for the Playlog
+servers:
+  - url: http://localhost:8000
+    description: Local server
+  - url: http://165.22.85.172:8000
+    description: Deployment server
+tags:
+  - name: Search
+    description: Endpoints related to game search
+  - name: Game
+    description: Endpoints related to game information
+  - name: User
+    description: Endpoints related to user management
+  - name: Review
+    description: Endpoints related to review management
+
+paths:
+  /search-game:
+    post:
+      tags:
+        - Search
+      summary: Search games
+      description: Endpoint to search for games by a search term
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                search_term:
+                  type: string
+                  description: The term to search for in game names
+              required:
+                - search_term
+      responses:
+        '200':
+          description: A list of games matching the search term
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  games:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        gameLabel:
+                          type: string
+                          description: The label of the game
+                        game_slug:
+                          type: string
+                          description: The slug identifier for the game
+        '400':
+          description: Bad Request
+        '500':
+          description: Internal Server Error
+
+  /search-game-by/{search_by}:
+    post:
+      tags:
+        - Search
+      summary: Search games by a specific criterion
+      description: Endpoint to search for games by a specific criterion.
+      parameters:
+        - in: path
+          name: search_by
+          required: true
+          schema:
+            type: string
+            enum: [genre, developer, publisher, platform, composer, screenwriter, country, director]
+          description: The criterion to search by
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                search_term:
+                  type: string
+                  description: The term to search for in the specified criterion
+              required:
+                - search_term
+      responses:
+        '200':
+          description: A list of results matching the search criterion
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        gameLabel:
+                          type: string
+                          description: The label of the game or related entity
+                        game-slug:
+                          type: string
+                          description: The slug identifier for the game or related entity
+        '400':
+          description: Bad Request
+        '500':
+          description: Internal Server Error
+  /game-info/{game_slug}:
+    get:
+      tags:
+        - Game
+      summary: Get game information by slug
+      description: Retrieve detailed information about a game by its slug identifier.
+      parameters:
+        - in: path
+          name: game_slug
+          required: true
+          schema:
+            type: string
+          description: The slug identifier of the game
+      responses:
+        '200':
+          description: Successful response with game information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  gameLabel:
+                    type: string
+                    description: The label of the game
+                  genreLabel:
+                    type: string
+                    description: The genre of the game
+                  publisherLabel:
+                    type: string
+                    description: The publisher of the game
+                  countryLabel:
+                    type: string
+                    description: The country of origin of the game
+                  publication_date:
+                    type: string
+                    description: The publication date of the game
+                  screenwriterLabel:
+                    type: string
+                    description: The screenwriter of the game
+                  composerLabel:
+                    type: string
+                    description: The composer of the game
+                  platformLabel:
+                    type: string
+                    description: The platform of the game
+                  image:
+                    type: string
+                    description: The URL of the image associated with the game
+                  logo:
+                    type: string
+                    description: The URL of the logo associated with the game
+                  gameDescription:
+                    type: string
+                    description: The description of the game
+        '404':
+          description: Game not found
+  /game-of-the-day:
+    get:
+      tags:
+        - Game
+      summary: Get game of the day
+      description: Endpoint to get the game of the day
+      responses:
+        '200':
+          description: Details of the game of the day
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  gameLabel:
+                    type: string
+                    description: The label of the game of the day
+                  game_slug:
+                    type: string
+                    description: The slug identifier for the game of the day
+                  publisherLabel:
+                    type: string
+                    description: The label of the publisher of the game of the day
+                  image:
+                    type: string
+                    description: The URL of the image of the game of the day
+        '404':
+          description: Game of the day not found
+        '500':
+          description: Internal Server Error
+
+  /popular-games:
+    get:
+      tags:
+        - Game
+      summary: Get popular games
+      description: Endpoint to get a list of popular games
+      responses:
+        '200':
+          description: A list of popular games
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  games:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        gameLabel:
+                          type: string
+                          description: The label of the popular game
+                        game_slug:
+                          type: string
+                          description: The slug identifier for the popular game
+                        image:
+                          type: string
+                          description: The URL of the image of the popular game
+        '500':
+          description: Internal Server Error
+
+  /new-games:
+    get:
+      tags:
+        - Game
+      summary: Get new games
+      description: Endpoint to get a list of new games
+      responses:
+        '200':
+          description: A list of new games
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  games:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        gameLabel:
+                          type: string
+                          description: The label of the new game
+                        game_slug:
+                          type: string
+                          description: The slug identifier for the new game
+                        image:
+                          type: string
+                          description: The URL of the image of the new game
+        '500':
+          description: Internal Server Error
+
+  /game-characters/{game_slug}:
+    get:
+      tags:
+        - Game
+      summary: Get characters of a game
+      description: Endpoint to get characters of a specific game
+      parameters:
+        - in: path
+          name: game_slug
+          required: true
+          schema:
+            type: string
+          description: The slug identifier for the game
+      responses:
+        '200':
+          description: Details of the characters of the game
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  gameLabel:
+                    type: string
+                    description: The label of the game
+                  game_slug:
+                    type: string
+                    description: The slug identifier for the game
+                  characters:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        characterLabel:
+                          type: string
+                          description: The label of the character
+                        characterDescription:
+                          type: string
+                          description: The description of the character
+                        image:
+                          type: string
+                          description: The URL of the image of the character
+        '404':
+          description: Game not found
+        '500':
+          description: Internal Server Error
+
+  /property:
+    post:
+      tags:
+        - Game
+      summary: Get games by property
+      description: Endpoint to get games by a specific property
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                property_name:
+                  type: string
+                  description: The name of the property
+                property_type:
+                  type: string
+                  enum: [genre, developer, publisher, platform, composer, screenwriter, country, director]
+                  description: The type of the property (genre, developer, etc.)
+      responses:
+        '200':
+          description: A list of games matching the specified property
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  property_name:
+                    type: string
+                    description: The name of the property
+                  property_type:
+                    type: string
+                    description: The type of the property
+                  property_image:
+                    type: string
+                    description: The URL of the image related to the property
+                  property_description:
+                    type: string
+                    description: The description related to the property
+                  games:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        gameLabel:
+                          type: string
+                          description: The label of the game
+                        game_slug:
+                          type: string
+                          description: The slug identifier for the game
+                        image:
+                          type: string
+                          description: The URL of the image of the game
+                        gameDescription:
+                          type: string
+                          description: The description of the game
+                        rating:
+                          type: number
+                          format: float
+                          description: The rating of the game
+        '400':
+          description: Bad Request
+        '500':
+          description: Internal Server Error
+        
+  /signup:
+    post:
+      tags:
+        - User
+      summary: User Signup
+      description: Endpoint to register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: The username of the user
+                email:
+                  type: string
+                  format: email
+                  description: The email address of the user
+                password:
+                  type: string
+                  format: password
+                  description: The password of the user
+      responses:
+        '201':
+          description: User created successfully
+        '400':
+          description: Bad Request
+  
+  /login:
+    post:
+      tags:
+        - User
+      summary: User Login
+      description: Endpoint to authenticate and log in a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  description: The email address of the user
+                password:
+                  type: string
+                  format: password
+                  description: The password of the user
+      responses:
+        '200':
+          description: Login successful
+        '401':
+          description: Unauthorized
+        '400':
+          description: Bad Request
+  
+  /follow_user:
+    post:
+      tags:
+        - User
+      summary: Follow a User
+      description: Endpoint to follow another user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: The username of the follower
+                followed_user:
+                  type: string
+                  description: The username of the user to be followed
+      responses:
+        '200':
+          description: User followed successfully
+        '400':
+          description: Bad Request
+  /unfollow_user:
+  post:
+    tags:
+      - User
+    summary: Unfollow a User
+    description: Endpoint to unfollow a user
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              username:
+                type: string
+                description: The username of the follower
+              followed_user:
+                type: string
+                description: The username of the user to be unfollowed
+    responses:
+      '200':
+        description: User unfollowed successfully
+      '400':
+        description: Bad Request
+
+  /get_followers:
+    post:
+      tags:
+        - User
+      summary: Get Followers of a User
+      description: Endpoint to retrieve followers of a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: The username of the user
+      responses:
+        '200':
+          description: Returns list of followers
+        '400':
+          description: Bad Request
+  
+  /get_following:
+    post:
+      tags:
+        - User
+      summary: Get Users Followed by a User
+      description: Endpoint to retrieve users followed by a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: The username of the user
+      responses:
+        '200':
+          description: Returns list of users followed by the user
+        '400':
+          description: Bad Request
+          
+  /get_follower_count:
+    post:
+      tags:
+        - User
+      summary: Get Follower Count of a User
+      description: Endpoint to retrieve the follower count of a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: The username of the user
+      responses:
+        '200':
+          description: Returns the follower count
+        '400':
+          description: Bad Request
+
+  /get_following_count:
+    post:
+      tags:
+        - User
+      summary: Get Following Count of a User
+      description: Endpoint to retrieve the following count of a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: The username of the user
+      responses:
+        '200':
+          description: Returns the following count
+        '400':
+          description: Bad Request
+  
+  /is_following:
+    post:
+      tags:
+        - User
+      summary: Check if a User is Following Another User
+      description: Endpoint to check if a user is following another user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: The username of the user
+                followed_user:
+                  type: string
+                  description: The username of the user to be checked if followed
+      responses:
+        '200':
+          description: Returns whether the user is following the specified user
+        '400':
+          description: Bad Request
+  
+  /user_check:
+    post:
+      tags:
+        - User
+      summary: Check if a Username Exists
+      description: Endpoint to check if a username exists
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: The username to be checked
+      responses:
+        '200':
+          description: Returns whether the username exists
+        '400':
+          description: Bad Request
+  
+  /user_details:
+    post:
+      tags:
+        - User
+      summary: Get User Details
+      description: Endpoint to retrieve details of a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: The username of the user
+      responses:
+        '200':
+          description: Returns user details including games liked, review count, followers, and following
+        '400':
+          description: Bad Request
+  /create_review:
+    post:
+      tags:
+        - Review
+      summary: Create Review
+      description: Endpoint to create a new review
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                game:
+                  type: string
+                  description: The slug of the game being reviewed
+                rating:
+                  type: number
+                  description: The rating given to the game
+                text:
+                  type: string
+                  description: The review text
+                user:
+                  type: string
+                  description: The username of the reviewer
+      responses:
+        '201':
+          description: Review created successfully
+        '400':
+          description: Bad Request
+
+  /edit_review:
+    post:
+      tags:
+        - Review
+      summary: Edit Review
+      description: Endpoint to edit an existing review
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                review:
+                  type: integer
+                  description: The ID of the review to be edited
+                rating:
+                  type: number
+                  description: The new rating for the review
+                text:
+                  type: string
+                  description: The new text for the review
+      responses:
+        '200':
+          description: Review updated successfully
+        '400':
+          description: Bad Request
+  
+  /delete_review:
+    post:
+      tags:
+        - Review
+      summary: Delete Review
+      description: Endpoint to delete an existing review
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                review:
+                  type: integer
+                  description: The ID of the review to be deleted
+      responses:
+        '200':
+          description: Review deleted successfully
+        '400':
+          description: Bad Request
+  
+  /like_review:
+    post:
+      tags:
+        - Review
+      summary: Like Review
+      description: Endpoint to like a review
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                review:
+                  type: integer
+                  description: The ID of the review to be liked
+                user:
+                  type: string
+                  description: The username of the user liking the review
+      responses:
+        '200':
+          description: Review liked successfully
+        '400':
+          description: Bad Request
+  /unlike_review:
+    post:
+      tags:
+        - Review
+      summary: Unlike Review
+      description: Endpoint to unlike a review
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                review:
+                  type: integer
+                  description: The ID of the review to be unliked
+                user:
+                  type: string
+                  description: The username of the user unliking the review
+      responses:
+        '200':
+          description: Review unliked successfully
+        '400':
+          description: Bad Request
+  
+  /recent_reviews:
+    post:
+      tags:
+        - Review
+      summary: Recent Reviews
+      description: Endpoint to get recent reviews posted within the last week
+      responses:
+        '200':
+          description: Returns recent reviews
+        '400':
+          description: Bad Request
+  
+  /recent_reviews_game:
+    post:
+      tags:
+        - Review
+      summary: Recent Reviews by Game
+      description: Endpoint to get recent reviews for a specific game posted within the last week
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                game:
+                  type: string
+                  description: The slug of the game
+      responses:
+        '200':
+          description: Returns recent reviews for the specified game
+        '400':
+          description: Bad Request
+  
+  /recent_reviews_user:
+    post:
+      tags:
+        - Review
+      summary: Recent Reviews by User
+      description: Endpoint to get recent reviews by a specific user posted within the last week
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: The username of the user
+      responses:
+        '200':
+          description: Returns recent reviews by the specified user
+        '400':
+          description: Bad Request
+  
+  /popular_reviews:
+    post:
+      tags:
+        - Review
+      summary: Popular Reviews
+      description: Endpoint to get popular reviews with more than 5 likes
+      responses:
+        '200':
+          description: Returns popular reviews
+        '400':
+          description: Bad Request
+  
+  /popular_reviews_game:
+    post:
+      tags:
+        - Review
+      summary: Popular Reviews by Game
+      description: Endpoint to get popular reviews for a specific game with more than 5 likes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                game:
+                  type: string
+                  description: The slug of the game
+      responses:
+        '200':
+          description: Returns popular reviews for the specified game
+        '400':
+          description: Bad Request
+  
+  /popular_reviews_user:
+    post:
+      tags:
+        - Review
+      summary: Popular Reviews by User
+      description: Endpoint to get popular reviews by a specific user with more than 5 likes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: The username of the user
+      responses:
+        '200':
+          description: Returns popular reviews by the specified user
+        '400':
+          description: Bad Request
+  
+  /get_user_reviews:
+    post:
+      tags:
+        - Review
+      summary: Get User Reviews
+      description: Endpoint to get reviews posted by a specific user for a specific game
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  type: string
+                  description: The username of the user
+                game:
+                  type: string
+                  description: The slug of the game
+      responses:
+        '200':
+          description: Returns reviews posted by the specified user for the specified game
+        '404':
+          description: No reviews found for this user
+        '400':
+          description: Bad Request
+  
+  /user_all_reviews:
+    post:
+      tags:
+        - Review
+      summary: Get User All Reviews
+      description: Endpoint to get all reviews posted by a specific user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: The username of the user
+      responses:
+        '200':
+          description: Returns all reviews posted by the specified user
+        '400':
+          description: Bad Request

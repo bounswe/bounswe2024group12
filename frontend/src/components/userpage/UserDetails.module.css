@@ -1,0 +1,71 @@
+.userDetails{
+    width: 100%;
+    height: 30vh;
+    margin: 20px 5px;
+    padding: 1vw 2vw;
+    border: 2px solid var(--highlight-color);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-sizing: border-box;
+}
+
+.userPicture{
+    max-width: 300px;
+    
+    aspect-ratio: 1/1;
+}
+
+.info{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 50%;
+}
+
+.name {
+    margin-left: 10%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.name h2{
+    font-size: 1.5em;
+    padding: 2px 15px 2px 5px;
+    color:var(--highlight-color); 
+    border-bottom: var(--highlight-color) 1px solid;
+    border-left: var(--highlight-color) 1px solid;
+    margin-bottom: 0px;
+}
+
+.name p{
+    font-size: 1.2em;
+    margin-top: 5px
+}
+
+
+.stats{
+    
+    display: flex;
+    flex-direction: column;
+}
+
+.bio{
+    margin: 5px 0px 5px 0px;
+}
+
+.property{
+    text-decoration: none;
+    color: white;
+}
+
+.property:hover{
+    color: white;
+    cursor: default;
+}
+
+.property:active{
+    color: white;
+}

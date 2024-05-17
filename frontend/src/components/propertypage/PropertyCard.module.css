@@ -1,0 +1,69 @@
+.PropertyBlock {
+    max-width: 80%;
+    margin: 20px auto;
+    padding: 1vw 2vw;
+    border: 2px solid var(--highlight-color);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+.PropertyInfo {
+    padding: 20px;
+    flex: 1;
+}
+
+img {
+    margin-right: 1vw;
+    max-width: 200px;
+    width: 30%;
+    height: fit-content;
+}
+
+.PropertyInfo h1{
+    margin-bottom: 0px;
+    font-size: 4em;
+}
+
+.PropertyInfo h3{
+    font-size: 1.5em;
+    margin-top: 0px;
+    padding: 2px 15px 2px 5px;
+    color:var(--highlight-color); 
+    border-bottom: var(--highlight-color) 1px solid;
+    border-left: var(--highlight-color) 1px solid;
+    width: fit-content;
+}
+
+.PropertyInfo p{
+    font-size: 1.2em;
+}
+
+@media screen and (max-width: 800px){
+    .PropertyBlock{
+        flex-direction: column;
+        max-width: 100%;
+        margin: 0px auto;
+    }
+    img{
+        width: 50%;
+        margin: 5px 0px;
+    }
+    .PropertyInfo{
+        height: 50%;
+        padding: 10px;
+    }
+    .PropertyInfo h1{
+        font-size: 2em;
+        margin-top: 2px;
+        height: fit-content;
+    }
+    .PropertyInfo h3{
+        font-size: 1.2em;
+    }
+    .PropertyInfo p{
+        font-size: 1em;
+    }
+    
+}

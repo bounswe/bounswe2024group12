@@ -8,17 +8,18 @@ export const ProfileProvider = ({ children }) => {
     // State to store the logged-in user
     const [token, setToken] = useState(null);
     const [username, setUsername] = useState(null);
+    const [email, setEmail] = useState(null);
     const [isGuest, setIsGuest] = useState(null);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
 
 
-    const loginHandler = async ({ username, password }) => {
+    const loginHandler = async ({ email, password }) => {
         // Call the login API
         try {
             console.log(process.env.EXPO_PUBLIC_URL);
             const response = await fetch(`${process.env.EXPO_PUBLIC_URL}/login`, {
                 method: 'POST',
-                body: JSON.stringify({ email: username, password }),
+                body: JSON.stringify({ email, password }),
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -26,17 +27,19 @@ export const ProfileProvider = ({ children }) => {
 
             // Parse the response
             // const responseJson = await response.json();
-            const responseData = response.data;
             console.log(response)
 
             // Get the token from the response
 
 
-            const { token } = response;
 
             if (response.status === 200) {
+                const responseData = await response.json();
+                const { token } = response;
+                const { username } = responseData;
                 setToken(token)
                 setUsername(username)
+                setEmail(email)
                 setIsGuest(false)
                 setIsLoggedIn(true)
             } else {
@@ -74,6 +77,7 @@ export const ProfileProvider = ({ children }) => {
         loginHandler,
         logoutHandler,
         guestHandler,
+        email
     };
 
     // Return the provider component with the value object

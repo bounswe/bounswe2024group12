@@ -23,16 +23,16 @@ services:
       context: .
       dockerfile: backend/Dockerfile
     command:  >
-            sh -c " python manage.py makemigrations main &&
-            python manage.py migrate &&
-            python manage.py runserver 0.0.0.0:8000"
+            sh -c " python3 manage.py makemigrations &&
+            python3 manage.py migrate --run-syncdb &&
+            python3 manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/code
     ports:
       - "8000:8000"
     depends_on:
       - db
-    env_file: .env
+    env_file: backend/.env
     restart: "on-failure"
     networks:
       - mynetwork
@@ -46,6 +46,15 @@ services:
       - "3000:3000"
     networks:
       - mynetwork
+    
+  swagger:
+    image: swaggerapi/swagger-ui
+    environment:
+      SWAGGER_JSON: /playlogapi.yaml
+    volumes:
+      - ./swagger/playlogapi.yaml:/playlogapi.yaml
+    ports:
+      - "8081:8080"
 
 volumes:
   db_data:

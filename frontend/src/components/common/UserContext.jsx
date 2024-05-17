@@ -4,7 +4,7 @@ const UserContext = createContext();
 
 export default function UserProvider({ children }){
   const [loggedIn, setLoggedIn] = useState(false);
-  const [user, setUser] = useState({ username: 'Guest'});
+  const [user, setUser] = useState({ username: ''});
 
   const handleLogin = (username) => {;
     localStorage.setItem('username', username);
@@ -22,12 +22,15 @@ export default function UserProvider({ children }){
   useEffect(() => {
     const token = document.cookie.replace(/(?:(?:^|.*;\s*)token\s*=\s*([^;]*).*$)|^.*$/, '$1');
     const username = localStorage.getItem('username');
-    console.log('Token:', token);
     console.log('Username:', username);
   
-    if (token && username) {
+    if (username) {
       setUser( { username: username });
       setLoggedIn(true);
+    }
+    else {
+      setUser( { username: 'Guest' });
+      setLoggedIn(false);
     }
   
     console.log('LoggedIn:', loggedIn);
