@@ -12,13 +12,22 @@ import ReviewGamePopup from "./ReviewGamePopup";
 export default GameScreenComponents = ({ game, characters, popularReviews, recentReviews }) => {
     const [selectedText, setSelectedText] = useState('Game');
     const [modalVisible, setModalVisible] = useState(false);
+    const [isEdit, setIsEdit] = useState(false);
+    const [editingReview, setEditingReview] = useState(null);
 
     const handleTextPress = (text) => {
         setSelectedText(text);
     };
 
     const reviewGame = () => {
+      setIsEdit(false);
         setModalVisible(true);
+    }
+
+    const editReview = (review) => {
+      setIsEdit(true);
+      setEditingReview(review);
+      setModalVisible(true);
     }
 
     return (
@@ -28,32 +37,34 @@ export default GameScreenComponents = ({ game, characters, popularReviews, recen
             <View style={styles.ratingContainer}>
                 <View style={styles.rating}>
                     {/* <Text style={[textStyles.default, styles.rating]}>{game.averageRating()}</Text> */}
-                    <Text style={[textStyles.default, styles.rating]}>{"change"}</Text>
+                    {/* <Text style={[textStyles.default, styles.rating]}>{"change"}</Text> */}
                     {/* <SmallRatings rating={game.averageRating()} /> */}
                     <SmallRatings rating={4} />
                 </View>
                 <TouchableOpacity style={styles.review} onPress={reviewGame}>
                   <Text style={textStyles.default}>Create Review</Text>
                   {/* <SmallRatings rating={0} /> */}
-                  <ReviewGamePopup game={game} visible={modalVisible} onClose={() => setModalVisible(false)} />
+                  <ReviewGamePopup editingReview={editingReview} game={game} visible={modalVisible} onClose={() => setModalVisible(false)} />
                 </TouchableOpacity>
             </View>
 
             <View style={{ borderBottomWidth: 1, borderBottomColor: 'white' }}></View>
             <ScrollView horizontal contentContainerStyle={{ flexGrow: 1 }}>
                 <View style={{ flexDirection: 'row'}}>
-                    <CategoryTab title="Game" onPress={() => handleTextPress('Game')} isSelected={selectedText === 'Game'} />
+                    {/* <CategoryTab title="Game" onPress={() => handleTextPress('Game')} isSelected={selectedText === 'Game'} /> */}
                     <CategoryTab title="Characters" onPress={() => handleTextPress('Characters')} isSelected={selectedText === 'Characters'} />
                     {/* <CategoryTab title="Credits" onPress={() => handleTextPress('Credits')} isSelected={selectedText === 'Credits'} /> */}
-                    <CategoryTab title="Reviews" onPress={() => handleTextPress('Reviews')} isSelected={selectedText === 'Reviews'} />
+                    {/* <CategoryTab title="PopularReviews" onPress={() => handleTextPress('PopularReviews')} isSelected={selectedText === 'PopularReviews'} /> */}
+                    <CategoryTab title="Reviews" onPress={() => handleTextPress('NewReviews')} isSelected={selectedText === 'NewReviews'} />
                 </View>
             </ScrollView>
             <View style={{ borderTopWidth: 1, borderTopColor: 'white' }}></View>
 
-          {selectedText === 'Game' && <GameTab game={game} />}
+          {/* {selectedText === 'Game' && <GameTab game={game} />} */}
           {selectedText === 'Characters' && <Characters game={game} characters={characters} />}
           {/* {selectedText === 'Credits' && <Credits game={game} />} */}
-          {selectedText === 'Reviews' && <GameReviewListCard game={game} reviews={reviews} />}
+          {/* {selectedText === 'PopularReviews' && <GameReviewListCard game={game} reviews={popularReviews} editReview={editReview} />} */}
+          {selectedText === 'NewReviews' && <GameReviewListCard game={game} reviews={recentReviews} editReview={editReview} />}
         </ScrollView>
     )
 }

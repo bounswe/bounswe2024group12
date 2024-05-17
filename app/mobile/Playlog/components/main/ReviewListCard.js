@@ -81,7 +81,7 @@ export default ReviewListCard = ({ reviews = exampleReviewList, title }) => {
       >
         {reviews.map((review) => (
           <ReviewCard
-            key={review.reviewId} review={review}
+            key={review.game_slug} review={review}
           />
         ))}
       </ScrollView>

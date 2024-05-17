@@ -22,20 +22,21 @@ const exampleReview = {
 export default MainPageReviewCard = ({ review = exampleReview }) => {
   const navigation = useNavigation();
   const onPress = () => {
-    navigation.navigate('Game', { gameId: review.game.gameId });
+    console.log('review:', review);
+    navigation.navigate('Game', { gameId: review.game_slug });
   };
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress}>
-      <Image source={{ uri: review.game.logo }} style={styles.image} />
+      {/* <Image source={{ uri: review.game.logo }} style={styles.image} /> */}
       <View style={styles.cardContent}>
         <View style={styles.profileContainer}>
           <MaterialIcons name='person' size={50} color='blue' />
-          <Text style={styles.username}>{review.user.username}</Text>
+          <Text style={styles.username}>{review.user}</Text>
         </View>
         <View style={styles.ratingContainer}>
           <SmallRatings rating={review.rating} />
-          <MaterialIcons name='favorite' size={30} color='red' />
+          <MaterialIcons name='favorite-outline' size={30} color='red' />
           <Text style={styles.likesCount}>{review.likes} Likes</Text>
         </View>
         <Text style={styles.reviewText}>{review.text}</Text>
