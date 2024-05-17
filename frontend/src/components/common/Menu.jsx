@@ -135,6 +135,9 @@ const Menu = () => {
             <option value="publisher">Search in Publisher</option>
             <option value="developer">Search in Developer</option>
             <option value="platform">Search in Platform</option>
+            <option value="composer">Search in Composer</option>
+            <option value="director">Search in Director</option>
+            <option value="country">Search in Country</option>
             {/* <option value="users">Search in Users</option> */}
           </select>
         <div className={styles.searchContainer}>

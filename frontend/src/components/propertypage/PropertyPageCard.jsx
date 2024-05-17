@@ -67,7 +67,7 @@ export default function PropertyPageCard() {
 
     useEffect(() => {
         retrieveGames();
-    }, []);
+    }, [location.state]);
     
 
 

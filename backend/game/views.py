@@ -17,6 +17,7 @@ SEARCH_BY_PROPERTIES = {
     'composer': 'P86',
     'screenwriter': 'P58',
     'country': 'P495',
+    'director': 'P57',
 }
 
 def generate_slug(name):
