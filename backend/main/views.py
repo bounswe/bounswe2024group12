@@ -376,10 +376,10 @@ def user_all_reviews(request):
         data = json.loads(request.body)
         username = data.get('user')
         user = RegisteredUser.objects.get(username=username)
-        reviews = Review.objects.filter(user=user.user_id)
+        reviews = Review.objects.filter(user=user)
         new_reviews = []
         for review in reviews.values():
-            user = RegisteredUser.objects.get(user_id=review['user_id'])
+            user = RegisteredUser.objects.get(user_id=review['user'])
             review['user'] = user.username
             new_reviews.append(review)
         return JsonResponse({'reviews': new_reviews}, status=200)
