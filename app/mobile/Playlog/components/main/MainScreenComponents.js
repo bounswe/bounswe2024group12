@@ -65,7 +65,7 @@ export default MainScreenComponents = () => {
             JSON.stringify({search_term: query}),
             {
                 'Content-Type': 'application/json',
-            }).then((response) => {               
+            }).then((response) => {
                 setSearchFetch(response)
                 console.log(response)
             }, (error) => {

@@ -9,7 +9,7 @@ import Credits from "./Credits";
 import GameReviewListCard from "./Reviews"
 import ReviewGamePopup from "./ReviewGamePopup";
 
-export default GameScreenComponents = ({ game }) => {
+export default GameScreenComponents = ({ game, characters }) => {
     const [selectedText, setSelectedText] = useState('Game');
     const [modalVisible, setModalVisible] = useState(false);
 
@@ -51,7 +51,7 @@ export default GameScreenComponents = ({ game }) => {
             <View style={{ borderTopWidth: 1, borderTopColor: 'white' }}></View>
 
           {selectedText === 'Game' && <GameTab game={game} />}
-          {selectedText === 'Characters' && <Characters game={game} />}
+          {selectedText === 'Characters' && <Characters game={game} characters={characters} />}
           {selectedText === 'Credits' && <Credits game={game} />}
           {selectedText === 'Reviews' && <GameReviewListCard game={game} />}
         </ScrollView>

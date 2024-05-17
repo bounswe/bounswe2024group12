@@ -12,6 +12,7 @@ export default GameScreen = () => {
     const { gameId } = route.params;
 
     const [game, setGame] = useState(null);
+    const [characters, setCharacters] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -32,8 +33,26 @@ export default GameScreen = () => {
         }
     };
 
+    const fetchCharacters = async () => {
+        try {
+            const url = `${process.env.EXPO_PUBLIC_URL}/game-characters/${gameId}`;
+            console.log("Fetching characters from:", url);
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const characters = await response.json(); // Await the response.json() method
+            setCharacters(characters);
+        } catch (err) {
+            setError(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
         fetchGame();
+        fetchCharacters();
     }, []);
 
     if (loading) {
@@ -47,7 +66,7 @@ export default GameScreen = () => {
     return (
         <View>
             {game ? (
-                <GameScreenComponents game={game} />
+                <GameScreenComponents game={game} characters={characters} />
             ) : (
                 <Text>No game info available.</Text>
             )}

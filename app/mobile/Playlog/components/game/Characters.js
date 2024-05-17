@@ -2,24 +2,24 @@ import React from 'react';
 import { View, Image, Text, StyleSheet } from 'react-native';
 import textStyles from '../../styles/textStyles';
 
-const Characters = ({game}) => {
-    const characters = [
-        {
-            id: 1,
-            name: 'Character 1',
-            description: 'This is the description for Character 1.',
-        },
-        {
-            id: 2,
-            name: 'Character 2',
-            description: 'This is the description for Character 2.',
-        },
-        // Add more characters here...
-    ];
+const Characters = ({game, characters}) => {
+    // const characters = [
+    //     {
+    //         id: 1,
+    //         name: 'Character 1',
+    //         description: 'This is the description for Character 1.',
+    //     },
+    //     {
+    //         id: 2,
+    //         name: 'Character 2',
+    //         description: 'This is the description for Character 2.',
+    //     },
+    //     // Add more characters here...
+    // ];
 
     return (
         <View>
-            {characters.map((character) => (
+            {characters.characters.map((character) => (
                 <View key={character.id}>
 
                 <View  style={styles.characterContainer}>
