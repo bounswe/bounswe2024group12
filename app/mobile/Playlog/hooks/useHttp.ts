@@ -30,7 +30,7 @@ export function useHttp<T>() {
                     reqCtrl => reqCtrl !== httpAbortCtrl
                 );
                 console.log("CODE: ", response.status)
-                console.log(responseData.MSG)
+                console.log(responseData)
                 if (!response.ok) {
                     throw new Error(responseData.message);
                 }

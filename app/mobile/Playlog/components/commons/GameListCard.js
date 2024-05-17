@@ -28,7 +28,7 @@ export default GameListCard = ({ gameList = exampleGameList, title }) => {
         <Text style={textStyles.title}>{title}</Text>
         <ScrollView horizontal={true} contentContainerStyle={styles.scrollView}>
             {gameList.map((game) => (
-                <GameCard key={game.game_slug} gameId={game.game_slug} gameLogo={game.gameLogo} />
+                <GameCard key={game.game_slug} gameId={game.game_slug} gameLogo={game.image} />
             ))}
         </ScrollView>
     </View>
