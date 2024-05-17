@@ -35,6 +35,8 @@ const makeCancelable = (promise) => {
 export default MainScreenComponents = () => {
     const [isSearch, setIsSearch] = useState(false)
     const { username, token, isGuest, logoutHandler } = useContext(ProfileContext)
+    const [gameOfTheDay, setGameOfTheDay] = useState(null);
+    const [popularGames, setPopularGames] = useState(null);
     const [searchFetch, setSearchFetch] = useState(null)
     const navigation = useNavigation();
     const searchRef = useRef(null);
@@ -77,7 +79,7 @@ export default MainScreenComponents = () => {
         }
     }
 
-    const onFocus = () => { 
+    const onFocus = () => {
         setIsSearch(true)
     }
 
@@ -85,12 +87,39 @@ export default MainScreenComponents = () => {
         setIsSearch(false)
     }
 
+    const fetchGame = async () => {
+        try {
+            const url = `${process.env.EXPO_PUBLIC_URL}/game-of-the-day`;
+            console.log("Fetching game of the day from:", url);
+
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const fetchedGame = await response.json();
+            setGameOfTheDay(fetchedGame);
+        } catch (e) {
+            console.error('Error fetching game of the day:', e);
+        }
+    };
+
+    useEffect(() => {
+        fetchGame();
+    }, []);
+
     return (
         <ScrollView contentContainerStyle={styles.scrollViewContainer} style={styles.scrollView}>
             <SearchBar onSearch={onSearch} onFocus={onFocus} onBlur={onBlur} />
             {!isSearch ? <>
                 <Text style={textStyles.title}>Welcome {!isGuest ? username : "Guest"}</Text>
-                <MainPageBanner />
+                <MainPageBanner game={gameOfTheDay} />
                 <GameListCard title={"Popular Games"} />
                 <GameListCard title={"Recent Games"} />
                 <ReviewListCard title={"Recent Reviews"} />
@@ -104,7 +133,7 @@ export default MainScreenComponents = () => {
                 ))}
             </>}
         </ScrollView>
-    )
+    );
 }
 
 
@@ -116,4 +145,4 @@ const styles = StyleSheet.create({
         // alignItems: 'center',
         // justifyContent: 'center',
     }
-})
+});

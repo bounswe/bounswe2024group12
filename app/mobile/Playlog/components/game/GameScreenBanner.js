@@ -1,45 +1,40 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 
-
-
 export default GamePageBanner = ({ game }) => {
-  
-
-  return (
-    <View>
-        <Image
-            source={{ uri: game.banner }} // Replace with your image path
-            style={styles.gameBanner}
-        />
-      <View style={styles.bottomContainer}>
-        <Image
-          source={{ uri: game.logo }} // Replace with your image path
-          style={styles.gameLogo}
-        />
-        <View style={styles.gameDetailsContainer}>
-          <Text style={[styles.gameTitle, styles.gameDetailsContainerItem]}>{game.title}</Text>
-          <Text style={[styles.gameDeveloper, styles.gameDetailsContainerItem]}>{game.developer}</Text>
-            <Text style={[styles.gameRelease, styles.gameDetailsContainerItem]}>{game.gameReleaseDate.getFullYear()}</Text>
-        <View style={styles.gameDetailsContainerCategoryLogos}>
-
+    return (
+        <View>
+            <Image
+                source={{ uri: game.image }} // Replace with your image path
+                style={styles.gameBanner}
+            />
+            <View style={styles.bottomContainer}>
                 <Image
-                    source={{ uri: game.banner }} // Replace with your image path
-                    style={styles.gameCategoryLogo}
+                    source={{ uri: game.logo }} // Replace with your image path
+                    style={styles.gameLogo}
                 />
-                <Image
-                    source={{ uri: game.banner }} // Replace with your image path
-                    style={styles.gameCategoryLogo}
-                />
-                <Image
-                    source={{ uri: game.banner }} // Replace with your image path
-                    style={styles.gameCategoryLogo}
-                />
+                <View style={styles.gameDetailsContainer}>
+                    <Text style={[styles.gameTitle, styles.gameDetailsContainerItem]}>{game.gameLabel}</Text>
+                    <Text style={[styles.gameDeveloper, styles.gameDetailsContainerItem]}>{game.publisherLabel}</Text>
+                    <Text style={[styles.gameRelease, styles.gameDetailsContainerItem]}>{game.publication_date.substring(0, 4)}</Text>
+                <View style={styles.gameDetailsContainerCategoryLogos}>
+                        <Image
+                            source={{ uri: game.image }} // Replace with your image path
+                            style={styles.gameCategoryLogo}
+                        />
+                        <Image
+                            source={{ uri: game.image }} // Replace with your image path
+                            style={styles.gameCategoryLogo}
+                        />
+                        <Image
+                            source={{ uri: game.image }} // Replace with your image path
+                            style={styles.gameCategoryLogo}
+                        />
+                    </View>
+                </View>
             </View>
         </View>
-      </View>
-    </View>
-  );
+    );
 };
 
 const styles = StyleSheet.create({
