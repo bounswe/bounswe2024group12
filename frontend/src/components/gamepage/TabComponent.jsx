@@ -225,7 +225,7 @@ const CreditsComponent = () => {
 
 const ReviewsComponent = ({ game }) => {
   const { game_slug } = game;
-  const [rating, setRating] = useState(0);
+  const [rating, setRating] = useState(1);
   const [text, setText] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false); // New state for success message
