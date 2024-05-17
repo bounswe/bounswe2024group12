@@ -36,31 +36,39 @@ export default MainScreenComponents = () => {
         setIsSearch(false)
     }
 
-    useEffect(() => {
-        const f = async () => {
-            try {
-                console.log(process.env.EXPO_PUBLIC_URL);
-                const fetchedGame = await fetch(`${process.env.EXPO_PUBLIC_URL}/game-of-the-day`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                })
-                setGameOfTheDay(fetchedGame);
-            } catch (e) {
-                console.error(e);
-                throw e;
+    const fetchGame = async () => {
+        try {
+            const url = `${process.env.EXPO_PUBLIC_URL}/game-of-the-day`;
+            console.log("Fetching game of the day from:", url);
+
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
-        };
-        f();
-    });
+
+            const fetchedGame = await response.json();
+            setGameOfTheDay(fetchedGame);
+        } catch (e) {
+            console.error('Error fetching game of the day:', e);
+        }
+    };
+
+    useEffect(() => {
+        fetchGame();
+    }, []);
 
     return (
         <ScrollView contentContainerStyle={styles.scrollViewContainer} style={styles.scrollView}>
             <SearchBar onSearch={onSearch} onFocus={onFocus} onBlur={onBlur} />
             {!isSearch && <>
                 <Text style={textStyles.title}>Welcome {!isGuest ? username : "Guest"}</Text>
-                <MainPageBanner />
+                <MainPageBanner game={gameOfTheDay} />
                 <GameListCard title={"Popular Games"} />
                 <GameListCard title={"Recent Games"} />
                 <ReviewListCard title={"Recent Reviews"} />

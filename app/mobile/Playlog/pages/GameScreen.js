@@ -4,6 +4,8 @@ import Screen from "../layouts/Screen";
 import { TouchableOpacity, ScrollView, Text, View } from "react-native";
 import GameScreenComponents from "../components/game/GameScreenComponents";
 import CategoryTab from "../components/game/CategoryTab";
+import { ActivityIndicator } from "react-native";
+import { useRoute } from "@react-navigation/native";
 
 const exampleGame = {
     id: "exampleGameId",
@@ -64,43 +66,72 @@ const exampleGame = {
     gameReleaseDate: new Date("2015-05-19"),
   };
 
-export default GameScreen = ({ gameId = 'exampleGameId' }) => {
+export default GameScreen = () => {
+    const route = useRoute();
+    const { gameId } = route.params;
 
     const [game, setGame] = useState(null);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-
-    const getGame = async () => {
-        setLoading(true)
-        let game;
+    const fetchGame = async () => {
         try {
-          console.log(`${process.env.EXPO_PUBLIC_URL}`);
-          const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/game_info/${gameId}`)
-          game = await response.json()
-        } catch (e) {
-          console.error(e)
+            const url = `${process.env.EXPO_PUBLIC_URL}/game-info/${gameId}`;
+            console.log("Fetching game from:", url);
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const game = await response.json(); // Await the response.json() method
+            setGame(game);
+        } catch (err) {
+            setError(err);
+        } finally {
+            setLoading(false);
         }
-        setLoading(false)
-        console.log(game);
-        return game
-        // return exampleGame;
-    }
+    };
 
     useEffect(() => {
-        getGame().then(game => setGame(game))
-    }, [])
+        fetchGame();
+    }, []);
+
+    if (loading) {
+        return <ActivityIndicator size="large" color="yellow" />;
+    }
+
+    if (error) {
+        return <Text>Error: {error.message}</Text>;
+    }
 
     return (
         <View>
-
-            {
-                loading ?
-                    <Text>Loading...</Text> :
-                    game === null ?
-                        <CustomButton title="Load Game" onPress={() => getGame().then(game => setGame(game))} /> :
-                        <GameScreenComponents game={game} />
-            }
-
+            {game ? (
+                <GameScreenComponents game={game} />
+            ) : (
+                <Text>No game info available.</Text>
+            )}
         </View>
     );
+
+    // const getGame = async () => {
+    //   setLoading(true);
+    //   let fetchedGame;
+    //   try {
+    //     console.log(`${process.env.EXPO_PUBLIC_API_URL}`);
+    //     const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}/game_info/${gameId}`);
+    //     if (!response.ok) {
+    //       throw new Error(`HTTP error! status: ${response.status}`);
+    //     }
+    //     fetchedGame = await response.json();
+    //   } catch (e) {
+    //     console.error(e);
+    //   } finally {
+    //     setLoading(false);
+    //   }
+    //   return fetchedGame;
+    // };
+
+    // useEffect(() => {
+    //   getGame().then((gameData) => setGame(gameData));
+    // }, []); // Dependency array with gameId to fetch new game info if gameId changes
 }
