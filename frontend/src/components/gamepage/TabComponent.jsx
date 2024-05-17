@@ -4,6 +4,8 @@ import MainPageReviewLists from '../mainpage/MainPageReviewList';
 import styles2 from '../mainpage/MainPageComponents.module.css'; 
 import { useAuth } from '../common/UserContext';
 import { endpoint } from '../common/EndpointContext';
+import { useNavigate } from 'react-router-dom';
+
 
 const TabComponent = ({game}) => {
   const [activeTab, setActiveTab] = useState('Game');
@@ -44,7 +46,17 @@ const TabComponent = ({game}) => {
   );
 };
 
+
+
+
 const GameComponent = ({ game }) => {
+  const navigate = useNavigate();
+
+  const navigateToProperty = (property_type, property_name) => {
+    console.log(property_type, property_name)
+    navigate('/property', { state: { property_type, property_name } });
+  };
+
   return (
     <div style={{ border: '1px solid #ccc', borderRadius: '8px', padding: '16px', maxWidth: '400px', margin: '16px auto', fontFamily: 'Arial, sans-serif' }}>
       <h2>{game.gameLabel || 'Game Title Unavailable'}</h2>
@@ -61,14 +73,14 @@ const GameComponent = ({ game }) => {
         </div>
       )}
       
-      <p><strong>Genre:</strong> {game.genreLabel || 'Genre Unavailable'}</p>
-      <p><strong>Publisher:</strong> {game.publisherLabel || 'Publisher Unavailable'}</p>
+      {game.genreLabel && (<p><strong>Genre:</strong> {game.genreLabel && <a href="#" onClick={() => navigateToProperty('genre', game.genreLabel)}>{game.genreLabel}</a>}</p>)}
+      {game.publisherLabel &&<p><strong>Publisher:</strong> {game.publisherLabel && <a href="#" onClick={() => navigateToProperty('publisher', game.publisherLabel)}>{game.publisherLabel}</a>}</p>}
       
-      {game.platformLabel && <p><strong>Platform:</strong> {game.platformLabel}</p>}
+      {game.platformLabel && <p><strong>Platform:</strong> <a href="#" onClick={() => navigateToProperty('platform', game.platformLabel)}>{game.platformLabel}</a></p>}
       {game.publication_date && <p><strong>Publication Date:</strong> {new Date(game.publication_date).toLocaleDateString()}</p>}
-      {game.countryLabel && <p><strong>Country:</strong> {game.countryLabel}</p>}
-      {game.composerLabel && <p><strong>Composer:</strong> {game.composerLabel}</p>}
-      {game.screenwriterLabel && <p><strong>Screenwriter:</strong> {game.screenwriterLabel}</p>}
+      {game.countryLabel && <p><strong>Country:</strong> <a href="#" onClick={() => navigateToProperty('country', game.countryLabel)}>{game.countryLabel}</a></p>}
+      {game.composerLabel && <p><strong>Composer:</strong> <a href="#" onClick={() => navigateToProperty('composer', game.composerLabel)}>{game.composerLabel}</a></p>}
+      {game.screenwriterLabel && <p><strong>Screenwriter:</strong> <a href="#" onClick={() => navigateToProperty('screenwriter', game.screenwriterLabel)}>{game.screenwriterLabel}</a></p>}
       
       {game.gameDescription && <p><strong>Description:</strong> {game.gameDescription}</p>}
       
@@ -78,6 +90,7 @@ const GameComponent = ({ game }) => {
     </div>
   );
 };
+
 
 
 
