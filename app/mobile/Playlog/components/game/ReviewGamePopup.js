@@ -74,7 +74,11 @@ export default ReviewGamePopup = ({ game, visible, onClose }) => {
             console.log(`${process.env.EXPO_PUBLIC_URL}`);
             const response = await fetch(`${process.env.EXPO_PUBLIC_URL}/create-review`, {
                 method: 'POST',
+<<<<<<< Updated upstream
                 body: JSON.stringify({ game: game.game_slug, rating, text, user: username }),
+=======
+                body: JSON.stringify({ game, rating, text, username }),
+>>>>>>> Stashed changes
                 headers: {
                     'Content-Type': 'application/json',
                 },
