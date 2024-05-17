@@ -270,8 +270,12 @@ def unlike_review(request):
 def recent_reviews(request):
     if request.method == 'POST':        
         reviews = Review.objects.filter(creationDate__gte=timezone.now() - timezone.timedelta(days=7))
-        
-        return JsonResponse({'reviews': list(reviews.values())}, status=200)
+        new_reviews = []
+        for review in reviews.values():
+            user = RegisteredUser.objects.get(user_id=review['user_id'])
+            review['user'] = user.username
+            new_reviews.append(review)
+        return JsonResponse({'reviews': new_reviews}, status=200)
     else:
         return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
 
@@ -280,10 +284,14 @@ def recent_reviews_game(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         game = data.get('game')
-        
+        new_reviews = []
+        for review in reviews.values():
+            user = RegisteredUser.objects.get(user_id=review['user_id'])
+            review['user'] = user.username
+            new_reviews.append(review)
         reviews = Review.objects.filter(game_slug=game, creationDate__gte=timezone.now() - timezone.timedelta(days=7))
         
-        return JsonResponse({'reviews': list(reviews.values())}, status=200)
+        return JsonResponse({'reviews': new_reviews}, status=200)
     else:
         return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
 
@@ -295,16 +303,24 @@ def recent_reviews_user(request):
         user_id = RegisteredUser.objects.get(username=user).user_id
         
         reviews = Review.objects.filter(user=user_id, creationDate__gte=timezone.now() - timezone.timedelta(days=7))
-        
-        return JsonResponse({'reviews': list(reviews.values())}, status=200)
+        new_reviews = []
+        for review in reviews.values():
+            user = RegisteredUser.objects.get(user_id=review['user_id'])
+            review['user'] = user.username
+            new_reviews.append(review)
+        return JsonResponse({'reviews': new_reviews}, status=200)
 
 # Returns reviews that have more than 50 likes   
 @csrf_exempt
 def popular_reviews(request):
     if request.method == 'POST':
         reviews = Review.objects.filter( likes__gt=5)
-        
-        return JsonResponse({'reviews': list(reviews.values())}, status=200)
+        new_reviews = []
+        for review in reviews.values():
+            user = RegisteredUser.objects.get(user_id=review['user_id'])
+            review['user'] = user.username
+            new_reviews.append(review)
+        return JsonResponse({'reviews': new_reviews}, status=200)
     else:
         return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
 
@@ -315,8 +331,12 @@ def popular_reviews_game(request):
         game = data.get('game')
         
         reviews = Review.objects.filter(game_slug=game, likes__gt=5)
-        
-        return JsonResponse({'reviews': list(reviews.values())}, status=200)
+        new_reviews = []
+        for review in reviews.values():
+            user = RegisteredUser.objects.get(user_id=review['user_id'])
+            review['user'] = user.username
+            new_reviews.append(review)
+        return JsonResponse({'reviews': new_reviews}, status=200)
     else:
         return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
 
@@ -328,8 +348,12 @@ def popular_reviews_user(request):
         user = RegisteredUser.objects.get(username=user)
         
         reviews = Review.objects.filter(user=user.user_id, likes__gt=5)
-        
-        return JsonResponse({'reviews': list(reviews.values())}, status=200)
+        new_reviews = []
+        for review in reviews.values():
+            user = RegisteredUser.objects.get(user_id=review['user_id'])
+            review['user'] = user.username
+            new_reviews.append(review)
+        return JsonResponse({'reviews': new_reviews}, status=200)
 
 @csrf_exempt    
 def get_user_reviews(request):
@@ -342,7 +366,6 @@ def get_user_reviews(request):
         review = Review.objects.filter(user=user.user_id, game_slug=game)
         if not review:
             return JsonResponse({'error': 'No reviews found for this user'}, status=404)
-        
         return JsonResponse({'reviews': list(review.values())}, status=200)
     else:
         return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
@@ -354,6 +377,11 @@ def user_all_reviews(request):
         username = data.get('user')
         user = RegisteredUser.objects.get(username=username)
         reviews = Review.objects.filter(user=user.user_id)
-        return JsonResponse({'reviews': list(reviews.values())}, status=200)
+        new_reviews = []
+        for review in reviews.values():
+            user = RegisteredUser.objects.get(user_id=review['user_id'])
+            review['user'] = user.username
+            new_reviews.append(review)
+        return JsonResponse({'reviews': new_reviews}, status=200)
     else:
         return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
