@@ -284,6 +284,7 @@ def recent_reviews_game(request):
         data = json.loads(request.body)
         game = data.get('game')
         reviews = Review.objects.filter(game_slug=game, creationDate__gte=timezone.now() - timezone.timedelta(days=7))
+        reviews = list(reviews.values())
         for review in reviews:
             user = RegisteredUser.objects.get(user_id=review['user_id'])
             review['user'] = user.username
@@ -298,8 +299,8 @@ def recent_reviews_user(request):
         data = json.loads(request.body)
         user = data.get('user')
         user_id = RegisteredUser.objects.get(username=user).user_id
-        
         reviews = Review.objects.filter(user=user_id, creationDate__gte=timezone.now() - timezone.timedelta(days=7))
+        reviews = list(reviews.values())
         for review in reviews:
             user = RegisteredUser.objects.get(user_id=review['user_id'])
             review['user'] = user.username
@@ -310,6 +311,7 @@ def recent_reviews_user(request):
 def popular_reviews(request):
     if request.method == 'POST':
         reviews = Review.objects.filter( likes__gt=5)
+        reviews = list(reviews.values())
         for review in reviews:
             user = RegisteredUser.objects.get(user_id=review['user_id'])
             review['user'] = user.username
@@ -322,8 +324,8 @@ def popular_reviews_game(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         game = data.get('game')
-        
         reviews = Review.objects.filter(game_slug=game, likes__gt=5)
+        reviews = list(reviews.values())
         for review in reviews:
             user = RegisteredUser.objects.get(user_id=review['user_id'])
             review['user'] = user.username
@@ -337,8 +339,8 @@ def popular_reviews_user(request):
         data = json.loads(request.body)
         user = data.get('user')
         user = RegisteredUser.objects.get(username=user)
-        
         reviews = Review.objects.filter(user=user.user_id, likes__gt=5)
+        reviews = list(reviews.values())
         for review in reviews:
             user = RegisteredUser.objects.get(user_id=review['user_id'])
             review['user'] = user.username
@@ -351,11 +353,11 @@ def get_user_reviews(request):
         user = data.get('user')
         user = RegisteredUser.objects.get(username=user)
         game = data.get('game')
-        
-        review = Review.objects.filter(user=user.user_id, game_slug=game)
-        if not review:
+        reviews = Review.objects.filter(user=user.user_id, game_slug=game)
+        reviews = list(reviews.values())
+        if not reviews:
             return JsonResponse({'error': 'No reviews found for this user'}, status=404)
-        return JsonResponse({'reviews': list(review.values())}, status=200)
+        return JsonResponse({'reviews': reviews}, status=200)
     else:
         return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
 
@@ -366,6 +368,7 @@ def user_all_reviews(request):
         username = data.get('user')
         user = RegisteredUser.objects.get(username=username)
         reviews = Review.objects.filter(user=user)
+        reviews = list(reviews.values())
         for review in reviews:
             user = RegisteredUser.objects.get(user_id=review['user_id'])
             review['user'] = user.username
