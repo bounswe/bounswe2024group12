@@ -337,7 +337,7 @@ def popular_reviews_game(request):
 def popular_reviews_user(request):
     if request.method == 'POST':
         data = json.loads(request.body)
-        user = data.get('user')
+        user = data.get('username')
         user = RegisteredUser.objects.get(username=user)
         reviews = Review.objects.filter(user=user.user_id, likes__gt=5)
         reviews = list(reviews.values())
@@ -365,7 +365,7 @@ def get_user_reviews(request):
 def user_all_reviews(request):
     if request.method == 'POST':
         data = json.loads(request.body)
-        username = data.get('user')
+        username = data.get('username')
         user = RegisteredUser.objects.get(username=username)
         reviews = Review.objects.filter(user=user)
         reviews = list(reviews.values())
