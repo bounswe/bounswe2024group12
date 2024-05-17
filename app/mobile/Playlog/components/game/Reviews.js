@@ -2,12 +2,12 @@ import React, { useEffect } from 'react';
 import { ScrollView, Text, View, StyleSheet } from 'react-native';
 import ReviewCard from './ReviewCard';
 
-export default Reviews = ({ reviews }) => {
+export default Reviews = ({ reviews, editReview }) => {
   return (
     <View style={styles.list}>
         {reviews.reviews.map((review) => (
           <ReviewCard
-            key={review.reviewId} review={review}
+            key={review.reviewId} review={review} editReview={editReview}
           />
         ))}
     </View>

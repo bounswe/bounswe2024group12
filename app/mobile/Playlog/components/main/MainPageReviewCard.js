@@ -36,7 +36,7 @@ export default MainPageReviewCard = ({ review = exampleReview }) => {
         </View>
         <View style={styles.ratingContainer}>
           <SmallRatings rating={review.rating} />
-          <MaterialIcons name='favorite' size={30} color='red' />
+          <MaterialIcons name='favorite-outline' size={30} color='red' />
           <Text style={styles.likesCount}>{review.likes} Likes</Text>
         </View>
         <Text style={styles.reviewText}>{review.text}</Text>

@@ -19,17 +19,17 @@ const Characters = ({game, characters}) => {
 
     return (
         <View>
-            {characters.characters.map((character) => (
+            {characters.map((character) => (
                 <View key={character.id}>
 
                 <View  style={styles.characterContainer}>
                     <Image
-                    source={{ uri: game.banner }} // Replace with your image path
+                    source={{ uri: character.image }} // Replace with your image path
                     style={styles.characterImage}
                     />
                     <View style={styles.characterInfo}>
-                        <Text style={[textStyles.default, styles.characterName]}>{character.name}</Text>
-                        <Text style={[textStyles.default, styles.description]}>{game.shortDescription}</Text>
+                        <Text style={[textStyles.default, styles.characterName]}>{character.characterLabel}</Text>
+                        <Text style={[textStyles.default, styles.description]}>{character.characterDescription}</Text>
                     </View>
                 </View>
                 <View style={{ borderBottomWidth: 1, borderBottomColor: 'grey' }}></View>
@@ -46,6 +46,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     description: {
+        maxWidth: '80%',
         color: 'lightgrey',
         fontSize: 13,
         paddingTop: 5,

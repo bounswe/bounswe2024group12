@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 // import heart icon from material icons
 import { MaterialIcons } from '@expo/vector-icons';
 import SmallRatings from '../commons/SmallRatings';
 import { useNavigation } from "@react-navigation/native";
+import { ProfileContext } from '../../context/ProfileProvider';
 
 const exampleReview = {
   game: {
@@ -19,12 +20,21 @@ const exampleReview = {
   likes: 16512,
 };
 
-export default GamePageReviewCard = ({ review = exampleReview }) => {
+export default GamePageReviewCard = ({ review = exampleReview , editReview = null}) => {
   const navigation = useNavigation();
+  const {username} = useContext(ProfileContext);
   const onPress = () => {
     console.log('review:', review);
     navigation.navigate('Game', { gameId: review.game_slug });
   };
+
+  const onEdit = () => {
+    editReview(review);
+  }
+
+  const onLike = () => {
+    console.log('Liked:', review);
+  }
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress}>
@@ -35,16 +45,28 @@ export default GamePageReviewCard = ({ review = exampleReview }) => {
         </View>
         <View style={styles.ratingContainer}>
           <SmallRatings rating={review.rating} />
-          <MaterialIcons name='favorite' size={30} color='red' />
+          <TouchableOpacity onPress={onLike}>
+            <MaterialIcons name='favorite-outline' size={30} color='red' />
+          </TouchableOpacity>
           <Text style={styles.likesCount}>{review.likes} Likes</Text>
         </View>
-        <Text style={styles.reviewText}>{review.text}</Text>
+        <View style={styles.bottom}>
+          <Text style={styles.reviewText}>{review.text}</Text>
+          {username === review.user && <TouchableOpacity onPress={onEdit}> 
+              <MaterialIcons name='edit' size={30} color='blue' /> 
+            </TouchableOpacity>}
+        </View>
       </View>
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
+  bottom:{
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   card: {
     backgroundColor: '#969696',
     borderRadius: 6,

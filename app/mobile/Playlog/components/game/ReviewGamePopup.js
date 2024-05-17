@@ -60,43 +60,77 @@ const TextField = ({ text, setText }) => {
     );
 };
 
-export default ReviewGamePopup = ({ game, visible, onClose }) => {
-    const [rating, setRating] = useState(null);
-    const [text, setText] = useState('');
+export default ReviewGamePopup = ({ game, visible, onClose, editingReview = null }) => {
+    const [rating, setRating] = useState(editingReview ? editingReview.rating : null);
+    const [text, setText] = useState(editingReview ? editingReview.text : '');
+    const [editing, setEditing] = useState(editingReview ? true : false);
     const { username } = useContext(ProfileContext);
 
     const submitReview = async () => {
-        try {
-            console.log("game", game);
-            console.log("rating", rating);
-            console.log("text", text);
-            console.log("user", username);
-            console.log(`${process.env.EXPO_PUBLIC_URL}`);
-            const response = await fetch(`${process.env.EXPO_PUBLIC_URL}/create-review`, {
-                method: 'POST',
+        if(!editingReview){
+            try {
+                console.log("game", game);
+                console.log("rating", rating);
+                console.log("text", text);
+                console.log("user", username);
+                console.log(`${process.env.EXPO_PUBLIC_URL}`);
+                const response = await fetch(`${process.env.EXPO_PUBLIC_URL}/create-review`, {
+                    method: 'POST',
 
-                body: JSON.stringify({ game: game.game_slug, rating, text, user: username }),
+                    body: JSON.stringify({ game: game.game_slug, rating, text, user: username }),
 
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
-            console.log(response);
-            console.log(response.status);
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                console.log(response);
+                console.log(response.status);
 
-            if (response.status === 201) {
-                alert('Review created successfully')
-            } else {
-                alert('Couldn\'t create review')
-                throw new Error('Couldn\'t create review');
+                if (response.status === 201) {
+                    alert('Review created successfully')
+                } else {
+                    alert('Couldn\'t create review')
+                    throw new Error('Couldn\'t create review');
+                }
+            } catch (e) {
+                console.error(e);
+                throw e;
             }
-        } catch (e) {
-            console.error(e);
-            throw e;
+            // do check if text is empty or too small
+            onClose();
+        } else {
+            try {
+                console.log("editReviewId", editingReview.id );
+                console.log("editRating", rating);
+                console.log("editText", text);
+                console.log("editUser", username);
+                console.log(`${process.env.EXPO_PUBLIC_URL}`);
+                const response = await fetch(`${process.env.EXPO_PUBLIC_URL}/edit-review`, {
+                    method: 'POST',
+
+                    body: JSON.stringify({ rating, text, review: editingReview.id }),
+
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
+                console.log(response);
+                console.log(response.status);
+
+                if (response.status>=200 && response.status<300) {
+                    alert('Review edited successfully')
+                } else {
+                    alert('Couldn\'t edit review')
+                    throw new Error('Couldn\'t edit review');
+                }
+            } catch (e) {
+                console.error(e);
+                throw e;
+            }
+            // do check if text is empty or too small
+            onClose();
         }
-        // do check if text is empty or too small
-        onClose();
-    };
+    }
 
     return (
         <Modal
