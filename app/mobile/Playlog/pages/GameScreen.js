@@ -13,6 +13,8 @@ export default GameScreen = () => {
 
     const [game, setGame] = useState(null);
     const [characters, setCharacters] = useState(null);
+    const [popularReviews, setPopularReviews] = useState([]);
+    const [recentReviews, setRecentReviews] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -50,9 +52,56 @@ export default GameScreen = () => {
         }
     };
 
+    const fetchpopularReviews = async () => {
+        try {
+            const url = `${process.env.EXPO_PUBLIC_URL}/popular-popularReviews-game`;
+            console.log("Fetching popularReviews from:", url);
+            const response = await fetch(url, {
+                method: 'POST',
+                body: JSON.stringify({ game: gameId }),
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const popularReviews = await response.json();
+            setPopularReviews(popularReviews);
+        } catch (err) {
+            setError(err);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    const fetchRecentReviews = async () => {
+        try {
+            const url = `${process.env.EXPO_PUBLIC_URL}/recent-reviews`;
+            console.log("Fetching recent reviews from:", url);
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const recentReviews = await response.json();
+            setRecentReviews(recentReviews);
+        } catch (err) {
+            setError(err);
+        } finally {
+            setLoading(false);
+        }
+    }
+
     useEffect(() => {
         fetchGame();
         fetchCharacters();
+        fetchpopularReviews();
+        fetchRecentReviews();
     }, []);
 
     if (loading) {
@@ -66,7 +115,7 @@ export default GameScreen = () => {
     return (
         <View>
             {game ? (
-                <GameScreenComponents game={game} characters={characters} />
+                <GameScreenComponents game={game} characters={characters} popularReviews={popularReviews} recentReviews={recentReviews} />
             ) : (
                 <Text>No game info available.</Text>
             )}

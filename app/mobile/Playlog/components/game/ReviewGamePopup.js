@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Modal, View, Text, Button, StyleSheet, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useState } from 'react';
 import { TextInput } from 'react-native';
 import { TouchableWithoutFeedback } from 'react-native';
 import { ScrollView } from 'react-native';
+import { ProfileContext } from '../../context/ProfileProvider';
 
 const ReviewStars = ({ rating, setRating }) => {
     const filledColor = "#00E054";
@@ -62,17 +63,24 @@ const TextField = ({ text, setText }) => {
 export default ReviewGamePopup = ({ game, visible, onClose }) => {
     const [rating, setRating] = useState(null);
     const [text, setText] = useState('');
+    const { username } = useContext(ProfileContext);
 
     const submitReview = async () => {
         try {
+            console.log("game", game);
+            console.log("rating", rating);
+            console.log("text", text);
+            console.log("user", username);
             console.log(`${process.env.EXPO_PUBLIC_URL}`);
             const response = await fetch(`${process.env.EXPO_PUBLIC_URL}/create-review`, {
                 method: 'POST',
-                body: JSON.stringify({ game, rating, text }),
+                body: JSON.stringify({ game: game.game_slug, rating, text, user: username }),
                 headers: {
                     'Content-Type': 'application/json',
                 },
             });
+            console.log(response);
+            console.log(response.status);
 
             if (response.status === 201) {
                 alert('Review created successfully')

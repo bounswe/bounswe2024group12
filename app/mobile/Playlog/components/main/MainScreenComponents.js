@@ -36,11 +36,12 @@ export default MainScreenComponents = () => {
     const [isSearch, setIsSearch] = useState(false)
     const { username, token, isGuest, logoutHandler } = useContext(ProfileContext)
     const [gameOfTheDay, setGameOfTheDay] = useState(null);
+    const [recentReviews, setRecentReviews] = useState([]);
     const [popularGames, setPopularGames] = useState(null);
     const [searchFetch, setSearchFetch] = useState(null)
     const navigation = useNavigation();
     const searchRef = useRef(null);
-    const {sendRequest,isLoading,error,clearError} = useHttp()
+    const {sendRequest,isLoading,error,clearError} = useHttp();
 
     useEffect(() => {
         return () => {
@@ -109,6 +110,29 @@ export default MainScreenComponents = () => {
             console.error('Error fetching game of the day:', e);
         }
     };
+
+    const fetchRecentReviews = async () => {
+        try {
+            const url = `${process.env.EXPO_PUBLIC_URL}/recent-reviews`;
+            console.log("Fetching recent reviews from:", url);
+
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const fetchedReviews = await response.json();
+            setRecentReviews(fetchedReviews);
+        } catch (e) {
+            console.error('Error fetching recent reviews:', e);
+        }
+    }
 
     useEffect(() => {
         fetchGame();

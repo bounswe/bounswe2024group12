@@ -9,7 +9,7 @@ import Credits from "./Credits";
 import GameReviewListCard from "./Reviews"
 import ReviewGamePopup from "./ReviewGamePopup";
 
-export default GameScreenComponents = ({ game, characters }) => {
+export default GameScreenComponents = ({ game, characters, popularReviews, recentReviews }) => {
     const [selectedText, setSelectedText] = useState('Game');
     const [modalVisible, setModalVisible] = useState(false);
 
@@ -28,7 +28,7 @@ export default GameScreenComponents = ({ game, characters }) => {
             <View style={styles.ratingContainer}>
                 <View style={styles.rating}>
                     {/* <Text style={[textStyles.default, styles.rating]}>{game.averageRating()}</Text> */}
-                    <Text style={[textStyles.default, styles.rating]}>{4}</Text>
+                    <Text style={[textStyles.default, styles.rating]}>{"change"}</Text>
                     {/* <SmallRatings rating={game.averageRating()} /> */}
                     <SmallRatings rating={4} />
                 </View>
@@ -44,7 +44,7 @@ export default GameScreenComponents = ({ game, characters }) => {
                 <View style={{ flexDirection: 'row'}}>
                     <CategoryTab title="Game" onPress={() => handleTextPress('Game')} isSelected={selectedText === 'Game'} />
                     <CategoryTab title="Characters" onPress={() => handleTextPress('Characters')} isSelected={selectedText === 'Characters'} />
-                    <CategoryTab title="Credits" onPress={() => handleTextPress('Credits')} isSelected={selectedText === 'Credits'} />
+                    {/* <CategoryTab title="Credits" onPress={() => handleTextPress('Credits')} isSelected={selectedText === 'Credits'} /> */}
                     <CategoryTab title="Reviews" onPress={() => handleTextPress('Reviews')} isSelected={selectedText === 'Reviews'} />
                 </View>
             </ScrollView>
@@ -52,8 +52,8 @@ export default GameScreenComponents = ({ game, characters }) => {
 
           {selectedText === 'Game' && <GameTab game={game} />}
           {selectedText === 'Characters' && <Characters game={game} characters={characters} />}
-          {selectedText === 'Credits' && <Credits game={game} />}
-          {selectedText === 'Reviews' && <GameReviewListCard game={game} />}
+          {/* {selectedText === 'Credits' && <Credits game={game} />} */}
+          {selectedText === 'Reviews' && <GameReviewListCard game={game} reviews={reviews} />}
         </ScrollView>
     )
 }
