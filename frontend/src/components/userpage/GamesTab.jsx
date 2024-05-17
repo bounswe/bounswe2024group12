@@ -11,7 +11,7 @@ export default function GamesTab({userGames}) {
                     <ul>
                         {userGames.map((game) => (
                             <li className={styles.clickable} onClick={
-                                () => navigate('/game/' + game)
+                                () => navigate('/game/' + game.replace(" ", "-").toLowerCase())
                             }>{game}</li>
                         ))}
                     </ul>
