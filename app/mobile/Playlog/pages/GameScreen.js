@@ -6,6 +6,7 @@ import GameScreenComponents from "../components/game/GameScreenComponents";
 import CategoryTab from "../components/game/CategoryTab";
 import { ActivityIndicator } from "react-native";
 import { useRoute } from "@react-navigation/native";
+import textStyles from "../styles/textStyles";
 
 export default GameScreen = () => {
     const route = useRoute();
@@ -24,7 +25,7 @@ export default GameScreen = () => {
             console.log("Fetching game from:", url);
             const response = await fetch(url);
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error(`HTTP error on game info! status: ${response.status}`);
             }
             const game = await response.json(); // Await the response.json() method
             setGame(game);
@@ -41,7 +42,7 @@ export default GameScreen = () => {
             console.log("Fetching characters from:", url);
             const response = await fetch(url);
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error(`HTTP error on game characters! status: ${response.status}`);
             }
             const characters = await response.json(); // Await the response.json() method
             setCharacters(characters);
@@ -53,7 +54,7 @@ export default GameScreen = () => {
     };
     const fetchpopularReviews = async () => {
         try {
-            const url = `${process.env.EXPO_PUBLIC_URL}/popular-popularReviews-game`;
+            const url = `${process.env.EXPO_PUBLIC_URL}/popular-reviews-game`;
             console.log("Fetching popularReviews from:", url);
             const response = await fetch(url, {
                 method: 'POST',
@@ -63,7 +64,7 @@ export default GameScreen = () => {
                 },
             });
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error(`HTTP error on popular-reviews game! status: ${response.status}`);
             }
             const popularReviews = await response.json();
             setPopularReviews(popularReviews);
@@ -76,16 +77,19 @@ export default GameScreen = () => {
 
     const fetchRecentReviews = async () => {
         try {
-            const url = `${process.env.EXPO_PUBLIC_URL}/recent-reviews`;
+            console.log("fetchRecentReviews: ",gameId);
+            const url = `${process.env.EXPO_PUBLIC_URL}/recent-reviews-game`;
             console.log("Fetching recent reviews from:", url);
             const response = await fetch(url, {
-                method: 'GET',
+                method: 'POST',
+                body: JSON.stringify({ game: gameId}),
                 headers: {
                     'Content-Type': 'application/json',
                 },
             });
+            console.log("response: ",response);
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error(`HTTP error on recent reviews game! status: ${response.status}`);
             }
             const recentReviews = await response.json();
             setRecentReviews(recentReviews);
@@ -108,7 +112,7 @@ export default GameScreen = () => {
     }
 
     if (error) {
-        return <Text>Error: {error.message}</Text>;
+        return <Text style={textStyles.default}>Error: {error.message}</Text>;
     }
 
     return (
@@ -116,7 +120,7 @@ export default GameScreen = () => {
             {game ? (
                 <GameScreenComponents game={game} characters={characters} popularReviews={popularReviews} recentReviews={recentReviews} />
             ) : (
-                <Text>No game info available.</Text>
+                <Text style={textStyles.default}>No game info available.</Text>
             )}
         </View>
     );
