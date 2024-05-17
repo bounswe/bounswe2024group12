@@ -110,7 +110,62 @@ paths:
           description: Bad Request
         '500':
           description: Internal Server Error
-
+  /game-info/{game_slug}:
+    get:
+      tags:
+        - Game
+      summary: Get game information by slug
+      description: Retrieve detailed information about a game by its slug identifier.
+      parameters:
+        - in: path
+          name: game_slug
+          required: true
+          schema:
+            type: string
+          description: The slug identifier of the game
+      responses:
+        '200':
+          description: Successful response with game information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  gameLabel:
+                    type: string
+                    description: The label of the game
+                  genreLabel:
+                    type: string
+                    description: The genre of the game
+                  publisherLabel:
+                    type: string
+                    description: The publisher of the game
+                  countryLabel:
+                    type: string
+                    description: The country of origin of the game
+                  publication_date:
+                    type: string
+                    description: The publication date of the game
+                  screenwriterLabel:
+                    type: string
+                    description: The screenwriter of the game
+                  composerLabel:
+                    type: string
+                    description: The composer of the game
+                  platformLabel:
+                    type: string
+                    description: The platform of the game
+                  image:
+                    type: string
+                    description: The URL of the image associated with the game
+                  logo:
+                    type: string
+                    description: The URL of the logo associated with the game
+                  gameDescription:
+                    type: string
+                    description: The description of the game
+        '404':
+          description: Game not found
   /game-of-the-day:
     get:
       tags:
