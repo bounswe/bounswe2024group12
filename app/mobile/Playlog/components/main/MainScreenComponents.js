@@ -186,8 +186,8 @@ export default MainScreenComponents = () => {
                 {recentReviewsLoading
                     ?(<Text style={textStyles.default}>{"Loading..."}</Text>)   
                     :(<ReviewListCard title={"Recent Reviews"} reviews={recentReviews} />)}
-                <ReviewListCard title={"Friend Reviews"} />
-                <MoreGamesGrid />
+                {/* <ReviewListCard title={"Friend Reviews"} /> */}
+                {/* <MoreGamesGrid /> */}
                 <CustomButton title="Logout" onPress={onLogout} />
             </>
             :<>

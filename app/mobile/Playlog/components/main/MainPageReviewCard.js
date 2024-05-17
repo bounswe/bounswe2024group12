@@ -22,7 +22,8 @@ const exampleReview = {
 export default MainPageReviewCard = ({ review = exampleReview }) => {
   const navigation = useNavigation();
   const onPress = () => {
-    navigation.navigate('Game', { gameId: review.game.gameId });
+    console.log('review:', review);
+    navigation.navigate('Game', { gameId: review.game_slug });
   };
 
   return (
@@ -31,7 +32,7 @@ export default MainPageReviewCard = ({ review = exampleReview }) => {
       <View style={styles.cardContent}>
         <View style={styles.profileContainer}>
           <MaterialIcons name='person' size={50} color='blue' />
-          <Text style={styles.username}>{review.user.username}</Text>
+          <Text style={styles.username}>{review.user}</Text>
         </View>
         <View style={styles.ratingContainer}>
           <SmallRatings rating={review.rating} />

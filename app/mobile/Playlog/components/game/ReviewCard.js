@@ -31,7 +31,7 @@ export default GamePageReviewCard = ({ review = exampleReview }) => {
       <View style={styles.cardContent}>
         <View style={styles.profileContainer}>
           <MaterialIcons name='person' size={50} color='blue' />
-          <Text style={styles.username}>{review.user.username}</Text>
+          <Text style={styles.username}>{review.user}</Text>
         </View>
         <View style={styles.ratingContainer}>
           <SmallRatings rating={review.rating} />

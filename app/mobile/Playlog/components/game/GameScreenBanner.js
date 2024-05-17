@@ -12,7 +12,7 @@ export default GamePageBanner = ({ game }) => {
                 <View style={styles.gameDetailsContainer}>
                     <Text style={[styles.gameTitle, styles.gameDetailsContainerItem]}>{game.gameLabel}</Text>
                     <Text style={[styles.gameDeveloper, styles.gameDetailsContainerItem]}>{game.publisherLabel}</Text>
-                    <Text style={[styles.gameRelease, styles.gameDetailsContainerItem]}>{game.publication_date.substring(0, 4)}</Text>
+                    <Text style={[styles.gameRelease, styles.gameDetailsContainerItem]}>{game.publication_date?.substring(0, 4)}</Text>
                     <Text style={styles.gameDetailsContainerItem}>{game.genreLabel}</Text>
                 </View>
             </View>
