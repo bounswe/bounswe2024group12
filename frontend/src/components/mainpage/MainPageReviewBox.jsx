@@ -157,9 +157,9 @@ const MainPageReviewBox = ({ review = tempReview }) => {
             <p className={styles.likeCount}>{likes} likes</p>
 
             </div>
-          </div>
+          </div >
           {user && user.username && (
-              <>
+              <div >
                 <button onClick={liked ? unlikeReview : likeReview}>{liked ? 'Unlike' : 'Like'}</button>
                 {user.username === review.user_id && (
                   <>
@@ -167,7 +167,7 @@ const MainPageReviewBox = ({ review = tempReview }) => {
                     <button onClick={deleteReview}>Delete</button>
                   </>
                 )}
-              </>
+              </div>
             )}
           {isEditing ? (
             <div>
