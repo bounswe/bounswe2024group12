@@ -21,7 +21,8 @@ export default function GamesCard({data}){
             {gamesData.map((game) => {
                 return (
                     <div className={style.GameBlock} onClick={()=>{handleClick(game.game_slug);}}>
-                        <img width="200px" src={(game.image!=="" && game.image!=null) ? game.image : gamePlaceholder} alt={game.name} />
+                        <img width="200px" src={(game.image!=="" && game.image!=null) ? game.image : game.logo!=="" ? game.logo :
+                         gamePlaceholder} alt={game.name} />
                         <div className={style.GameInfoBlock}>
                         <div className={style.GameTitleBlock}>
                         <h1>{game.gameLabel}</h1>
