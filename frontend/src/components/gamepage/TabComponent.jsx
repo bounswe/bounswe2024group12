@@ -5,6 +5,7 @@ import styles2 from '../mainpage/MainPageComponents.module.css';
 import { useAuth } from '../common/UserContext';
 import { endpoint } from '../common/EndpointContext';
 import { useNavigate } from 'react-router-dom';
+import Card from '../common/Card';
 
 
 const TabComponent = ({game}) => {
@@ -59,7 +60,9 @@ const GameComponent = ({ game }) => {
 
   return (
     <div style={{ border: '1px solid var(--highlight-color)', borderRadius: '8px', padding: '16px', width: '60%', margin: '16px auto', fontFamily: 'Arial, sans-serif', display:'flex',"align-items":"center", "flex-direction":"column" }}>
+      <Card>
       <h2>{game.gameLabel || 'Game Title Unavailable'}</h2>
+      </Card>
       
       {game.logo && (
         <img src={game.logo} alt={`${game.gameLabel} logo`} style={{ width: '100%', borderRadius: '8px', marginBottom: '16px' }} />

@@ -2,17 +2,27 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  height: 60px;
   padding: 10px;
   background-color: var(--card-color); 
   box-shadow: 0px 4px 6px var(--highlight-color); /* Lighter grey */
 }
 
 .siteName {
-  cursor: pointer;
-  font-size: 24px;
-  padding-left: 20px;
+  padding-left: 10px;
+  font-size: 2rem; /* Adjust as needed */
   font-weight: bold;
-  color: var(--highlight-color); /* White */
+  color: var(--highlight-color);
+  cursor: pointer;
+  position: relative;
+  opacity: 0;
+  transform: translateX(-100%);
+  transition: transform 0.5s ease-in-out, opacity 0.5s ease-in-out;
+}
+
+.slideIn {
+  opacity: 1;
+  transform: translateX(0);
 }
 
 .menuItems {
