@@ -44,8 +44,8 @@ export default MainScreenComponents = () => {
     const searchRef = useRef(null);
     const {sendRequest,isLoading,error,clearError} = useHttp()
     const {sendRequest: fetchPopular,isLoading: popularLoading,error: popularError,clearError: clearPopularError} = useHttp()
-    const {sendRequest: fetchRecent,isLoading: recentLoading,error: recentError,clearError: clearRecentError} = useHttp()
-
+    const {sendRequest: fetchNew,isLoading: newLoading,error: newError,clearError: clearNewError} = useHttp()
+    const {sendRequest: fetchRecent,isLoading: recentReviewsLoading,error: recentReviewsError,clearError: clearRecentReviewsError} = useHttp()
     useEffect(() => {
         return () => {
             if (searchRef.current) {
@@ -119,19 +119,12 @@ export default MainScreenComponents = () => {
             const url = `${process.env.EXPO_PUBLIC_URL}/recent-reviews`;
             console.log("Fetching recent reviews from:", url);
 
-            const response = await fetch(url, {
-                method: 'GET',
-                headers: {
-                'Content-Type': 'application/json',
-                },
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const fetchedReviews = await response.json();
-            setRecentReviews(fetchedReviews);
+            const response = await fetchRecent(url, 
+                 'POST',
+                 null,
+                 null,
+            );
+            setRecentReviews(response.reviews);
         } catch (e) {
             console.error('Error fetching recent reviews:', e);
         }
@@ -155,14 +148,14 @@ export default MainScreenComponents = () => {
 
     const fetchNewGames = async () => {
         try{
-            const response = await fetchRecent(`${process.env.EXPO_PUBLIC_URL}/new-games`,
+            const response = await fetchNew(`${process.env.EXPO_PUBLIC_URL}/new-games`,
             'GET',
             null,
             {
                 'Content-Type': 'application/json',
             });
-            if(recentError){
-                console.error("New fetch:",recentError);
+            if(newError){
+                console.error("New fetch:",newError);
             }
             setNewGames(response.games);
         } catch (e) {
@@ -175,6 +168,7 @@ export default MainScreenComponents = () => {
         fetchGame();
         fetchPopularGames();
         fetchNewGames();
+        fetchRecentReviews();
     }, []);
 
     return (
@@ -186,10 +180,12 @@ export default MainScreenComponents = () => {
                 {popularLoading 
                     ? (<Text style={textStyles.default}>{"Loading..."}</Text> )
                     :(<GameListCard title={"Popular Games"} gameList={popularGames} />)}
-                {recentLoading 
+                {newLoading 
                     ? (<Text style={textStyles.default}>{"Loading..."}</Text> )
                     :(<GameListCard title={"New Games"} gameList={newGames} />)}                
-                <ReviewListCard title={"Recent Reviews"} />
+                {recentReviewsLoading
+                    ?(<Text style={textStyles.default}>{"Loading..."}</Text>)   
+                    :(<ReviewListCard title={"Recent Reviews"} reviews={recentReviews} />)}
                 <ReviewListCard title={"Friend Reviews"} />
                 <MoreGamesGrid />
                 <CustomButton title="Logout" onPress={onLogout} />

@@ -27,7 +27,7 @@ export default MainPageReviewCard = ({ review = exampleReview }) => {
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress}>
-      <Image source={{ uri: review.game.logo }} style={styles.image} />
+      {/* <Image source={{ uri: review.game.logo }} style={styles.image} /> */}
       <View style={styles.cardContent}>
         <View style={styles.profileContainer}>
           <MaterialIcons name='person' size={50} color='blue' />
