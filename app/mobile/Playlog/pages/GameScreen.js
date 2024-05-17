@@ -13,12 +13,8 @@ export default GameScreen = () => {
 
     const [game, setGame] = useState(null);
     const [characters, setCharacters] = useState(null);
-<<<<<<< Updated upstream
     const [popularReviews, setPopularReviews] = useState([]);
     const [recentReviews, setRecentReviews] = useState([]);
-=======
-    const [reviews, setReviews] = useState([]);
->>>>>>> Stashed changes
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -55,18 +51,14 @@ export default GameScreen = () => {
             setLoading(false);
         }
     };
-
-<<<<<<< Updated upstream
     const fetchpopularReviews = async () => {
         try {
             const url = `${process.env.EXPO_PUBLIC_URL}/popular-popularReviews-game`;
             console.log("Fetching popularReviews from:", url);
-=======
     const fetchReviews = async () => {
         try {
             const url = `${process.env.EXPO_PUBLIC_URL}/popular-reviews-game`;
             console.log("Fetching reviews from:", url);
->>>>>>> Stashed changes
             const response = await fetch(url, {
                 method: 'POST',
                 body: JSON.stringify({ game: gameId }),
@@ -77,7 +69,6 @@ export default GameScreen = () => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-<<<<<<< Updated upstream
             const popularReviews = await response.json();
             setPopularReviews(popularReviews);
         } catch (err) {
@@ -102,10 +93,6 @@ export default GameScreen = () => {
             }
             const recentReviews = await response.json();
             setRecentReviews(recentReviews);
-=======
-            const reviews = await response.json();
-            setReviews(reviews);
->>>>>>> Stashed changes
         } catch (err) {
             setError(err);
         } finally {
@@ -116,12 +103,8 @@ export default GameScreen = () => {
     useEffect(() => {
         fetchGame();
         fetchCharacters();
-<<<<<<< Updated upstream
         fetchpopularReviews();
         fetchRecentReviews();
-=======
-        fetchReviews();
->>>>>>> Stashed changes
     }, []);
 
     if (loading) {
@@ -135,11 +118,7 @@ export default GameScreen = () => {
     return (
         <View>
             {game ? (
-<<<<<<< Updated upstream
                 <GameScreenComponents game={game} characters={characters} popularReviews={popularReviews} recentReviews={recentReviews} />
-=======
-                <GameScreenComponents game={game} characters={characters} reviews={reviews} />
->>>>>>> Stashed changes
             ) : (
                 <Text>No game info available.</Text>
             )}

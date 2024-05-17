@@ -9,11 +9,7 @@ import Credits from "./Credits";
 import GameReviewListCard from "./Reviews"
 import ReviewGamePopup from "./ReviewGamePopup";
 
-<<<<<<< Updated upstream
 export default GameScreenComponents = ({ game, characters, popularReviews, recentReviews }) => {
-=======
-export default GameScreenComponents = ({ game, characters, reviews }) => {
->>>>>>> Stashed changes
     const [selectedText, setSelectedText] = useState('Game');
     const [modalVisible, setModalVisible] = useState(false);
 
