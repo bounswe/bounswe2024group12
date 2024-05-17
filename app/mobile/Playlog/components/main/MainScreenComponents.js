@@ -36,6 +36,7 @@ export default MainScreenComponents = () => {
     const [isSearch, setIsSearch] = useState(false)
     const { username, token, isGuest, logoutHandler } = useContext(ProfileContext)
     const [gameOfTheDay, setGameOfTheDay] = useState(null);
+    const [recentReviews, setRecentReviews] = useState([]);
     const [popularGames, setPopularGames] = useState([]);
     const [newGames, setNewGames] = useState([]);
     const [searchFetch, setSearchFetch] = useState(null)
@@ -68,7 +69,7 @@ export default MainScreenComponents = () => {
             JSON.stringify({search_term: query}),
             {
                 'Content-Type': 'application/json',
-            }).then((response) => {               
+            }).then((response) => {
                 setSearchFetch(response)
                 console.log(response)
             }, (error) => {
@@ -113,6 +114,28 @@ export default MainScreenComponents = () => {
         }
     };
 
+    const fetchRecentReviews = async () => {
+        try {
+            const url = `${process.env.EXPO_PUBLIC_URL}/recent-reviews`;
+            console.log("Fetching recent reviews from:", url);
+
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                'Content-Type': 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const fetchedReviews = await response.json();
+            setRecentReviews(fetchedReviews);
+        } catch (e) {
+            console.error('Error fetching recent reviews:', e);
+        }
+    }
     const fetchPopularGames = async () => {
         try{
             const response = await fetchPopular(`${process.env.EXPO_PUBLIC_URL}/popular-games`,
@@ -144,6 +167,7 @@ export default MainScreenComponents = () => {
             setNewGames(response.games);
         } catch (e) {
             console.error('Error fetching new games:', e);
+
         }
     }
 
