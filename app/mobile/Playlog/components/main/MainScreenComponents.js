@@ -63,6 +63,7 @@ export default MainScreenComponents = () => {
     const onSearch = (query) => {
         //TODO: handle previous search abortion
         if (query) {
+            setIsSearch(true)
             console.log(process.env.EXPO_PUBLIC_URL)
             const fetchPromise = sendRequest(`${process.env.EXPO_PUBLIC_URL}/search-game`,
             'POST',
@@ -80,16 +81,18 @@ export default MainScreenComponents = () => {
                 console.log("canceled")
             }
         });
+        } else{
+            setIsSearch(false)
         }
     }
 
-    const onFocus = () => {
-        setIsSearch(true)
-    }
+    // const onFocus = () => {
+    //     setIsSearch(true)
+    // }
 
-    const onBlur = () => {
-        setIsSearch(false)
-    }
+    // const onBlur = () => {
+    //     setIsSearch(false)
+    // }
 
     const fetchGame = async () => {
         try {
@@ -173,7 +176,7 @@ export default MainScreenComponents = () => {
 
     return (
         <ScrollView contentContainerStyle={styles.scrollViewContainer} style={styles.scrollView}>
-            <SearchBar onSearch={onSearch} onFocus={onFocus} onBlur={onBlur} />
+            <SearchBar onSearch={onSearch} />
             {!isSearch ? <>
                 <Text style={textStyles.title}>Welcome {!isGuest ? username : "Guest"}</Text>
                 <MainPageBanner game={gameOfTheDay} />
