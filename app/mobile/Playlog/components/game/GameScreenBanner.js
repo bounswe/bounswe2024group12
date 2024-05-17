@@ -10,7 +10,7 @@ export default GamePageBanner = ({ game }) => {
             />
             <View style={styles.bottomContainer}>
                 <Image
-                    source={{ uri: game.logo }} // Replace with your image path
+                    source={{ uri: game.image }} // Replace with your image path
                     style={styles.gameLogo}
                 />
                 <View style={styles.gameDetailsContainer}>
