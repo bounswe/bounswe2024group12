@@ -7,10 +7,9 @@ import { endpoint } from '../common/EndpointContext';
 const MainPageReviewLists = ({title="Featured Reviews", id, type, refetch, setRefetch}) => {
     const [list, setList] =useState([])
     const [error, setError] =useState("")
-
-    console.log("type")
     async function fetchReviews() {
       try {
+      console.log((type==="recent" ? "recent-reviews" : "popular-reviews") + (id ? '-game' : ""))
           const response = await fetch(endpoint + (type==="recent" ? "recent-reviews" : "popular-reviews") + (id ? '-game' : ""), {
             method: 'POST',
             headers: {
@@ -35,10 +34,10 @@ const MainPageReviewLists = ({title="Featured Reviews", id, type, refetch, setRe
     }
     
     useEffect(()=>{
-      if(id){
+
         fetchReviews()
 
-      }
+      
     
   },[id, refetch])
     return (
