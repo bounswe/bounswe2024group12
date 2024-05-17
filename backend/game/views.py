@@ -317,7 +317,7 @@ def get_property_games(request):
         return JsonResponse({'error': 'Invalid property type'}, status=400)
     property_id = SEARCH_BY_PROPERTIES[property_type]
     sparql_query="""
-    SELECT DISTINCT ?gameLabel ?genre ?image ?gameDescription ?rating ?logo
+    SELECT DISTINCT ?gameLabel ?genreLabel ?image ?gameDescription ?rating ?logo
     WHERE {
       ?entity rdfs:label "%s"@en.
       ?game wdt:%s ?entity ;
@@ -336,7 +336,7 @@ LIMIT 20""" % (property_name, property_id)
     response = requests.get(SPARQL_ENDPOINT, headers=headers, params={'query': sparql_query, 'format': 'json'})
     results = response.json()
     #get the first 10 games
-    property_games = get_unique_games(results, ['gameLabel', 'genre', 'image', 'gameDescription', 'logo'])
+    property_games = get_unique_games(results, ['gameLabel', 'genreLabel', 'image', 'gameDescription', 'logo'])
     property_games['games'] = property_games['games'][:10]
     #add random rating field from 3.5 - 5 to each game from the database
     for game in property_games['games']:
