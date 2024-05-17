@@ -272,7 +272,7 @@ def recent_reviews(request):
         reviews = Review.objects.filter(creationDate__gte=timezone.now() - timezone.timedelta(days=7))
         new_reviews = []
         for review in reviews.values():
-            user = RegisteredUser.objects.get(user_id=review['user_id'])
+            user = RegisteredUser.objects.get(user_id=review['user'])
             review['user'] = user.username
             new_reviews.append(review)
         return JsonResponse({'reviews': new_reviews}, status=200)
@@ -287,7 +287,7 @@ def recent_reviews_game(request):
         new_reviews = []
         reviews = Review.objects.filter(game_slug=game, creationDate__gte=timezone.now() - timezone.timedelta(days=7))
         for review in reviews.values():
-            user = RegisteredUser.objects.get(user_id=review['user_id'])
+            user = RegisteredUser.objects.get(user_id=review['user'])
             review['user'] = user.username
             new_reviews.append(review)
         
@@ -305,7 +305,7 @@ def recent_reviews_user(request):
         reviews = Review.objects.filter(user=user_id, creationDate__gte=timezone.now() - timezone.timedelta(days=7))
         new_reviews = []
         for review in reviews.values():
-            user = RegisteredUser.objects.get(user_id=review['user_id'])
+            user = RegisteredUser.objects.get(user_id=review['user'])
             review['user'] = user.username
             new_reviews.append(review)
         return JsonResponse({'reviews': new_reviews}, status=200)
@@ -317,7 +317,7 @@ def popular_reviews(request):
         reviews = Review.objects.filter( likes__gt=5)
         new_reviews = []
         for review in reviews.values():
-            user = RegisteredUser.objects.get(user_id=review['user_id'])
+            user = RegisteredUser.objects.get(user_id=review['user'])
             review['user'] = user.username
             new_reviews.append(review)
         return JsonResponse({'reviews': new_reviews}, status=200)
@@ -333,7 +333,7 @@ def popular_reviews_game(request):
         reviews = Review.objects.filter(game_slug=game, likes__gt=5)
         new_reviews = []
         for review in reviews.values():
-            user = RegisteredUser.objects.get(user_id=review['user_id'])
+            user = RegisteredUser.objects.get(user_id=review['user'])
             review['user'] = user.username
             new_reviews.append(review)
         return JsonResponse({'reviews': new_reviews}, status=200)
@@ -350,7 +350,7 @@ def popular_reviews_user(request):
         reviews = Review.objects.filter(user=user.user_id, likes__gt=5)
         new_reviews = []
         for review in reviews.values():
-            user = RegisteredUser.objects.get(user_id=review['user_id'])
+            user = RegisteredUser.objects.get(user_id=review['user'])
             review['user'] = user.username
             new_reviews.append(review)
         return JsonResponse({'reviews': new_reviews}, status=200)
