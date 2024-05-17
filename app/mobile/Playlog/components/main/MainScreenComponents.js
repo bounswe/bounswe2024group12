@@ -37,11 +37,14 @@ export default MainScreenComponents = () => {
     const { username, token, isGuest, logoutHandler } = useContext(ProfileContext)
     const [gameOfTheDay, setGameOfTheDay] = useState(null);
     const [recentReviews, setRecentReviews] = useState([]);
-    const [popularGames, setPopularGames] = useState(null);
+    const [popularGames, setPopularGames] = useState([]);
+    const [newGames, setNewGames] = useState([]);
     const [searchFetch, setSearchFetch] = useState(null)
     const navigation = useNavigation();
     const searchRef = useRef(null);
-    const {sendRequest,isLoading,error,clearError} = useHttp();
+    const {sendRequest,isLoading,error,clearError} = useHttp()
+    const {sendRequest: fetchPopular,isLoading: popularLoading,error: popularError,clearError: clearPopularError} = useHttp()
+    const {sendRequest: fetchRecent,isLoading: recentLoading,error: recentError,clearError: clearRecentError} = useHttp()
 
     useEffect(() => {
         return () => {
@@ -133,9 +136,45 @@ export default MainScreenComponents = () => {
             console.error('Error fetching recent reviews:', e);
         }
     }
+    const fetchPopularGames = async () => {
+        try{
+            const response = await fetchPopular(`${process.env.EXPO_PUBLIC_URL}/popular-games`,
+            'GET',
+            null,
+            {
+                'Content-Type': 'application/json',
+            });
+            if(popularError){
+                console.error("Popular fetch:",popularError)
+            }
+            setPopularGames(response.games);
+        } catch (e) {
+            console.error('Error fetching popular games:', e);
+        }
+    }
+
+    const fetchNewGames = async () => {
+        try{
+            const response = await fetchRecent(`${process.env.EXPO_PUBLIC_URL}/new-games`,
+            'GET',
+            null,
+            {
+                'Content-Type': 'application/json',
+            });
+            if(recentError){
+                console.error("New fetch:",recentError);
+            }
+            setNewGames(response.games);
+        } catch (e) {
+            console.error('Error fetching new games:', e);
+
+        }
+    }
 
     useEffect(() => {
         fetchGame();
+        fetchPopularGames();
+        fetchNewGames();
     }, []);
 
     return (
@@ -144,8 +183,12 @@ export default MainScreenComponents = () => {
             {!isSearch ? <>
                 <Text style={textStyles.title}>Welcome {!isGuest ? username : "Guest"}</Text>
                 <MainPageBanner game={gameOfTheDay} />
-                <GameListCard title={"Popular Games"} />
-                <GameListCard title={"Recent Games"} />
+                {popularLoading 
+                    ? (<Text style={textStyles.default}>{"Loading..."}</Text> )
+                    :(<GameListCard title={"Popular Games"} gameList={popularGames} />)}
+                {recentLoading 
+                    ? (<Text style={textStyles.default}>{"Loading..."}</Text> )
+                    :(<GameListCard title={"New Games"} gameList={newGames} />)}                
                 <ReviewListCard title={"Recent Reviews"} />
                 <ReviewListCard title={"Friend Reviews"} />
                 <MoreGamesGrid />
