@@ -22,7 +22,7 @@ export default function GamesCard({data}){
             {gamesData.map((game) => {
                 return (
                     <div className={style.GameBlock} onClick={()=>{handleClick(game);}}>
-                        <img width="200px" src={(game.image!=="") ? game.image : gamePlaceholder} alt={game.name} />
+                        <img width="200px" src={(game.image!=="" && game.image!=null) ? game.image : gamePlaceholder} alt={game.name} />
                         <div className={style.GameInfoBlock}>
                         <div className={style.GameTitleBlock}>
                         <h1>{game.name}</h1>

@@ -325,9 +325,9 @@ def popular_reviews_user(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         user = data.get('user')
-        user_id = RegisteredUser.objects.get(username=user).user_id
+        user = RegisteredUser.objects.get(username=user)
         
-        reviews = Review.objects.filter(user_id=user_id, likes__gt=5)
+        reviews = Review.objects.filter(user_id=user.user_id, likes__gt=5)
         
         return JsonResponse({'reviews': list(reviews.values())}, status=200)
 
@@ -336,13 +336,24 @@ def get_user_reviews(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         user = data.get('user')
-        user_id = RegisteredUser.objects.get(username=user).user_id
+        user = RegisteredUser.objects.get(username=user)
         game = data.get('game')
         
-        review = Review.objects.filter(user_id=user_id, game_slug=game)
+        review = Review.objects.filter(user_id=user.user_id, game_slug=game)
         if not review:
             return JsonResponse({'error': 'No reviews found for this user'}, status=404)
         
         return JsonResponse({'reviews': list(review.values())}, status=200)
+    else:
+        return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)
+
+@csrf_exempt
+def user_all_reviews(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        username = data.get('user')
+        user = RegisteredUser.objects.get(username=username)
+        reviews = Review.objects.filter(user_id=user.user_id)
+        return JsonResponse({'reviews': list(reviews.values())}, status=200)
     else:
         return JsonResponse({'error': 'Only POST requests are allowed'}, status=400)

@@ -53,7 +53,13 @@ export default function PropertyPageCard() {
         const data = await response.json();
         setNotExist(false);
         console.log(data);
-        setPropertyData(data.property);
+        const propertyData = {
+            property_name: data.property_name,
+            property_type: data.property_type,
+            property_description: data.property_description,
+            property_image: data.property_image,
+        }
+        setPropertyData(propertyData);
         setGamesData(data.games);
         setIsLoading(false);
         return ;

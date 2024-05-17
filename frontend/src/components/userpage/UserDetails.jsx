@@ -6,7 +6,7 @@ export default function UserDetails({user, id, userDetails, userPicture, followi
     return (
         <div className={styles.userDetails}>
                         <div className={styles.info}>
-                            <img src={(userPicture!=="") ? userPicture : propertyPlaceholder} alt="User Picture" className={styles.userPicture}/> 
+                            <img src={(userPicture!=="" && userPicture!=null) ? userPicture : propertyPlaceholder} alt="User Picture" className={styles.userPicture}/> 
                             <div className={styles.name}>
                                 <h2 className={styles.username}>{id}</h2>
                                 <a className={styles.property} href="https://www.youtube.com/watch?v=gWOXSh4-Iuc">gamer</a>

@@ -12,7 +12,7 @@ export default function PropertyCard({data}){
     return (
         <div>
             <div className={style.PropertyBlock}>
-                <img src={(propertyData.property_image!=="") ? propertyData.property_image : propertyPlaceholder} alt={propertyData.property_name} />
+                <img src={(propertyData.property_image!=="" && propertyData.property_image!=null) ? propertyData.property_image : propertyPlaceholder} alt={propertyData.property_name} />
                 <div className={style.PropertyInfo}>
                     <h1>{propertyData.property_name}</h1>
                     <h3>{propertyData.property_type}</h3>

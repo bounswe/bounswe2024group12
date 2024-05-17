@@ -15,7 +15,7 @@ export default function DetailsTab({favoriteProperties, favoriteGames, recentlyP
                             <ul>
                                 {favoriteProperties.map((property) => (
                                     <li><text className={styles.underlined}>{property[0]}</text> <text className={styles.clickable} onClick={
-                                        () => navigate('/property/' + property[1])
+                                        () => navigate('/property/',{property_type:property[0],property_name:property[1]})
                                     }>{property[1]}</text></li>
                                 ))}
                             </ul>
@@ -43,12 +43,12 @@ export default function DetailsTab({favoriteProperties, favoriteGames, recentlyP
                                 }>{game}</li>
                             ))}
                         </ul>
-                        <h3 className={styles.favoriteTitle}>Recently Reviewed Games</h3>
+                        <h3 className={styles.favoriteTitle}>Recently Reviewed</h3>
                         <ul>
                             {recentlyReviewedGames.map((game) => (
                                 <li className={styles.clickable} onClick={
                                     () => navigate('/review/' + game[1])
-                                }>{game[0]}</li>
+                                }>{game[1]}<br/>{game[3]}<br/>{game[4]}</li>
                             ))}
                         </ul>
                     <h3 className={styles.favoriteTitle}>Popular Reviews</h3>
@@ -56,7 +56,7 @@ export default function DetailsTab({favoriteProperties, favoriteGames, recentlyP
                         {popularReviews.map((game) => (
                             <li className={styles.clickable} onClick={
                                 () => navigate('/review/' + game[1])
-                            }>{game[0]}</li>
+                            }>{game[1]}<br/>{game[3]}<br/>{game[4]}</li>
                         ))}
                     </ul>
                     </div>
