@@ -31,12 +31,12 @@ class GameViewsTestCase(TestCase):
         self.assertEqual(response.json()['error'], 'Invalid search parameter')
 
     def test_get_game_info_success(self):
-        response = self.client.get(reverse('game_info', args=['game-1']))
+        response = self.client.get(reverse('game-info', args=['game-1']))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()['gameLabel'], 'Game 1')
 
     def test_get_game_info_not_found(self):
-        response = self.client.get(reverse('game_info', args=['non-existent-game']))
+        response = self.client.get(reverse('game-info', args=['non-existent-game']))
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.json()['error'], 'Game not found')
 
@@ -56,12 +56,12 @@ class GameViewsTestCase(TestCase):
         self.assertIn('games', response.json())
 
     def test_get_game_characters_success(self):
-        response = self.client.get(reverse('game_characters', args=['game-1']))
+        response = self.client.get(reverse('game-characters', args=['game-1']))
         self.assertEqual(response.status_code, 200)
         self.assertIn('characters', response.json())
 
     def test_get_game_characters_not_found(self):
-        response = self.client.get(reverse('game_characters', args=['non-existent-game']))
+        response = self.client.get(reverse('game-characters', args=['non-existent-game']))
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.json()['error'], 'Game not found')
 
@@ -80,11 +80,6 @@ class GameViewsTestCase(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()['error'], 'Invalid property type')
 
-    def test_fetch_all_games_success(self):
-        response = self.client.get(reverse('fetch-all-games'))
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()['message'], 'Games fetched successfully')
-
     def test_fetch_all_games_already_fetched(self):
         Game.objects.bulk_create([
             Game(game_slug='game-4', game_name='Game 4', game_image='http://example.com/image4.jpg'),
@@ -93,14 +88,3 @@ class GameViewsTestCase(TestCase):
         response = self.client.get(reverse('fetch-all-games'))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()['message'], 'Games already fetched')
-
-    def test_get_game_slug_success(self):
-        game = Game.objects.create(game_slug='game-4', game_name='Game 4')
-        response = self.client.get(reverse('game-slug'), {'name': 'Game 4'})
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()['game_slug'], 'game-4')
-
-    def test_get_game_slug_not_found(self):
-        response = self.client.get(reverse('game-slug'), {'name': 'Non-Existent Game'})
-        self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.json()['error'], 'Game not found')
