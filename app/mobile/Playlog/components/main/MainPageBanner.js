@@ -56,32 +56,43 @@ const exampleGame = {
   averageRating: () => 4.5,
 };
 
-export default MainPageBanner = ({ game = exampleGame }) => {
-  const navigation = useNavigation();
-  const onPress = () => {
-    navigation.navigate('Game', { gameId: game.id });
-  };
+export default MainPageBanner = ({ game }) => {
+    const navigation = useNavigation();
 
-  return (
-    <TouchableOpacity style={styles.container} onPress={onPress}>
-      <Text style={styles.header}>Game of The Day</Text>
-      <Image
-        source={{ uri: game.banner }} // Replace with your image path
-        style={styles.gameBanner}
-      />
-      <View style={styles.bottomContainer}>
+    if (!game) {
+        return (
+          <View style={styles.container}>
+            <Text style={styles.header}>Game of The Day</Text>
+            <Text>Loading...</Text>
+          </View>
+        );
+      }
+
+    const onPress = () => {
+        console.log("Navigating to game:", game.game_slug);
+        navigation.navigate('Game', { gameId: game.game_slug });
+    };
+
+    return (
+        <TouchableOpacity style={styles.container} onPress={onPress}>
+        <Text style={styles.header}>Game of The Day</Text>
         <Image
-          source={{ uri: game.logo }} // Replace with your image path
-          style={styles.gameLogo}
+            source={{ uri: game.image }} // Replace with your image path
+            style={styles.gameBanner}
         />
-        <View style={styles.gameDetailsContainer}>
-          <Text style={styles.gameTitle}>{game.title}</Text>
-          <Text style={styles.gameDeveloper}>{game.developer}</Text>
-          <SmallRatings rating={game.averageRating()} />
+        <View style={styles.bottomContainer}>
+            <Image
+            source={{ uri: game.image }} // Replace with your image path
+            style={styles.gameLogo}
+            />
+            <View style={styles.gameDetailsContainer}>
+            <Text style={styles.gameTitle}>{game.gameLabel}</Text>
+            <Text style={styles.gameDeveloper}>{game.publisherLabel}</Text>
+            {/* <SmallRatings rating={game.averageRating()} /> */}
+            </View>
         </View>
-      </View>
-    </TouchableOpacity>
-  );
+        </TouchableOpacity>
+    );
 };
 
 const styles = StyleSheet.create({

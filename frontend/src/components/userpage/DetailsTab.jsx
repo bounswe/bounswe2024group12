@@ -25,7 +25,7 @@ export default function DetailsTab({favoriteProperties, favoriteGames, recentlyP
                             <ul>
                                 {favoriteGames.map((game) => (
                                     <li className={styles.clickable} onClick={
-                                        () => navigate('/game/' + game)
+                                        () => navigate('/game/' + game.replace(/ /g,"_").toLowerCase())
                                     }>{game}</li>
                                 ))}
                             </ul>

@@ -18,7 +18,7 @@ export const ProfileProvider = ({ children }) => {
             console.log(process.env.EXPO_PUBLIC_URL);
             const response = await fetch(`${process.env.EXPO_PUBLIC_URL}/login`, {
                 method: 'POST',
-                body: JSON.stringify({ email: username, password }),
+                body: JSON.stringify({ email, username, password }),
                 headers: {
                     'Content-Type': 'application/json',
                 },
