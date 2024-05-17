@@ -104,6 +104,9 @@ export default function SignUpCard() {
         else if (string.length > 16) {
             return "Username must be at most 16 characters long.";
         }
+        else if(string.match(/^[\d_]/)){
+            return "Username cannot start with a number or underscore";
+        }
         else if (string.search(/[^a-zA-Z0-9_]/) !== -1) {
             return "Username must contain only letters, digits and underscore.";
         }
