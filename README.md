@@ -5,7 +5,7 @@
 CmpE 352 is a course designed to enhance abilities in collaborative software development and teamwork.
 
 ## 🚀 About Project
-Playlog is a social game browsing app. You can semantically browse your favorite games, give ratings, make lists or follow your frineds and check their reviews. Currently you can access our deployment from here: http://165.232.73.154:3000/
+Playlog is a social game browsing app. You can semantically browse your favorite games, give ratings, make lists or follow your frineds and check their reviews. Currently you can access our deployment from here: http://165.22.85.172:3000/home
 
 ## 👥 Group Members 
 
@@ -52,9 +52,30 @@ When working with Docker, the initial setup might take a while as it fetches and
      ```
      cd <repository_name>
      ```
-   Replace `<repository_name>` with the name of the cloned repository.
+   -cReplace `<repository_name>` with the name of the cloned repository.
+   - In the repository create .env file with "nano .env" command.
+   - Inside the .env write the following (You can set \<text> parts arbitrarily):
+	```
+	# MySQL settings
+	MYSQL_ROOT_PASSWORD=<password>
+	MYSQL_DATABASE=playlog_db
+	MYSQL_USER=admin
+	MYSQL_PASSWORD=<password>
+	MYSQL_HOST=db
+	MYSQL_PORT=3306
+	DJANGO_SECRET_KEY=<django_secret_key>
+	
+	DEPLOYMENT_URL=127.0.0.1
+	FRONTEND_PORT=3000
+	BACKEND_PORT=8000
+	```
+	- After saving and exiting (ctrl x followed by y) create the same file in backend folder.
+	- Create .env file in frontend folder with following:
+	```
+	REACT_APP_ENDPOINT=http://127.0.0.1:8000/
+	```
 
-3. **Build and Run Docker Compose:**
+4. **Build and Run Docker Compose:**
    - Make sure you have Docker and Docker Compose installed on your system.
    - Run the following command to build and start Docker Compose:
      ```
@@ -62,7 +83,7 @@ When working with Docker, the initial setup might take a while as it fetches and
      ```
    This command will build the Docker images and start the containers defined in your `docker-compose.yaml` file.
 
-4. **Access the Frontend and Backend:**
+5. **Access the Frontend and Backend:**
    - Once Docker Compose has successfully started the containers, you can access the frontend at `localhost:3000` and the backend at `localhost:8000` in your web browser.
 
 
@@ -79,10 +100,24 @@ To deploy our application on DigitalOcean follow these instructions:
 9. Enter into repository by typing "cd bounswe2024group12/"
 10. In the repository create .env file with "nano .env" command.
 11. Inside the .env write the following (You can set \<text> parts arbitrarily):
-"MYSQL_ROOT_PASSWORD=\<root_password>
+```
+# MySQL settings
+MYSQL_ROOT_PASSWORD=<password>
 MYSQL_DATABASE=playlog_db
-MYSQL_USER=\<user>
-MYSQL_PASSWORD=\<mypassword>
-DJANGO_SECRET_KEY=\<django_secret_key>" 
-12. After saving and exiting (ctrl x followed by y) run "docker-compose up --build" command.
-13. Make sure frontend and backend were able to be successfully built (ignore the warnings). After that you can access the website by typing \<ip_address>:3000 to your browser.
+MYSQL_USER=admin
+MYSQL_PASSWORD=<password>
+MYSQL_HOST=db
+MYSQL_PORT=3306
+DJANGO_SECRET_KEY=<django_secret_key>
+
+DEPLOYMENT_URL=127.0.0.1 (use your own deployment url)
+FRONTEND_PORT=3000
+BACKEND_PORT=8000
+```
+12. After saving and exiting (ctrl x followed by y) create the same file in backend folder.
+13. Create .env file in frontend folder with following:
+```
+REACT_APP_ENDPOINT=http://127.0.0.1:8000/ (again use your deployment url)
+```
+14. To be safe run `docker-compose down` first then run "docker-compose up --build" command.
+15. Make sure frontend and backend were able to be successfully built (ignore the warnings). After that you can access the website by typing \<ip_address>:3000 to your browser.
