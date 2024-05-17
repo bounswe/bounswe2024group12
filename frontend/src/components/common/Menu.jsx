@@ -19,6 +19,12 @@ const Menu = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const ref = useRef(null);
+  const [isAnimating, setIsAnimating] = useState(false);
+
+
+  useEffect(() => {
+    setIsAnimating(true);
+  }, []);
 
   useEffect(() => {
     // Click outside to close suggestions
@@ -126,7 +132,12 @@ const Menu = () => {
 
   return (
     <div className={styles.menu}>
-      <div onClick={()=>{ navigate(`/main`);}} className={styles.siteName}> PlayLog</div>
+       <div
+      onClick={() => navigate('/main')}
+      className={`${styles.siteName} ${isAnimating ? styles.slideIn : ''}`}
+    >
+      PlayLog
+    </div>
       <div className={styles.menuItems}>
         
 

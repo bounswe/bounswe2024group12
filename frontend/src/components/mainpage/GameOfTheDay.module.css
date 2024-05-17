@@ -11,7 +11,7 @@
   }
   
   .title {
-    font-size: 24px; 
+    font-size: 2rem; 
     font-weight: bold;
     color: var(--text-color);
     margin-bottom: 15px; 
@@ -23,6 +23,9 @@
     justify-content: center;
     width: 100%;
   }
+  .content:hover {
+    cursor: pointer;
+  }
   
   .imageContainer {
     margin-right: 20px; 
@@ -33,9 +36,9 @@
   }
   
   .gameImage {
-
+    max-height: 200px;
     width: 150px;
-    height: auto;
+    
   }
   
   .gameDetails {
@@ -61,4 +64,6 @@
     font-size: 20px;
     color: #ffa500;
   }
+
+
   

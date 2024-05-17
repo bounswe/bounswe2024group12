@@ -3,13 +3,13 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    margin-bottom: 20px;
-    border: 1px solid var(--card-color);
+    margin: 30px 50px;
     border-radius: 5px;
     overflow: hidden;
-    padding: 10px;
-    margin-left: 50px;
-    margin-right: 50px;
+    background-color: var(--card-color);
+    box-shadow: 2px 2px 5px 0px rgba(0,0,0,0.25);
+    
+    
   }
 
   .content {
@@ -17,6 +17,7 @@
     align-items: center;
     justify-content: center;
     width: 100%;
+    padding: 10px;
   }
   
   .imageContainer {
@@ -29,8 +30,9 @@
   
   .gameImage {
 
-    height: 300px;
-    width: auto;
+    max-height: 200px;
+    max-width: 400px;
+    border-radius: 20px;
   }
   
   .gameDetails {

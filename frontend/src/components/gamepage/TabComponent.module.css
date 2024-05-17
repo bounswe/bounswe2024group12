@@ -6,12 +6,13 @@
 
 .tabButtons {
   display: flex;
+  border-bottom: 2px solid var(--card-color); /* Bottom border to define tab section */
+  margin-bottom: 20px; /* Space between tabs and content */
+  
 }
 
-.Form {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.tabButtons::after {
+  border-bottom: 2px solid var(--highlight-color);
 }
 
 .tabButton {
@@ -22,19 +23,58 @@
   font-size: 16px;
   outline: none;
   color: var(--text-color);
+  position: relative;
+  transition: color 0.3s ease-in-out;
+}
+
+.tabButton::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: -2px;
+  left: 50%;
+  background-color: var(--highlight-color);
+  transition: width 0.3s ease-in-out, left 0.3s ease-in-out;
 }
 
 .tabButton:hover {
+  padding: 10px 20px;
+  border: none;
   background-color: var(--card-color);
+  cursor: pointer;
+  font-size: 16px;
+  outline: none;
+  color: var(--highlight-color);
+  position: relative;
+  transition: color 0.3s ease-in-out;
+  
 }
 
 .tabButton.active {
-  background-color: var(--highlight-color);
-  color: var(--background-color);
+  color: var(--highlight-color);
+  background-color: var(--card-color);
+}
+
+.tabButton.active::after {
+  width: 100%;
+  left: 0;
 }
 
 .tabContent {
   margin-top: 20px;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.tabContent.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.Form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .Error {
