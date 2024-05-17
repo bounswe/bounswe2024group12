@@ -191,7 +191,7 @@ def get_game_of_the_day(request):
                 }
                 FILTER(LANG(?gameLabel) = "en") 
                 FILTER(LANG(?publisherLabel) = "en") 
-                FILTER (YEAR(?publication_date) != YEAR(now()) && MONTH(?publication_date) = MONTH(now()) && DAY(?publication_date) = DAY(now()))
+                FILTER (YEAR(?publication_date) != YEAR(now()) && MONTH(?publication_date) != MONTH(now()) && DAY(?publication_date) = DAY(now()))
             SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
         }
         LIMIT 3
@@ -200,7 +200,17 @@ def get_game_of_the_day(request):
     response = requests.get(SPARQL_ENDPOINT, headers=headers, params={'query': sparql_query, 'format': 'json'})
     results = response.json()
     game_of_the_day = get_unique_games(results, ['gameLabel', 'publisherLabel', 'image'])
-    context = game_of_the_day['games'][0]
+    if not game_of_the_day['games']:
+        #return a random game that has a image if there are no games for the day from the database
+        game = Game.objects.filter(game_image__isnull=False).order_by('?').first()
+        context = {
+            'gameLabel': game.game_name,
+            'game_slug': game.game_slug,
+            'publisherLabel': None,
+            'image': game.game_image
+        }
+    else:
+        context = game_of_the_day['games'][0]
     return JsonResponse(context, safe=False)
 
 @csrf_exempt
