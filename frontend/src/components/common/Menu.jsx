@@ -34,38 +34,38 @@ const Menu = () => {
 
   
 
-  // const searchGame = async (query) => {
-  //   try {
-  //     const searchEndpoint = searchProperty ? `${endpoint}search-game-by/${searchProperty}/` : `${endpoint}search-game`;
-  //     const response = await fetch(searchEndpoint, {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //       },
-  //       credentials: 'include',
-  //       body: JSON.stringify({ search_term: query }),
-  //     });
-
-  //     if (!response.ok) {
-  //       console.log('Search failed:', response.statusText);
-  //       return;
-  //     }
-
-  //     const data = await response.json();
-  //     if(searchProperty === '') {
-  //     setSuggestions(data.games);
-  //     }
-  //     else {
-  //       setSuggestions(data.results);
-  //     }
-  //     console.log('Suggestions:', suggestions);
-  //   } catch (error) {
-  //     console.error('Error:', error);
-  //   }
-  // };
+  
   const debouncedSearchGame = useCallback(
     debounce(async (query) => {
       setLoading(true);
+      // if (query === 'users')
+      //   {
+      //     try {
+      //       const response = await fetch(`${endpoint}search-user`, {
+      //         method: 'POST',
+      //         headers: {
+      //           'Content-Type': 'application/json',
+      //         },
+      //         credentials: 'include',
+      //         body: JSON.stringify({ search_term: query }),
+      //       });
+
+      //       if (!response.ok) {
+      //         console.log('Search failed:', response.statusText);
+      //         return;
+      //       }
+
+      //       const data = await response.json();
+      //       setSuggestions(data.users);
+
+      //     } catch (error) {
+      //       console.error('Error:', error);
+      //     }
+      
+
+      //   } 
+
+      // else {
       try {
         const searchEndpoint = searchProperty ? `${endpoint}search-game-by/${searchProperty}/` : `${endpoint}search-game`;
         const response = await fetch(searchEndpoint, {
@@ -91,7 +91,8 @@ const Menu = () => {
         console.log('Suggestions:', suggestions);
       } catch (error) {
         console.error('Error:', error);
-      }
+      } 
+    // }
       setLoading(false);
     }, 1000), // 200ms debounce delay
     [searchProperty]
@@ -109,10 +110,10 @@ const Menu = () => {
 
   const handleSuggestionClick = (selectedItem) => {
     if (searchProperty === '') {
-      navigate(`/game/${selectedItem}`);
+      navigate(`/game/${selectedItem['game-slug']}`);
     }
     else {
-      navigate('/property', { state: { property_type:searchProperty , property_name: selectedItem} });
+      navigate('/property', { state: { property_type:searchProperty , property_name: selectedItem.gameLabel} });
 
 
     }
@@ -134,6 +135,7 @@ const Menu = () => {
             <option value="publisher">Search in Publisher</option>
             <option value="developer">Search in Developer</option>
             <option value="platform">Search in Platform</option>
+            {/* <option value="users">Search in Users</option> */}
           </select>
         <div className={styles.searchContainer}>
           {/* search by property dropdown */}
@@ -158,23 +160,15 @@ const Menu = () => {
 
           <div ref={ref} className={styles.suggestions}>
             {suggestions.map((suggestion) => (
-              searchProperty === '' ?(
+             
               <div
-                key={suggestion['game-slug']}
-                onClick={() => handleSuggestionClick(suggestion['game-slug'])}
-                className={styles.suggestionItem}
-              >
-                {suggestion.gameLabel}
-              </div>) : (
-                <div
-                key={suggestion}
+                key={suggestion['gameLabel']}
                 onClick={() => handleSuggestionClick(suggestion)}
                 className={styles.suggestionItem}
               >
-                {suggestion}
-              </div>
-              )
-            ))}
+                {suggestion.gameLabel}
+              </div>) 
+            )}
           </div>
         </div>
 
