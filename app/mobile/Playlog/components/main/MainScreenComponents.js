@@ -62,7 +62,7 @@ export default MainScreenComponents = () => {
             console.log(process.env.EXPO_PUBLIC_URL)
             const fetchPromise = sendRequest(`${process.env.EXPO_PUBLIC_URL}/search-game`,
             'POST',
-            JSON.stringify({game_name: query}),
+            JSON.stringify({search_term: query}),
             {
                 'Content-Type': 'application/json',
             }).then((response) => {               
