@@ -8,7 +8,7 @@ import { useNavigation } from "@react-navigation/native"
 import { ProfileContext } from "../context/ProfileProvider"
 
 export default Login = () => {
-    const [username, setUsername] = useState('')
+    const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const navigation = useNavigation()
     const { loginHandler, guestHandler } = useContext(ProfileContext)
@@ -20,7 +20,7 @@ export default Login = () => {
     const onLogin = async () => {
         try {
             console.log('login')
-            await loginHandler({ username, password });
+            await loginHandler({ email, password });
         } catch (e) {
             alert(e.message);
             return;
@@ -42,7 +42,7 @@ export default Login = () => {
                 placeholder="e-mail"
                 placeholderTextColor={'#888'}
                 style={[textStyles.default, styles.input]}
-                onChangeText={(text) => setUsername(text)}
+                onChangeText={(text) => setEmail(text)}
             />
             <TextInput
                 placeholder="Password"
