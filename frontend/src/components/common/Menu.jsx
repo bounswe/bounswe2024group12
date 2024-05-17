@@ -180,7 +180,7 @@ const Menu = () => {
         <button className={styles.menuButton}><a href="/games" className={styles.menuLink}>Games</a></button>
        
         {user ? (
-          <div onClick={()=>{navigate("/"+user.username)}} className={styles.userInfo}>Welcome, {user.username}</div>
+          <div onClick={()=>{navigate("/user/"+user.username)}} className={styles.userInfo}>Welcome, {user.username}</div>
         ) : (
           <button onClick={()=>{navigate("/")}} className={styles.loginButton}><a href="/" className={styles.loginLink}>Log in</a></button>
         )}
