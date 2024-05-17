@@ -45,7 +45,8 @@ export default GameScreenComponents = ({ game, characters, popularReviews, recen
                     <CategoryTab title="Game" onPress={() => handleTextPress('Game')} isSelected={selectedText === 'Game'} />
                     <CategoryTab title="Characters" onPress={() => handleTextPress('Characters')} isSelected={selectedText === 'Characters'} />
                     {/* <CategoryTab title="Credits" onPress={() => handleTextPress('Credits')} isSelected={selectedText === 'Credits'} /> */}
-                    <CategoryTab title="Reviews" onPress={() => handleTextPress('Reviews')} isSelected={selectedText === 'Reviews'} />
+                    <CategoryTab title="PopularReviews" onPress={() => handleTextPress('PopularReviews')} isSelected={selectedText === 'PopularReviews'} />
+                    <CategoryTab title="NewReviews" onPress={() => handleTextPress('NewReviews')} isSelected={selectedText === 'NewReviews'} />
                 </View>
             </ScrollView>
             <View style={{ borderTopWidth: 1, borderTopColor: 'white' }}></View>
@@ -53,7 +54,8 @@ export default GameScreenComponents = ({ game, characters, popularReviews, recen
           {selectedText === 'Game' && <GameTab game={game} />}
           {selectedText === 'Characters' && <Characters game={game} characters={characters} />}
           {/* {selectedText === 'Credits' && <Credits game={game} />} */}
-          {selectedText === 'Reviews' && <GameReviewListCard game={game} reviews={reviews} />}
+          {selectedText === 'PopularReviews' && <GameReviewListCard game={game} reviews={popularReviews} />}
+          {selectedText === 'NewReviews' && <GameReviewListCard game={game} reviews={recentReviews} />}
         </ScrollView>
     )
 }

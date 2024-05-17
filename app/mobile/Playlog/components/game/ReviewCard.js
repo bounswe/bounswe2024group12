@@ -22,7 +22,8 @@ const exampleReview = {
 export default GamePageReviewCard = ({ review = exampleReview }) => {
   const navigation = useNavigation();
   const onPress = () => {
-    navigation.navigate('Game', { gameId: review.game.gameId });
+    console.log('review:', review);
+    navigation.navigate('Game', { gameId: review.game_slug });
   };
 
   return (
