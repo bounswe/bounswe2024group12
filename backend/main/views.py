@@ -171,10 +171,18 @@ def user_details(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         gamesLiked = 2
-        reviewCount = 3
+        reviewCount = get_review_count(request)
         followers = get_follower_count(request)
         following = get_following_count(request)
         return JsonResponse({ "gamesLiked": gamesLiked, "reviewCount": reviewCount, "followers": followers, "following": following})
+
+def get_review_count(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        username = data.get('username')
+        user = RegisteredUser.objects.get(username=username)
+        reviews = Review.objects.filter(user_id=user.user_id)
+        return reviews.count()
 
 @csrf_exempt
 def create_review(request):
