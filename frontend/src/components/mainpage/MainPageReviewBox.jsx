@@ -148,7 +148,7 @@ const MainPageReviewBox = ({ review = tempReview }) => {
           <img src={game.image || tempImage} alt={game.name || ""} className={styles.gameImage} />
         </div>
         <div className={styles.reviewDetails}>
-          <h2 className={styles.username}>User id: {review.user_id}</h2>
+          <h2 className={styles.username}>User: {review.user}</h2>
           <div className={styles.likeRatingContainer}>
             <div>
             <p className={styles.likeCount}>{review.rating}/5 rating</p>
@@ -164,8 +164,8 @@ const MainPageReviewBox = ({ review = tempReview }) => {
                 <button onClick={liked ? unlikeReview : likeReview}>{liked ? 'Unlike' : 'Like'}</button>
                 {user.username === review.user && (
                   <>
-                    <button onClick={() => setIsEditing(!isEditing)}>Edit</button>
-                    <button onClick={deleteReview}>Delete</button>
+                    <button style={{marginLeft:'10px'}} onClick={() => setIsEditing(!isEditing)}>Edit</button>
+                    <button style={{marginLeft:'10px'}} onClick={deleteReview}>Delete</button>
                   </>
                 )}
               </div>

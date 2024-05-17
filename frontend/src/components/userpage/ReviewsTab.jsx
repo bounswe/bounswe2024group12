@@ -1,5 +1,6 @@
 import styles from './DetailsTab.module.css';
 import { useNavigate } from 'react-router-dom';
+import MainPageReviewBox from '../mainpage/MainPageReviewBox';
 
 export default function ReviewsTab({userReviews}) {
     const navigate = useNavigate();
@@ -10,9 +11,7 @@ export default function ReviewsTab({userReviews}) {
                     <h2 className={styles.favoriteTitle}>User Reviews</h2>
                     <ul>
                         {userReviews.map((review) => (
-                            <li className={styles.clickable} onClick={
-                                () => navigate('/review/' + review[1])
-                            }>{review[1]}<br/>{review[3]}<br/>{review[4]}</li>
+                            <li className={styles.clickable}><MainPageReviewBox review={{user: review.user, rating: review.rating, likes: review.likes, description: review.text, game_slug:review.game_slug, id:review.id,}} /></li>
                         ))}
                     </ul>
                 </div>

@@ -1,5 +1,6 @@
 import styles from './DetailsTab.module.css'
 import { useNavigate } from 'react-router-dom';
+import MainPageReviewBox from '../mainpage/MainPageReviewBox';
 
 
 export default function DetailsTab({favoriteProperties, favoriteGames, recentlyPlayedGames, recentlyReviewedGames, popularReviews}) {
@@ -34,29 +35,29 @@ export default function DetailsTab({favoriteProperties, favoriteGames, recentlyP
                 </div>
                 <div className={styles.userFavorites}>
                     <h2 className={styles.favoriteTitle}>Recently</h2>
-                    <div className={styles.favorites}>
+                    <div className={styles.vertical_list}>
                         <h3>Recently Played Games</h3>
                         <ul>
                             {recentlyPlayedGames.map((game) => (
                                 <li className={styles.clickable} onClick={
-                                    () => navigate('/game/' + game)
+                                    () => navigate('/game/' + game.replace(/ /g,"_").toLowerCase())
                                 }>{game}</li>
                             ))}
                         </ul>
                         <h3 className={styles.favoriteTitle}>Recently Reviewed</h3>
                         <ul>
-                            {recentlyReviewedGames.map((game) => (
-                                <li className={styles.clickable} onClick={
-                                    () => navigate('/review/' + game[1])
-                                }>{game[1]}<br/>{game[3]}<br/>{game[4]}</li>
+                            {recentlyReviewedGames.map((review) => (
+                                <li className={styles.clickable}>
+                                   <MainPageReviewBox review={{user: review.user, rating: review.rating, likes: review.likes, description: review.text, game_slug:review.game_slug, id:review.id,}} />
+                                </li>
                             ))}
                         </ul>
                     <h3 className={styles.favoriteTitle}>Popular Reviews</h3>
                     <ul>
-                        {popularReviews.map((game) => (
-                            <li className={styles.clickable} onClick={
-                                () => navigate('/review/' + game[1])
-                            }>{game[1]}<br/>{game[3]}<br/>{game[4]}</li>
+                        {popularReviews.map((review) => (
+                            <li className={styles.clickable}>
+                                <MainPageReviewBox review={{user: review.user, rating: review.rating, likes: review.likes, description: review.text, game_slug:review.game_slug, id:review.id,}} />
+                            </li>
                         ))}
                     </ul>
                     </div>

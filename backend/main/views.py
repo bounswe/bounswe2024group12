@@ -297,7 +297,7 @@ def recent_reviews_game(request):
 def recent_reviews_user(request):
     if request.method == 'POST':
         data = json.loads(request.body)
-        user = data.get('user')
+        user = data.get('username')
         user_id = RegisteredUser.objects.get(username=user).user_id
         reviews = Review.objects.filter(user=user_id, creationDate__gte=timezone.now() - timezone.timedelta(days=7))
         reviews = list(reviews.values())

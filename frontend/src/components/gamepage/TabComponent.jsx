@@ -58,19 +58,30 @@ const GameComponent = ({ game }) => {
   };
 
   return (
-    <div style={{ border: '1px solid #ccc', borderRadius: '8px', padding: '16px', maxWidth: '400px', margin: '16px auto', fontFamily: 'Arial, sans-serif' }}>
+    <div style={{ border: '1px solid var(--highlight-color)', borderRadius: '8px', padding: '16px', width: '60%', margin: '16px auto', fontFamily: 'Arial, sans-serif', display:'flex',"align-items":"center", "flex-direction":"column" }}>
       <h2>{game.gameLabel || 'Game Title Unavailable'}</h2>
       
       {game.logo && (
         <img src={game.logo} alt={`${game.gameLabel} logo`} style={{ width: '100%', borderRadius: '8px', marginBottom: '16px' }} />
       )}
       
-      {game.image ? (
+      {game.image!=null ? (
         <img src={game.image} alt={`${game.gameLabel} screenshot`} style={{ width: '100%', borderRadius: '8px' }} />
       ) : (
-        <div style={{ width: '100%', paddingTop: '56.25%', backgroundColor: '#ddd', borderRadius: '8px', textAlign: 'center', lineHeight: '200%', fontSize: '1.2em', color: '#999' }}>
-          No Image Available
+        <div>
+          
         </div>
+      )}
+
+      {game.gameDescription && (
+        <p>
+          <strong>Description:</strong> {game.gameDescription}
+        </p>
+      )}
+      {game.publication_date && (
+        <p>
+          <strong>Publication Date:</strong> {new Date(game.publication_date).toLocaleDateString()}
+        </p>
       )}
       
       {game.genreLabel && (
@@ -89,11 +100,6 @@ const GameComponent = ({ game }) => {
           <strong>Platform:</strong> <span onClick={() => navigateToProperty('platform', game.platformLabel)} style={{ cursor: 'pointer', textDecoration: 'underline' }}>{game.platformLabel}</span>
         </p>
       )}
-      {game.publication_date && (
-        <p>
-          <strong>Publication Date:</strong> {new Date(game.publication_date).toLocaleDateString()}
-        </p>
-      )}
       {game.countryLabel && (
         <p>
           <strong>Country:</strong> <span onClick={() => navigateToProperty('country', game.countryLabel)} style={{ cursor: 'pointer', textDecoration: 'underline' }}>{game.countryLabel}</span>
@@ -107,12 +113,6 @@ const GameComponent = ({ game }) => {
       {game.screenwriterLabel && (
         <p>
           <strong>Screenwriter:</strong> <span onClick={() => navigateToProperty('screenwriter', game.screenwriterLabel)} style={{ cursor: 'pointer', textDecoration: 'underline' }}>{game.screenwriterLabel}</span>
-        </p>
-      )}
-      
-      {game.gameDescription && (
-        <p>
-          <strong>Description:</strong> {game.gameDescription}
         </p>
       )}
       
@@ -172,7 +172,7 @@ const CharactersComponent = ({ game }) => {
             <h3>{character.characterLabel || "Unknown Character"}</h3>
             <p>{character.characterDescription || "No description available"}</p>
             {character.image ? (
-              <img src={character.image} alt={character.characterLabel} />
+              <img src={character.image} alt={character.characterLabel} style={{"width":"100%"}}/>
             ) : (
               <div className="placeholder-image">No Image Available</div>
             )}
@@ -257,11 +257,16 @@ const ReviewsComponent = ({ game }) => {
 
   return (
     <>
-      <div className={styles.Form}>
-        <h2>Create Review</h2>
-        <div>
-          <label htmlFor="rating">Rating:</label>
+      <div className={styles.Form} style={{"display":"flex", "flex-direction":"column", "align-items":"center"}}>
+        <h2 style={{"font-size":"28px","color":"var(--highlight-color)"}}>Create Review</h2>
+        <div style={{"width":"10%"}}>
+          <label style={{"font-size":"20px"}} htmlFor="rating">Rating:</label>
           <input
+            style={{
+              "width":"100%",
+              "text-align":"center"
+
+            }}
             type="number"
             id="rating"
             value={rating}
@@ -275,9 +280,9 @@ const ReviewsComponent = ({ game }) => {
             }}
           />
         </div>
-        <div>
-          <label htmlFor="text">Review:</label>
-          <textarea id="text" value={text} onChange={(e) => setText(e.target.value)} />
+        <div style={{"width":"70%","display":"flex", "flex-direction":"column", "align-items":"center"}}>
+          <label style={{"font-size":"20px"}}htmlFor="text" >Review:</label>
+          <textarea style={{"width":"70%","height":"10vh", "font":"arial", "font-size":"16px", "background-color":"#212121","color":"white"}} id="text" value={text} onChange={(e) => setText(e.target.value)} />
         </div>
         <button onClick={createReview}>Submit Review</button>
         {error && <p className={styles.error}>{error}</p>}

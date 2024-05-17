@@ -38,12 +38,10 @@ export default function UserPageComponents(){
         try {
             let response = await request("details")
             const data = await response.json();
-            console.log("a",data);
-            setUserPicture("");
+            setUserPicture("https://is2-ssl.mzstatic.com/image/thumb/Purple30/v4/f8/95/98/f89598d0-f118-c29b-0a78-eb985ad164a0/source/512x512bb.jpg");
             setUserDetails(data);
         }
         catch (error) {
-            console.error('Error:', error);
             setUserPicture("");
             setUserDetails({gamesLiked: 0, reviewCount: 0, followers: 0, following: 0});
         }
@@ -57,13 +55,12 @@ export default function UserPageComponents(){
             setFavoriteGames(data.favoriteGames);
         }
         catch (error) {
-            console.error('Error:', error);
             const prop = ["turn-based strategy video game", "PlayStation 5", "Larian Studios", "Sony Interactive Entertainment", "Lene Raine"]
             const names = ["genre", "platform", "developer", "publisher", "composer"]
             const zipped = names.map((x, i) => [x, prop[i]]);
 
             setFavoriteProperties(zipped);
-            setFavoriteGames(["Metal Gear Solid V: The Phantom Pain", "Celeste", "Eastward"]);
+            setFavoriteGames(["Undertale", "Celeste", "Eastward"]);
 
         }
     }
@@ -71,14 +68,15 @@ export default function UserPageComponents(){
         try{
             let response = await request('popular-reviews')
             let data = await response.json();
-            setRecentlyReviewedGames(data.reviews);
-            console.log(data);
-            response = await request('recently-played')
-            data = await response.json();
-            //setRecentlyPlayedGames(data.recentlyPlayedGames);
-            setRecentlyPlayedGames(["g", "h", "i"]);
             setPopularReviews(data.reviews);
-            console.log(data);
+            console.log("a", data);
+            response = await request('recent-reviews')
+            data = await response.json();
+            console.log("B",data);
+            //setRecentlyPlayedGames(data.recentlyPlayedGames);
+            setRecentlyPlayedGames(["Undertale"]);
+            setRecentlyReviewedGames(data.reviews);
+            
         }
         catch (error) {
             console.error('Error:', error);
@@ -119,8 +117,8 @@ export default function UserPageComponents(){
         try{
             const response = await request('all-reviews')
             const data = await response.json();
-            console.log(data);
-            setUserReviews(data.userReviews);
+            console.log("c",data);
+            setUserReviews(data.reviews);
         }
         catch (error) {
             console.error('Error:', error);
@@ -270,7 +268,7 @@ export default function UserPageComponents(){
         setLoading(false);
     }, [user, id, following]);
 
-    if (loading || userDetails === undefined || userFollowing === undefined ||recentlyReviewedGames === undefined || popularReviews === undefined) {
+    if (loading || userDetails === undefined || userFollowing === undefined ||recentlyReviewedGames === undefined || popularReviews === undefined || userReviews === undefined) {
         return <div>Loading...</div>;
     }
 

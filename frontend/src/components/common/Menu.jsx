@@ -111,7 +111,7 @@ const Menu = () => {
 
   const handleSuggestionClick = (selectedItem) => {
     if (searchProperty === '') {
-      navigate(`/game/${selectedItem['game-slug']}`);
+      navigate(`/game/${selectedItem['game_slug']}`);
     }
     else {
       navigate('/property', { state: { property_type:searchProperty , property_name: selectedItem.gameLabel} });

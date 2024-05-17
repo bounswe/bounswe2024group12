@@ -27,7 +27,7 @@ export default function GamesCard({data}){
                         <h1>{game.gameLabel}</h1>
                         <h3>Rating: {game.rating} / 5</h3>
                         </div>
-                        <h4>{game.genre!=="" ? game.genre : "genre unknown"}</h4>
+                        <h4>{game.genreLabel!="" ? game.genreLabel : "genre unknown"}</h4>
                         <p>{game.gameDescription}</p>            
                         </div>
                     </div>
