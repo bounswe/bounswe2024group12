@@ -8,6 +8,7 @@
 }
 
 .siteName {
+  cursor: pointer;
   font-size: 24px;
   padding-left: 20px;
   font-weight: bold;

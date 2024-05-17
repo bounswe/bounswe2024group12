@@ -7,15 +7,16 @@ import { endpoint } from '../common/EndpointContext';
 const MainPageReviewLists = ({title="Featured Reviews", id, type}) => {
     const [list, setList] =useState([])
     const [error, setError] =useState("")
+    console.log("type")
     async function fetchReviews() {
       try {
-          const response = await fetch(endpoint + type==="recent" ? "recentReviews" : "popularReviews", {
+          const response = await fetch(endpoint + (type==="recent" ? "recent-reviews" : "popular-reviews") + (id ? '-game' : ""), {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
             credentials: 'include',
-            body: JSON.stringify(id ? { "game_id":id }: {}),
+            body:JSON.stringify({game: id })
           });
     
         if (!response.ok) {

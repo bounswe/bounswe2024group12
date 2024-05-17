@@ -12,8 +12,8 @@ export default function GamePageComponents({game}){
   return (
     <>
       <Menu/>
-      <GameInfo/>
-      <TabComponent/>
+      <GameInfo game={game}/>
+      <TabComponent game={game}/>
     </>
   );
 };

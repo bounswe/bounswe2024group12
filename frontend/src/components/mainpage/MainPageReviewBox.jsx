@@ -16,7 +16,7 @@ const MainPageReviewBox = ({ review = tempReview }) => {
 
   async function fetchGame(id) {
     try {
-      const response = await fetch(endpoint + 'game-info/' + id, {
+      const response = await fetch(endpoint + 'game-info/' + id +"/", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -38,14 +38,14 @@ const MainPageReviewBox = ({ review = tempReview }) => {
   }
 
   useEffect(() => {
-    if (review && review.game_id) {
-      fetchGame(review.game_id)
+    if (review && review.game_slug) {
+      fetchGame(review.game_slug)
     }
   }, [review]);
 
   const likeReview = async () => {
     try {
-      const response = await fetch(endpoint + 'likeReview', {
+      const response = await fetch(endpoint + 'like-review', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -69,7 +69,7 @@ const MainPageReviewBox = ({ review = tempReview }) => {
 
   const unlikeReview = async () => {
     try {
-      const response = await fetch(endpoint + 'unlikeReview', {
+      const response = await fetch(endpoint + 'unlike-review', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -93,7 +93,7 @@ const MainPageReviewBox = ({ review = tempReview }) => {
 
   const editReview = async () => {
     try {
-      const response = await fetch(endpoint + 'editReview', {
+      const response = await fetch(endpoint + 'edit-review', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -117,7 +117,7 @@ const MainPageReviewBox = ({ review = tempReview }) => {
 
   const deleteReview = async () => {
     try {
-      const response = await fetch(endpoint + 'deleteReview', {
+      const response = await fetch(endpoint + 'delete-review', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -147,10 +147,18 @@ const MainPageReviewBox = ({ review = tempReview }) => {
           <img src={game.image || tempImage} alt={game.name || ""} className={styles.gameImage} />
         </div>
         <div className={styles.reviewDetails}>
-          <h2 className={styles.username}>{review.user_id}</h2>
+          <h2 className={styles.username}>User id: {review.user_id}</h2>
           <div className={styles.likeRatingContainer}>
-            <p className={styles.likeCount}>{review.rating + "/5 rating"}</p>
-            {(user && user.username) && (
+            <div>
+            <p className={styles.likeCount}>{review.rating}/5 rating</p>
+
+            </div>
+            <div>
+            <p className={styles.likeCount}>{likes} likes</p>
+
+            </div>
+          </div>
+          {user && user.username && (
               <>
                 <button onClick={liked ? unlikeReview : likeReview}>{liked ? 'Unlike' : 'Like'}</button>
                 {user.username === review.user_id && (
@@ -161,8 +169,6 @@ const MainPageReviewBox = ({ review = tempReview }) => {
                 )}
               </>
             )}
-            <p className={styles.likeCount}>{likes + " likes"}</p>
-          </div>
           {isEditing ? (
             <div>
               <textarea value={editedText} onChange={(e) => setEditedText(e.target.value)} />

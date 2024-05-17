@@ -8,8 +8,10 @@ export default function GamePage() {
     const [error, setError] = useState("")
     const [game, setGame] = useState()
     async function fetchGame() {
+      if(id){
         try {
-            const response = await fetch(endpoint + 'game-info', {
+          
+            const response = await fetch(endpoint + 'game-info/' + id+"/", {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -29,8 +31,10 @@ export default function GamePage() {
         catch (error) {
           console.error('Error:', error);
           setError("Could not fetch the game");
-        }
+        }}
       }
+      useEffect(()=>{fetchGame()},[id])
+
     return (
         <>
         {error !=="" ? <h1>{error}</h1> :<GamePageComponents game={game}/> }

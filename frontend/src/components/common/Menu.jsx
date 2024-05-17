@@ -6,6 +6,7 @@ import AnimatedLoader from './AnimatedLoader/AnimatedLoader';
 import { endpoint } from './EndpointContext';
 import debounce from 'lodash/debounce';
 
+
 // import search icon from react-icons
 import { FaSearch } from 'react-icons/fa';
 
@@ -125,7 +126,7 @@ const Menu = () => {
 
   return (
     <div className={styles.menu}>
-      <div className={styles.siteName}> PlayLog</div>
+      <div onClick={()=>{ navigate(`/main`);}} className={styles.siteName}> PlayLog</div>
       <div className={styles.menuItems}>
         
 

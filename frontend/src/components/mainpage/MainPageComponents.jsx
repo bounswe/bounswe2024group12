@@ -10,7 +10,6 @@ import styles from './MainPageComponents.module.css';
 
 export default function MainPageComponents(){
   const [loggedIn, setLoggedIn] = useState(true); //TODO check logged in
-
   return (
     <>
       <Menu/>

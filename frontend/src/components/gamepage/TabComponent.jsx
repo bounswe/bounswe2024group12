@@ -5,7 +5,7 @@ import styles2 from '../mainpage/MainPageComponents.module.css';
 import { useAuth } from '../common/UserContext';
 import { endpoint } from '../common/EndpointContext';
 
-const TabComponent = () => {
+const TabComponent = ({game}) => {
   const [activeTab, setActiveTab] = useState('Game');
 
   const handleTabClick = (tabName) => {
@@ -27,12 +27,7 @@ const TabComponent = () => {
         >
           Characters
         </button>
-        <button
-          className={`${styles.tabButton} ${activeTab === 'Credits' && styles.active}`}
-          onClick={() => handleTabClick('Credits')}
-        >
-          Credits
-        </button>
+
         <button
           className={`${styles.tabButton} ${activeTab === 'Reviews' && styles.active}`}
           onClick={() => handleTabClick('Reviews')}
@@ -41,41 +36,161 @@ const TabComponent = () => {
         </button>
       </div>
       <div className={styles.tabContent}>
-        {activeTab === 'Game' && <GameComponent />}
-        {activeTab === 'Characters' && <CharactersComponent />}
-        {activeTab === 'Credits' && <CreditsComponent />}
-        {activeTab === 'Reviews' && <ReviewsComponent />}
+        {game && activeTab === 'Game' && <GameComponent game={game} />}
+        {game && activeTab === 'Characters' && <CharactersComponent game={game} />}
+        {game && activeTab === 'Reviews' && <ReviewsComponent game={game}/>}
       </div>
     </div>
   );
 };
 
-const GameComponent = () => {
-  return <div>Game Component</div>;
+const GameComponent = ({ game }) => {
+  return (
+    <div style={{ border: '1px solid #ccc', borderRadius: '8px', padding: '16px', maxWidth: '400px', margin: '16px auto', fontFamily: 'Arial, sans-serif' }}>
+      <h2>{game.gameLabel || 'Game Title Unavailable'}</h2>
+      
+      {game.logo && (
+        <img src={game.logo} alt={`${game.gameLabel} logo`} style={{ width: '100%', borderRadius: '8px', marginBottom: '16px' }} />
+      )}
+      
+      {game.image ? (
+        <img src={game.image} alt={`${game.gameLabel} screenshot`} style={{ width: '100%', borderRadius: '8px' }} />
+      ) : (
+        <div style={{ width: '100%', paddingTop: '56.25%', backgroundColor: '#ddd', borderRadius: '8px', textAlign: 'center', lineHeight: '200%', fontSize: '1.2em', color: '#999' }}>
+          No Image Available
+        </div>
+      )}
+      
+      <p><strong>Genre:</strong> {game.genreLabel || 'Genre Unavailable'}</p>
+      <p><strong>Publisher:</strong> {game.publisherLabel || 'Publisher Unavailable'}</p>
+      
+      {game.platformLabel && <p><strong>Platform:</strong> {game.platformLabel}</p>}
+      {game.publication_date && <p><strong>Publication Date:</strong> {new Date(game.publication_date).toLocaleDateString()}</p>}
+      {game.countryLabel && <p><strong>Country:</strong> {game.countryLabel}</p>}
+      {game.composerLabel && <p><strong>Composer:</strong> {game.composerLabel}</p>}
+      {game.screenwriterLabel && <p><strong>Screenwriter:</strong> {game.screenwriterLabel}</p>}
+      
+      {game.gameDescription && <p><strong>Description:</strong> {game.gameDescription}</p>}
+      
+      {/* <a href={`http://example.com/games/${game.game_slug}`} style={{ display: 'inline-block', marginTop: '8px', padding: '8px 16px', backgroundColor: '#007BFF', color: '#FFF', textDecoration: 'none', borderRadius: '4px' }}>
+        More about this game
+      </a> */}
+    </div>
+  );
 };
 
-const CharactersComponent = () => {
-  return <div>Characters Component</div>;
+
+
+const CharactersComponent = ({ game }) => {
+  const [characters, setCharacters] = useState([]);
+  const [error, setError] = useState("");
+  const { game_slug } = game;
+
+  useEffect(() => {
+    async function fetchGame() {
+      if (game_slug) {
+        try {
+          const response = await fetch(endpoint + 'game-characters/' + game_slug + "/", {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+          });
+
+          if (!response.ok) {
+            setError("Could not fetch the game");
+            return;
+          }
+
+          const data = await response.json();
+          setError("");
+          setCharacters(data.characters);
+        } catch (error) {
+          console.error('Error:', error);
+          setError("Could not fetch the game");
+        }
+      }
+    }
+    fetchGame();
+  }, [game, game_slug]);
+  return (
+    <div>
+      {error && <p>{error}</p>}
+      {!error && (!characters || characters.length === 0) && <p>No characters found</p>}
+      <div className="characters-list">
+        { characters && characters.map((character, index) => (
+          <div key={index} className="character-card">
+            <h3>{character.characterLabel || "Unknown Character"}</h3>
+            <p>{character.characterDescription || "No description available"}</p>
+            {character.image ? (
+              <img src={character.image} alt={character.characterLabel} />
+            ) : (
+              <div className="placeholder-image">No Image Available</div>
+            )}
+          </div>
+        ))}
+      </div>
+      <style jsx>{`
+        .characters-list {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 16px;
+        }
+        .character-card {
+          border: 1px solid #ccc;
+          border-radius: 8px;
+          padding: 16px;
+          width: 200px;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .character-card h3 {
+          margin: 0 0 8px;
+        }
+        .character-card p {
+          margin: 0 0 8px;
+        }
+        .character-card img {
+          max-width: 100%;
+          height: auto;
+          border-radius: 4px;
+        }
+        .placeholder-image {
+          width: 100%;
+          height: 150px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background-color: #f0f0f0;
+          border-radius: 4px;
+          color: #aaa;
+          font-size: 14px;
+        }
+      `}</style>
+    </div>
+  );
 };
 
 const CreditsComponent = () => {
   return <div>Credits Component</div>;
 };
 
-const ReviewsComponent = ({ id }) => {
+const ReviewsComponent = ({ game }) => {
+  const { game_slug } = game;
   const [rating, setRating] = useState(0);
   const [text, setText] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false); // New state for success message
   const { user } = useAuth();
 
   const createReview = async () => {
     try {
-      const response = await fetch(endpoint + 'createReview', {
+      const response = await fetch(endpoint + 'create-review', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ game_id: id, rating, text, user_id: user.username }),
+        body: JSON.stringify({ rating, text, user: user.username, game: game_slug }),
         credentials: 'include'
       });
 
@@ -83,6 +198,8 @@ const ReviewsComponent = ({ id }) => {
         setError("Failed to create the review");
         return;
       }
+
+      setSuccess(true); // Set success state to true
       console.log("Review created successfully");
     } catch (error) {
       console.error('Error:', error);
@@ -92,12 +209,23 @@ const ReviewsComponent = ({ id }) => {
 
   return (
     <>
-      <div>Reviews</div>
       <div className={styles.Form}>
         <h2>Create Review</h2>
         <div>
           <label htmlFor="rating">Rating:</label>
-          <input type="number" id="rating" value={rating} onChange={(e) => setRating(parseInt(e.target.value))} />
+          <input
+            type="number"
+            id="rating"
+            value={rating}
+            min="1"
+            max="5"
+            onChange={(e) => {
+              const value = parseInt(e.target.value);
+              if (value >= 1 && value <= 5) {
+                setRating(value);
+              }
+            }}
+          />
         </div>
         <div>
           <label htmlFor="text">Review:</label>
@@ -105,12 +233,12 @@ const ReviewsComponent = ({ id }) => {
         </div>
         <button onClick={createReview}>Submit Review</button>
         {error && <p className={styles.error}>{error}</p>}
+        {success && <p className={styles.success}>Review submitted successfully!</p>} {/* Render success message */}
       </div>
       <div className={styles2.reviewList}>
-        <MainPageReviewLists className={styles2.reviewItem} title="Recent Reviews" id={id} type={"recent"} />
-        <MainPageReviewLists className={styles2.reviewItem} title="Popular Reviews" id={id} type={"popular"} />
+      <MainPageReviewLists className={styles2.reviewItem} title="Recent Reviews" id={game_slug} type={"recent"} />
+        <MainPageReviewLists className={styles2.reviewItem} title="Popular Reviews" id={game_slug} type={"popular"} />
       </div>
-
     </>
   );
 };

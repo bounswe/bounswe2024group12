@@ -69,9 +69,9 @@ const MainPageGameLists = ({title="Featured Games", type=""}) => {
         <h2 className={styles.title}>{title}</h2>
         <div className={styles.container}>
             {
-                list.map((game)=>{
+               list && list.length && list.map((game)=>{
                     return(
-                    <div className={styles.imageContainer} onClick={()=>{handleClick(game["game-slug"])}} >
+                    <div className={styles.imageContainer} onClick={()=>{handleClick(game["game_slug"])}} >
                     <img src={game.image} alt={game.gameLabel} className={styles.image} /> </div>);
                 })
             }

@@ -37,9 +37,8 @@ const GameOfTheDay = () => {
   }, []);
 
   function handleClick() {
-    navigator(`/game/${gameOfTheDay["game-slug"]}`);
+    navigator(`/game/${gameOfTheDay["game_slug"]}`);
   }
-
 
   return (
     <>
