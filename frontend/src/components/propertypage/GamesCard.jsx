@@ -7,10 +7,9 @@ export default function GamesCard({data}){
     const [gamesData, setGamesData] = useState([...data]);
     const navigate = useNavigate();
 
-    function handleClick(game){
-        console.log(game.name)
-        const name = game.name.replace(/\s/g, '_');
-        navigate(`/game/${name}`);
+    function handleClick(game_slug){
+        console.log(game_slug)
+        navigate(`/game/${game_slug}`);
     }
     
     useEffect(() => {
@@ -21,15 +20,15 @@ export default function GamesCard({data}){
         <div className={style.GamesBlock}>
             {gamesData.map((game) => {
                 return (
-                    <div className={style.GameBlock} onClick={()=>{handleClick(game);}}>
+                    <div className={style.GameBlock} onClick={()=>{handleClick(game.game_slug);}}>
                         <img width="200px" src={(game.image!=="" && game.image!=null) ? game.image : gamePlaceholder} alt={game.name} />
                         <div className={style.GameInfoBlock}>
                         <div className={style.GameTitleBlock}>
-                        <h1>{game.name}</h1>
+                        <h1>{game.gameLabel}</h1>
                         <h3>Rating: {game.rating} / 5</h3>
                         </div>
                         <h4>{game.genre!=="" ? game.genre : "genre unknown"}</h4>
-                        <p>{game.description}</p>            
+                        <p>{game.gameDescription}</p>            
                         </div>
                     </div>
                 );

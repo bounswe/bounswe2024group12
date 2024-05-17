@@ -7,7 +7,7 @@ import PropertyCard from './PropertyCard';
 import GamesCard  from './GamesCard';
 import NotExistCard from './NotExistCard';
 import { endpoint } from '../common/EndpointContext';
-
+import Menu from '../common/Menu';
 
 
 
@@ -72,13 +72,16 @@ export default function PropertyPageCard() {
 
 
     return (
+        <div><Menu/>
         <div className={style.Container}>
+            
             <Card>
                 {isLoading ? <div>Loading...</div> :
                 notExist ? <NotExistCard/> :
                 <div><PropertyCard data ={propertyData} />
                 <GamesCard data = {gamesData}/></div>}
             </Card>
+        </div>
         </div>
     );
 }
