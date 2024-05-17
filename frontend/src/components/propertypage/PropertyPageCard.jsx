@@ -7,7 +7,7 @@ import PropertyCard from './PropertyCard';
 import GamesCard  from './GamesCard';
 import NotExistCard from './NotExistCard';
 import { endpoint } from '../common/EndpointContext';
-
+import Menu from '../common/Menu';
 
 
 
@@ -53,7 +53,13 @@ export default function PropertyPageCard() {
         const data = await response.json();
         setNotExist(false);
         console.log(data);
-        setPropertyData(data.property);
+        const propertyData = {
+            property_name: data.property_name,
+            property_type: data.property_type,
+            property_description: data.property_description,
+            property_image: data.property_image,
+        }
+        setPropertyData(propertyData);
         setGamesData(data.games);
         setIsLoading(false);
         return ;
@@ -61,18 +67,21 @@ export default function PropertyPageCard() {
 
     useEffect(() => {
         retrieveGames();
-    }, []);
+    }, [location.state]);
     
 
 
     return (
+        <div><Menu/>
         <div className={style.Container}>
+            
             <Card>
                 {isLoading ? <div>Loading...</div> :
                 notExist ? <NotExistCard/> :
                 <div><PropertyCard data ={propertyData} />
                 <GamesCard data = {gamesData}/></div>}
             </Card>
+        </div>
         </div>
     );
 }

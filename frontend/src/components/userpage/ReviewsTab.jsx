@@ -11,8 +11,8 @@ export default function ReviewsTab({userReviews}) {
                     <ul>
                         {userReviews.map((review) => (
                             <li className={styles.clickable} onClick={
-                                () => navigate('/review/' + review)
-                            }>{review}</li>
+                                () => navigate('/review/' + review[1])
+                            }>{review[1]}<br/>{review[3]}<br/>{review[4]}</li>
                         ))}
                     </ul>
                 </div>

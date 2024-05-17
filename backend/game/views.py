@@ -17,6 +17,7 @@ SEARCH_BY_PROPERTIES = {
     'composer': 'P86',
     'screenwriter': 'P58',
     'country': 'P495',
+    'director': 'P57',
 }
 
 def generate_slug(name):
@@ -341,8 +342,26 @@ LIMIT 20""" % (property_name, property_id)
         game_obj = Game.objects.filter(game_name=game['gameLabel']).first()
         game['rating'] = round(random.uniform(3.9, 5), 2) if game_obj else None
     
-    property_image = None
-    property_description = None
+    sparql_query = """
+        SELECT DISTINCT ?entity ?entityLabel ?image ?description
+        WHERE {
+        ?entity rdfs:label "%s"@en .
+        OPTIONAL { ?entity wdt:P18 ?image . }  # P18 is the property for image
+        OPTIONAL { ?entity schema:description ?description . 
+                FILTER(LANG(?description) = "en").}
+        SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+        }
+        LIMIT 1""" % property_name
+    headers = {'User-Agent': 'Mozilla/5.0 (Django Application)', 'Accept': 'application/json'}
+    response = requests.get(SPARQL_ENDPOINT, headers=headers, params={'query': sparql_query, 'format': 'json'})
+    results = response.json()
+    if results['results']['bindings']:
+        property_image = results['results']['bindings'][0]['image']['value'] if 'image' in results['results']['bindings'][0] else None
+        property_description = results['results']['bindings'][0]['description']['value'] if 'description' in results['results']['bindings'][0] else None
+    else:
+        property_image = None
+        property_description = None
+        
     context = {
         'property_name': property_name,
         'property_type': property_type,

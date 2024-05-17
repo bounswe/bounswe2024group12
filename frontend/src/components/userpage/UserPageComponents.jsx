@@ -58,23 +58,27 @@ export default function UserPageComponents(){
         }
         catch (error) {
             console.error('Error:', error);
-            const prop = ["a", "b", "c", "d", "e"]
+            const prop = ["turn-based strategy video game", "PlayStation 5", "Larian Studios", "Sony Interactive Entertainment", "Lene Raine"]
             const names = ["genre", "platform", "developer", "publisher", "composer"]
             const zipped = names.map((x, i) => [x, prop[i]]);
 
             setFavoriteProperties(zipped);
-            setFavoriteGames(["d", "e", "f"]);
+            setFavoriteGames(["Metal Gear Solid V: The Phantom Pain", "Celeste", "Eastward"]);
 
         }
     }
     async function fetchRecentPopular(){
         try{
-            const response = await request('recent-popular')
-            const data = await response.json();
+            let response = await request('popular-reviews')
+            let data = await response.json();
+            setRecentlyReviewedGames(data.reviews);
             console.log(data);
-            setRecentlyPlayedGames(data.recentlyPlayedGames);
-            setRecentlyReviewedGames(data.recentlyReviewedGames);
-            setPopularReviews(data.popularReviews);
+            response = await request('recently-played')
+            data = await response.json();
+            //setRecentlyPlayedGames(data.recentlyPlayedGames);
+            setRecentlyPlayedGames(["g", "h", "i"]);
+            setPopularReviews(data.reviews);
+            console.log(data);
         }
         catch (error) {
             console.error('Error:', error);
@@ -113,7 +117,7 @@ export default function UserPageComponents(){
     }
     async function fetchUserReviews(){
         try{
-            const response = await request('reviews')
+            const response = await request('all-reviews')
             const data = await response.json();
             console.log(data);
             setUserReviews(data.userReviews);
@@ -266,7 +270,7 @@ export default function UserPageComponents(){
         setLoading(false);
     }, [user, id, following]);
 
-    if (loading || userDetails === undefined || userFollowing === undefined ) {
+    if (loading || userDetails === undefined || userFollowing === undefined ||recentlyReviewedGames === undefined || popularReviews === undefined) {
         return <div>Loading...</div>;
     }
 
