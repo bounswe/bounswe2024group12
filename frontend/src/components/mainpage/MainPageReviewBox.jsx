@@ -13,7 +13,7 @@ const MainPageReviewBox = ({ review = tempReview }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedText, setEditedText] = useState(review.text);
   const { user } = useAuth();
-
+  const [deleted, setDeleted] =useState(false)
   async function fetchGame(id) {
     try {
       const response = await fetch(endpoint + 'game-info/' + id +"/", {
@@ -106,8 +106,9 @@ const MainPageReviewBox = ({ review = tempReview }) => {
         setError("Failed to edit the review");
         return;
       }
+      setEditedText(editedText); // Update edited text with the new text
+      setIsEditing(false);
 
-      // todo  update other UI elements to reflect the changes
       console.log("Review edited successfully");
     } catch (error) {
       console.error('Error:', error);
@@ -131,7 +132,7 @@ const MainPageReviewBox = ({ review = tempReview }) => {
         return;
       }
 
-      // todo to navigate away or update UI elements to reflect the changes
+      setDeleted(true)
       console.log("Review deleted successfully");
     } catch (error) {
       console.error('Error:', error);
@@ -139,7 +140,7 @@ const MainPageReviewBox = ({ review = tempReview }) => {
     }
   };
 
-  return (
+  return (<>{deleted ? <></>: (
     <div className={styles.card}>
       <h3 className={styles.title}>{game.name || ""}</h3>
       <div className={styles.content}>
@@ -161,7 +162,7 @@ const MainPageReviewBox = ({ review = tempReview }) => {
           {user && user.username && (
               <div >
                 <button onClick={liked ? unlikeReview : likeReview}>{liked ? 'Unlike' : 'Like'}</button>
-                {user.username === review.user_id && (
+                {user.username === review.user && (
                   <>
                     <button onClick={() => setIsEditing(!isEditing)}>Edit</button>
                     <button onClick={deleteReview}>Delete</button>
@@ -175,11 +176,11 @@ const MainPageReviewBox = ({ review = tempReview }) => {
               <button onClick={editReview}>Save</button>
             </div>
           ) : (
-            <p className={styles.review}>{review.text}</p>
+            <p className={styles.review}>{editedText}</p>
           )}
         </div>
       </div>
-    </div>
+    </div>)}</>
   );
 };
 

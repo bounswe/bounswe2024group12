@@ -73,23 +73,58 @@ const GameComponent = ({ game }) => {
         </div>
       )}
       
-      {game.genreLabel && (<p><strong>Genre:</strong> {game.genreLabel && <a href="#" onClick={() => navigateToProperty('genre', game.genreLabel)}>{game.genreLabel}</a>}</p>)}
-      {game.publisherLabel &&<p><strong>Publisher:</strong> {game.publisherLabel && <a href="#" onClick={() => navigateToProperty('publisher', game.publisherLabel)}>{game.publisherLabel}</a>}</p>}
+      {game.genreLabel && (
+        <p>
+          <strong>Genre:</strong> {game.genreLabel && <span onClick={() => navigateToProperty('genre', game.genreLabel)} style={{ cursor: 'pointer', textDecoration: 'underline' }}>{game.genreLabel}</span>}
+        </p>
+      )}
+      {game.publisherLabel && (
+        <p>
+          <strong>Publisher:</strong> {game.publisherLabel && <span onClick={() => navigateToProperty('publisher', game.publisherLabel)} style={{ cursor: 'pointer', textDecoration: 'underline' }}>{game.publisherLabel}</span>}
+        </p>
+      )}
       
-      {game.platformLabel && <p><strong>Platform:</strong> <a href="#" onClick={() => navigateToProperty('platform', game.platformLabel)}>{game.platformLabel}</a></p>}
-      {game.publication_date && <p><strong>Publication Date:</strong> {new Date(game.publication_date).toLocaleDateString()}</p>}
-      {game.countryLabel && <p><strong>Country:</strong> <a href="#" onClick={() => navigateToProperty('country', game.countryLabel)}>{game.countryLabel}</a></p>}
-      {game.composerLabel && <p><strong>Composer:</strong> <a href="#" onClick={() => navigateToProperty('composer', game.composerLabel)}>{game.composerLabel}</a></p>}
-      {game.screenwriterLabel && <p><strong>Screenwriter:</strong> <a href="#" onClick={() => navigateToProperty('screenwriter', game.screenwriterLabel)}>{game.screenwriterLabel}</a></p>}
+      {game.platformLabel && (
+        <p>
+          <strong>Platform:</strong> <span onClick={() => navigateToProperty('platform', game.platformLabel)} style={{ cursor: 'pointer', textDecoration: 'underline' }}>{game.platformLabel}</span>
+        </p>
+      )}
+      {game.publication_date && (
+        <p>
+          <strong>Publication Date:</strong> {new Date(game.publication_date).toLocaleDateString()}
+        </p>
+      )}
+      {game.countryLabel && (
+        <p>
+          <strong>Country:</strong> <span onClick={() => navigateToProperty('country', game.countryLabel)} style={{ cursor: 'pointer', textDecoration: 'underline' }}>{game.countryLabel}</span>
+        </p>
+      )}
+      {game.composerLabel && (
+        <p>
+          <strong>Composer:</strong> <span onClick={() => navigateToProperty('composer', game.composerLabel)} style={{ cursor: 'pointer', textDecoration: 'underline' }}>{game.composerLabel}</span>
+        </p>
+      )}
+      {game.screenwriterLabel && (
+        <p>
+          <strong>Screenwriter:</strong> <span onClick={() => navigateToProperty('screenwriter', game.screenwriterLabel)} style={{ cursor: 'pointer', textDecoration: 'underline' }}>{game.screenwriterLabel}</span>
+        </p>
+      )}
       
-      {game.gameDescription && <p><strong>Description:</strong> {game.gameDescription}</p>}
+      {game.gameDescription && (
+        <p>
+          <strong>Description:</strong> {game.gameDescription}
+        </p>
+      )}
       
-      {/* <a href={`http://example.com/games/${game.game_slug}`} style={{ display: 'inline-block', marginTop: '8px', padding: '8px 16px', backgroundColor: '#007BFF', color: '#FFF', textDecoration: 'none', borderRadius: '4px' }}>
+      {/* 
+      <a href={`http://example.com/games/${game.game_slug}`} style={{ display: 'inline-block', marginTop: '8px', padding: '8px 16px', backgroundColor: '#007BFF', color: '#FFF', textDecoration: 'none', borderRadius: '4px' }}>
         More about this game
-      </a> */}
+      </a> 
+      */}
     </div>
   );
 };
+
 
 
 
@@ -195,7 +230,7 @@ const ReviewsComponent = ({ game }) => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false); // New state for success message
   const { user } = useAuth();
-
+  const [refetch, setRefetch] =useState(false)
   const createReview = async () => {
     try {
       const response = await fetch(endpoint + 'create-review', {
@@ -249,7 +284,7 @@ const ReviewsComponent = ({ game }) => {
         {success && <p className={styles.success}>Review submitted successfully!</p>} {/* Render success message */}
       </div>
       <div className={styles2.reviewList}>
-      <MainPageReviewLists className={styles2.reviewItem} title="Recent Reviews" id={game_slug} type={"recent"} />
+      <MainPageReviewLists className={styles2.reviewItem} title="Recent Reviews" id={game_slug} type={"recent"} refetch={refetch} setRefetch={setRefetch} />
         <MainPageReviewLists className={styles2.reviewItem} title="Popular Reviews" id={game_slug} type={"popular"} />
       </div>
     </>

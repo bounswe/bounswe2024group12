@@ -4,9 +4,10 @@ import tempImage from "../temporaryassets/gamePicture.jpeg";
 import MainPageReviewBox from './MainPageReviewBox';
 import { endpoint } from '../common/EndpointContext';
 
-const MainPageReviewLists = ({title="Featured Reviews", id, type}) => {
+const MainPageReviewLists = ({title="Featured Reviews", id, type, refetch, setRefetch}) => {
     const [list, setList] =useState([])
     const [error, setError] =useState("")
+
     console.log("type")
     async function fetchReviews() {
       try {
@@ -34,10 +35,12 @@ const MainPageReviewLists = ({title="Featured Reviews", id, type}) => {
     }
     
     useEffect(()=>{
+      if(id){
+        fetchReviews()
 
-      fetchReviews()
+      }
     
-  },[id])
+  },[id, refetch])
     return (
       <div>
         <h2 className={styles.title}>{title+" "}</h2>
@@ -45,7 +48,7 @@ const MainPageReviewLists = ({title="Featured Reviews", id, type}) => {
             {
                 list.map((item)=>{
                     return(
-                    <MainPageReviewBox review={item}/>);
+                    <MainPageReviewBox review={item} />);
                 })
             }
         </div>
