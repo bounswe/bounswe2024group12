@@ -285,11 +285,11 @@ def recent_reviews_game(request):
         data = json.loads(request.body)
         game = data.get('game')
         new_reviews = []
+        reviews = Review.objects.filter(game_slug=game, creationDate__gte=timezone.now() - timezone.timedelta(days=7))
         for review in reviews.values():
             user = RegisteredUser.objects.get(user_id=review['user_id'])
             review['user'] = user.username
             new_reviews.append(review)
-        reviews = Review.objects.filter(game_slug=game, creationDate__gte=timezone.now() - timezone.timedelta(days=7))
         
         return JsonResponse({'reviews': new_reviews}, status=200)
     else:
