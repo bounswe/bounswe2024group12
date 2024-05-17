@@ -55,10 +55,6 @@ export default GameScreen = () => {
         try {
             const url = `${process.env.EXPO_PUBLIC_URL}/popular-popularReviews-game`;
             console.log("Fetching popularReviews from:", url);
-    const fetchReviews = async () => {
-        try {
-            const url = `${process.env.EXPO_PUBLIC_URL}/popular-reviews-game`;
-            console.log("Fetching reviews from:", url);
             const response = await fetch(url, {
                 method: 'POST',
                 body: JSON.stringify({ game: gameId }),
