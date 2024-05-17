@@ -4,6 +4,7 @@ import json
 import requests
 from django.utils.text import slugify
 from .models import Game
+import random
 
 SPARQL_ENDPOINT = "https://query.wikidata.org/sparql"
 
@@ -13,7 +14,9 @@ SEARCH_BY_PROPERTIES = {
     'developer': 'P178',
     'publisher': 'P123',
     'platform': 'P400',
-    'composer': 'P86'
+    'composer': 'P86',
+    'screenwriter': 'P58',
+    'country': 'P495',
 }
 
 def generate_slug(name):
@@ -248,6 +251,7 @@ def get_new_games(request):
     new_games['games'] = new_games['games'][:10]
     return JsonResponse(new_games, safe=False)
 
+@csrf_exempt
 def get_game_characters(request, game_slug):
     if request.method != 'GET':
         return JsonResponse({'error': 'Only GET requests are allowed'}, status=400)
@@ -291,6 +295,51 @@ def get_game_characters(request, game_slug):
 
     return JsonResponse(game, safe=False)
 
+@csrf_exempt
 def get_property_games(request):
-    return JsonResponse({'properties': list(SEARCH_BY_PROPERTIES.keys())})
+    data = json.loads(request.body)
+    property_name = data.get('property_name')
+    property_type = data.get('property_type').lower()
+    if not property_name or not property_type:
+        return JsonResponse({'error': 'Property name and type are required'}, status=400)
+    if property_type not in SEARCH_BY_PROPERTIES:
+        return JsonResponse({'error': 'Invalid property type'}, status=400)
+    property_id = SEARCH_BY_PROPERTIES[property_type]
+    sparql_query="""
+    SELECT DISTINCT ?gameLabel ?genre ?image ?gameDescription ?rating
+    WHERE {
+      ?entity rdfs:label "%s"@en.
+      ?game wdt:%s ?entity ;
+            wdt:P31 wd:Q7889 .  # Filter for items that are instance of "video game"
+      OPTIONAL { ?game wdt:P136 ?genre. }                        # Genre
+      OPTIONAL { ?game wdt:P18 ?image. }                         # Image
+      OPTIONAL {
+                    ?game schema:description ?gameDescription. # Game description
+                    FILTER(LANG(?gameDescription) = "en").     # Filter English descriptions
+                }
+      SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+    }
+LIMIT 20""" % (property_name, property_id)
+    headers = {'User-Agent': 'Mozilla/5.0 (Django Application)', 'Accept': 'application/json'}
+    response = requests.get(SPARQL_ENDPOINT, headers=headers, params={'query': sparql_query, 'format': 'json'})
+    results = response.json()
+    #get the first 10 games
+    property_games = get_unique_games(results, ['gameLabel', 'genre', 'image', 'gameDescription'])
+    property_games['games'] = property_games['games'][:10]
+    #add random rating field from 3.5 - 5 to each game from the database
+    for game in property_games['games']:
+        game_obj = Game.objects.filter(game_name=game['gameLabel']).first()
+        game['rating'] = round(random.uniform(3.9, 5), 2) if game_obj else None
+    
+    property_image = None
+    property_description = None
+    context = {
+        'property_name': property_name,
+        'property_type': property_type,
+        'property_image': property_image,
+        'property_description': property_description,
+        'games': property_games['games']
+    }
+    return JsonResponse(context, safe=False)
+
     
