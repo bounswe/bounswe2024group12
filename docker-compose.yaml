@@ -47,6 +47,14 @@ services:
     networks:
       - mynetwork
     
+  swagger:
+    image: swaggerapi/swagger-ui
+    environment:
+      SWAGGER_JSON: /playlogapi.yaml
+    volumes:
+      - ./swagger/playlogapi.yaml:/playlogapi.yaml
+    ports:
+      - "8081:8080"
 
 volumes:
   db_data:
