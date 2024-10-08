@@ -12,3 +12,7 @@ venv.bak/
 */.env
 
 __pycache__
+
+project/Mobile/node_modules/
+project/Mobile/package-lock.json
+project/Mobile/yarn.lock
