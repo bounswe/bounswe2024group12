@@ -1,14 +1,19 @@
 {
-  "name": "Mobile",
-  "version": "0.0.1",
-  "private": true,
+  "main": "node_modules/expo/AppEntry.js",
   "scripts": {
-    "start": "node node_modules/react-native/local-cli/cli.js start"
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
   },
   "dependencies": {
-    "react-native": "0.75.4"
+    "expo": "~48.0.15",
+    "expo-status-bar": "~1.4.4",
+    "react": "18.2.0",
+    "react-native": "0.71.7"
   },
   "devDependencies": {
-    "@react-native/metro-config": "^0.75.4"
-  }
+    "@babel/core": "^7.20.0"
+  },
+  "private": true
 }
