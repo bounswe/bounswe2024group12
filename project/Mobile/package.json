@@ -7,13 +7,16 @@
     "web": "expo start --web"
   },
   "dependencies": {
-    "expo": "~48.0.15",
-    "expo-status-bar": "~1.4.4",
+    "expo": "^51.0.37",
+    "expo-blur": "~13.0.2",
+    "expo-status-bar": "~1.12.1",
     "react": "18.2.0",
-    "react-native": "0.71.7"
+    "react-native": "^0.74.5"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0"
+    "@babel/core": "^7.20.0",
+    "@types/react": "^18.3.11",
+    "typescript": "^5.6.3"
   },
   "private": true
 }
