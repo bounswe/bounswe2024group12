@@ -1,8 +1,9 @@
+import React from 'react';
+import Login from '../components/Login';
+
 function LoginPage() {
   return (
-    <div>
-      You're on the Login page.
-    </div>
+    <Login/>
   );
 }
 
