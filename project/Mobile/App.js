@@ -1,30 +1,46 @@
-import React, { useState, useRef } from 'react';
-import { StyleSheet, View, Text, FlatList, TextInput, TouchableOpacity, SafeAreaView, StatusBar, Platform, TouchableWithoutFeedback, Animated, Image, Modal, Dimensions, KeyboardAvoidingView } from 'react-native';
-import { Feather } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
-import profilePicPlaceholder from './assets/images/react-logo.png';
+import React, { useState, useRef } from "react";
+import {
+  StyleSheet,
+  View,
+  Text,
+  FlatList,
+  TextInput,
+  TouchableOpacity,
+  SafeAreaView,
+  StatusBar,
+  Platform,
+  TouchableWithoutFeedback,
+  Animated,
+  Image,
+  Modal,
+  Dimensions,
+  KeyboardAvoidingView,
+} from "react-native";
+import { Feather } from "@expo/vector-icons";
+import { BlurView } from "expo-blur";
+import profilePicPlaceholder from "./assets/images/react-logo.png";
+import ChessBoardComponent from "./components/ChessBoardComponent";
 
 const PROFILE_PIC_SIZE = 50;
-const ZOOMED_PIC_SIZE = Dimensions.get('window').width * 0.8;
+const ZOOMED_PIC_SIZE = Dimensions.get("window").width * 0.8;
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [posts, setPosts] = useState([
-    { id: '1', title: 'Opening strategies', author: 'Ozan' },
-    { id: '2', title: 'Endgame techniques', author: 'Orhan' },
-    { id: '3', title: 'Famous chess matches', author: 'Firat' },
+    { id: "1", title: "Opening strategies", author: "Ozan" },
+    { id: "2", title: "Endgame techniques", author: "Orhan" },
+    { id: "3", title: "Famous chess matches", author: "Firat" },
   ]);
 
-  const [newPostTitle, setNewPostTitle] = useState('');
+  const [newPostTitle, setNewPostTitle] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileZoomed, setIsProfileZoomed] = useState(false);
   const sidebarPosition = useRef(new Animated.Value(-250)).current;
   const zoomAnimation = useRef(new Animated.Value(0)).current;
 
   const handleLogin = () => {
-    // For now, we're just setting isLoggedIn to true without any validation
     setIsLoggedIn(true);
   };
 
@@ -35,10 +51,10 @@ export default function App() {
         {
           id: Date.now().toString(),
           title: newPostTitle,
-          author: 'Anonymous',
+          author: "Anonymous",
         },
       ]);
-      setNewPostTitle('');
+      setNewPostTitle("");
     }
   };
 
@@ -71,10 +87,17 @@ export default function App() {
   const renderSidebar = () => (
     <>
       <TouchableWithoutFeedback onPress={toggleSidebar}>
-        <Animated.View style={[styles.overlay, { opacity: sidebarPosition.interpolate({
-          inputRange: [-250, 0],
-          outputRange: [0, 1],
-        }) }]} />
+        <Animated.View
+          style={[
+            styles.overlay,
+            {
+              opacity: sidebarPosition.interpolate({
+                inputRange: [-250, 0],
+                outputRange: [0, 0.5],
+              }),
+            },
+          ]}
+        />
       </TouchableWithoutFeedback>
       <Animated.View style={[styles.sidebar, { left: sidebarPosition }]}>
         <View style={styles.sidebarContent}>
@@ -85,18 +108,30 @@ export default function App() {
                 style={styles.profilePicture}
               />
             </TouchableOpacity>
-            <Text style={styles.username}>{username || 'Username'}</Text>
+            <Text style={styles.username}>{username || "Username"}</Text>
           </View>
-          <TouchableOpacity style={styles.sidebarItem} onPress={() => console.log('Puzzles')}>
+          <TouchableOpacity
+            style={styles.sidebarItem}
+            onPress={() => console.log("Puzzles")}
+          >
             <Text style={styles.sidebarText}>Puzzles</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.sidebarItem} onPress={() => console.log('Community')}>
+          <TouchableOpacity
+            style={styles.sidebarItem}
+            onPress={() => console.log("Community")}
+          >
             <Text style={styles.sidebarText}>Community</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.sidebarItem} onPress={() => console.log('Archive')}>
+          <TouchableOpacity
+            style={styles.sidebarItem}
+            onPress={() => console.log("Archive")}
+          >
             <Text style={styles.sidebarText}>Archive</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.sidebarItem} onPress={() => console.log('Analysis')}>
+          <TouchableOpacity
+            style={styles.sidebarItem}
+            onPress={() => console.log("Analysis")}
+          >
             <Text style={styles.sidebarText}>Analysis</Text>
           </TouchableOpacity>
         </View>
@@ -175,8 +210,16 @@ export default function App() {
         </TouchableOpacity>
         <Text style={styles.headerText}>Chess Forum</Text>
       </View>
-      {renderSidebar()}
+
+      {isSidebarOpen && renderSidebar()}
+
       {renderZoomedProfile()}
+      <View style={styles.chessBoardWrapper}>
+        <ChessBoardComponent
+          fen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+          onMove={(move) => console.log("Move:", move)}
+        />
+      </View>
       <FlatList
         data={posts}
         renderItem={renderItem}
@@ -201,30 +244,34 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f0f0f0',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+    backgroundColor: "#f0f0f0",
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 16,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: "#e0e0e0",
   },
   headerText: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginLeft: 16,
   },
   menuButton: {
     padding: 8,
   },
+  chessBoardWrapper: {
+    alignItems: "center",
+    padding: 20,
+  },
   list: {
     flex: 1,
   },
   postItem: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     padding: 20,
     marginVertical: 8,
     marginHorizontal: 16,
@@ -232,35 +279,35 @@ const styles = StyleSheet.create({
   },
   postTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   postAuthor: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
     marginTop: 4,
   },
   inputContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     padding: 16,
-    backgroundColor: 'white',
+    backgroundColor: "white",
   },
   input: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     borderRadius: 4,
     padding: 8,
     marginRight: 8,
   },
   button: {
-    backgroundColor: '#007AFF',
+    backgroundColor: "#007AFF",
     padding: 10,
     borderRadius: 4,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   buttonText: {
-    color: 'white',
-    fontWeight: 'bold',
+    color: "white",
+    fontWeight: "bold",
   },
   overlay: {
     position: 'absolute',
@@ -272,25 +319,25 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   sidebar: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     bottom: 0,
     width: 250,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderRightWidth: 1,
-    borderRightColor: '#e0e0e0',
+    borderRightColor: "#e0e0e0",
     zIndex: 2,
   },
   sidebarContent: {
     flex: 1,
-    paddingTop: Platform.OS === 'ios' ? 50 : StatusBar.currentHeight + 16,
+    paddingTop: Platform.OS === "ios" ? 50 : StatusBar.currentHeight + 16,
   },
   userProfileContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: "#e0e0e0",
   },
   profilePicture: {
     width: PROFILE_PIC_SIZE,
@@ -300,34 +347,34 @@ const styles = StyleSheet.create({
   username: {
     marginLeft: 15,
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   sidebarItem: {
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: "#e0e0e0",
   },
   sidebarText: {
     fontSize: 16,
   },
   zoomedProfileContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   zoomedProfilePicture: {
     borderRadius: ZOOMED_PIC_SIZE / 2,
   },
   loginContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f0f0f0',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f0f0f0",
   },
   loginForm: {
-    width: '80%',
-    backgroundColor: 'white',
+    width: "80%",
+    backgroundColor: "white",
     padding: 20,
     borderRadius: 10,
     shadowColor: "#000",
@@ -341,25 +388,25 @@ const styles = StyleSheet.create({
   },
   loginHeader: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 20,
-    textAlign: 'center',
+    textAlign: "center",
   },
   loginInput: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     padding: 10,
     marginBottom: 10,
     borderRadius: 4,
   },
   loginButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: "#007AFF",
     padding: 10,
     borderRadius: 4,
-    alignItems: 'center',
+    alignItems: "center",
   },
   loginButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
+    color: "white",
+    fontWeight: "bold",
   },
 });
