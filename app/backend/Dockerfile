@@ -7,6 +7,9 @@ COPY . /app
 # dependencies
 RUN pip install --upgrade pip
 RUN pip install django mysqlclient
+RUN pip install drf-yasg
+RUN pip install setuptools
+
 
 # port
 EXPOSE 8000

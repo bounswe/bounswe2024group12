@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'v1.apps.healthcheck',
+    'v1.apps.test_endpoint',
 ]
 
 MIDDLEWARE = [
