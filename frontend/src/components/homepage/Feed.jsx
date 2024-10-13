@@ -1,53 +1,41 @@
-import React from 'react';
-import { TextField, Button, Card, CardContent, Typography } from '@mui/material';
-import { Form, Field } from 'react-final-form';
+import React from "react";
+import Post from "./Post";
+import SharePost from "./SharePost";
 
 const Feed = () => {
-  const onSubmit = (values) => {
-    console.log(values);
-    // handle the post submission
-  };
+  function getPosts() {
+    fetch("/api/posts")
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+  }
+
+  // const posts = getPosts();
+  const posts = [
+    {
+      postHeader: "Hello World",
+      postContent: "This is a post",
+      postImage: "https://via.placeholder.com/200",
+    },
+    {
+      postHeader: "Hello World",
+      postContent: "This is a post",
+      postImage: "https://via.placeholder.com/150",
+    }
+  ]
+  
+
 
   return (
     <div>
-      {/* Share Post Section */}
-      <Card style={{ margin: '20px' }}>
-        <CardContent>
-          <Form
-            onSubmit={onSubmit}
-            render={({ handleSubmit }) => (
-              <form onSubmit={handleSubmit}>
-                <Field name="postContent">
-                  {({ input }) => (
-                    <TextField
-                      {...input}
-                      label="What's on your mind?"
-                      variant="outlined"
-                      fullWidth
-                      multiline
-                      rows={4}
-                    />
-                  )}
-                </Field>
-                <Button type="submit" variant="contained" color="primary" style={{ marginTop: '10px' }}>
-                  Share
-                </Button>
-              </form>
-            )}
-          />
-        </CardContent>
-      </Card>
-
-      {/* Posts Display Section */}
-      <Card style={{ margin: '20px' }}>
-        <CardContent>
-          <Typography variant="h6">Post 1</Typography>
-          <Typography variant="body2">
-            This is the content of post 1.
-          </Typography>
-        </CardContent>
-      </Card>
-      {/* You can map over your posts array here to display more posts */}
+      <SharePost />
+      {posts.map((post) => (
+        <Post post={post} />
+      ))}
     </div>
   );
 };
