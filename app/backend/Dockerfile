@@ -9,6 +9,7 @@ RUN pip install --upgrade pip
 RUN pip install django mysqlclient
 RUN pip install drf-yasg
 RUN pip install setuptools
+RUN pip install Pillow
 
 
 # port
