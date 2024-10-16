@@ -28,7 +28,8 @@ SECRET_KEY = 'django-insecure-c_wp0u5-_d*&-+y%xzg0gsv1_oyo=l0)#5_()bf*)(#^y@zeq$
 # DEBUG = False
 DEBUG = True
 
-ALLOWED_HOSTS = ['167.99.133.190']
+# ALLOWED_HOSTS = ['167.99.133.190']
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -43,6 +44,8 @@ INSTALLED_APPS = [
     'drf_yasg',
     'v1.apps.healthcheck',
     'v1.apps.test_endpoint',
+    'v1.apps.accounts',
+    'v1.apps.posts',
 ]
 
 MIDDLEWARE = [
