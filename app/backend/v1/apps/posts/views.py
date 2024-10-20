@@ -10,7 +10,8 @@ from drf_yasg import openapi
 from v1.apps.posts.models import Post
 from v1.apps.posts.serializers import PostSerializer
 
-# TODO: Add user to the posts after creating user model
+from v1.apps.accounts.models import CustomUser  # (for test)
+
 
 
 # Swagger documentation for POST /api/v1/posts/create/
@@ -59,10 +60,15 @@ from v1.apps.posts.serializers import PostSerializer
 @api_view(['POST'])
 def create_post(request):
 
+
+    # For temporarily use a user (eg. id=1)
+    default_user = CustomUser.objects.first()  # get first user
+
     serializer = PostSerializer(data=request.data)
     if serializer.is_valid():
         #post = serializer.save(user=request.user)  # Assuming the user is authenticated
-        post = serializer.save()
+        #post = serializer.save()
+        post = serializer.save(user=default_user)  # Manually assign the user
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

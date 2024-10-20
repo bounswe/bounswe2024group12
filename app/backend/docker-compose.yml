@@ -23,6 +23,7 @@ services:
     command: python manage.py runserver 0.0.0.0:8000  # Start Django development server
     volumes:
       - .:/app                                   # Mount current directory to /app in the container
+      - media_data:/app/media  # Persist media files in a Docker volume
     ports:
       - "8000:8000"                              # Expose Django on port 8000
     depends_on:
@@ -30,3 +31,4 @@ services:
         condition: service_healthy
 volumes:
   db_data:                                        # Docker volume for MySQL persistence
+  media_data:  # Docker volume for Django media files
