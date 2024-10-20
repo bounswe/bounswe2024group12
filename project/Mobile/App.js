@@ -40,8 +40,28 @@ export default function App() {
   const sidebarPosition = useRef(new Animated.Value(-250)).current;
   const zoomAnimation = useRef(new Animated.Value(0)).current;
 
-  const handleLogin = () => {
-    setIsLoggedIn(true);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isSignUp, setIsSignUp] = useState(false);
+
+  const handleLogin = async () => {
+    try {
+      const response = await axios.post('http://167.99.133.190/api/v1/accounts/login/', {
+        mail: username,
+        password: password,
+      });
+  
+      console.log('Login successful:', response.data);
+      setIsLoggedIn(true);
+      setErrorMessage('');
+    } catch (error) {
+      console.error('Login failed:', error.response?.data);
+      
+      if (error.response?.status === 400) {
+        setErrorMessage('User not registered. Please sign up.');
+      } else {
+        setErrorMessage('An error occurred. Please try again.');
+      }
+    }
   };
 
   const addPost = () => {
@@ -172,7 +192,7 @@ export default function App() {
 
   const renderLoginPage = () => (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior="height"
       style={styles.loginContainer}
     >
       <View style={styles.loginForm}>
@@ -191,14 +211,88 @@ export default function App() {
           onChangeText={setPassword}
           secureTextEntry
         />
+        {errorMessage ? <Text style={styles.errorMessage}>{errorMessage}</Text> : null}
+        
+        {/* Log In Button */}
         <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
           <Text style={styles.loginButtonText}>Log In</Text>
+        </TouchableOpacity>
+  
+        {/* Sign Up Button */}
+        <TouchableOpacity style={styles.loginButton} onPress={() => setIsSignUp(true)}>
+          <Text style={styles.loginButtonText}>Sign Up</Text>
+        </TouchableOpacity>
+        
+        {/* Continue as Guest Button */}
+        <TouchableOpacity style={styles.loginButton} onPress={() => setIsLoggedIn(true)}>
+          <Text style={styles.loginButtonText}>Continue as Guest</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
   );
 
+  const renderSignUpPage = () => (
+    <KeyboardAvoidingView
+      behavior="height"
+      style={styles.loginContainer}
+    >
+      <View style={styles.loginForm}>
+        <Text style={styles.loginHeader}>Sign Up for Chess Forum</Text>
+        <TextInput
+          style={styles.loginInput}
+          placeholder="Email"
+          value={username}
+          onChangeText={setUsername}
+          autoCapitalize="none"
+        />
+        <TextInput
+          style={styles.loginInput}
+          placeholder="Username"
+          value={username}
+          onChangeText={setUsername}
+          autoCapitalize="none"
+        />
+        <TextInput
+          style={styles.loginInput}
+          placeholder="Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
+        {errorMessage ? <Text style={styles.errorMessage}>{errorMessage}</Text> : null}
+        
+        {/* Sign Up Button */}
+        <TouchableOpacity style={styles.loginButton} onPress={handleSignUp}>
+          <Text style={styles.loginButtonText}>Sign Up</Text>
+        </TouchableOpacity>
+  
+        {/* Go Back to Log In Button */}
+        <TouchableOpacity style={styles.loginButton} onPress={() => setIsSignUp(false)}>
+          <Text style={styles.loginButtonText}>Back to Log In</Text>
+        </TouchableOpacity>
+      </View>
+    </KeyboardAvoidingView>
+  );
+
+  const handleSignUp = async () => {
+    try {
+      const response = await axios.post('http://167.99.133.190/api/v1/accounts/signup/', {
+        mail: username,
+        password: password,
+      });
+  
+      console.log('Sign up successful:', response.data);
+      setIsSignUp(false);
+    } catch (error) {
+      console.error('Sign up failed:', error.response?.data);
+      setErrorMessage('Sign up failed. Try again.');
+    }
+  };
+
   if (!isLoggedIn) {
+    if (isSignUp) {
+      return renderSignUpPage();
+    }
     return renderLoginPage();
   }
 
@@ -404,6 +498,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 4,
     alignItems: "center",
+    marginVertical: 10,
   },
   loginButtonText: {
     color: "white",
