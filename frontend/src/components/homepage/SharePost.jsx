@@ -7,9 +7,12 @@ import {
   Box,
 } from "@mui/material";
 import { Form, Field } from "react-final-form";
+import Chessboard from "chessboardjsx";
 
 const SharePost = () => {
   const [imagePreview, setImagePreview] = useState(null);
+  const [fen, setFen] = useState(null);
+  const [showChessboard, setShowChessboard] = useState(false);
 
   const onSubmit = (values) => {
     const formData = new FormData();
@@ -43,12 +46,17 @@ const SharePost = () => {
     }
   };
 
+  const handleSaveFEN = (value) => {
+    setFen(value);
+    setShowChessboard(true); // Show the chessboard after saving FEN
+  };
+
   return (
     <Card style={{ margin: "20px" }}>
       <CardContent>
         <Form
           onSubmit={onSubmit}
-          render={({ handleSubmit, form, submitting, form: { change } }) => (
+          render={({ handleSubmit, form, submitting, form: { change, getState } }) => (
             <form onSubmit={handleSubmit}>
               <Field name="postContent">
                 {({ input }) => (
@@ -74,6 +82,35 @@ const SharePost = () => {
                   />
                 )}
               </Field>
+
+              <Field name="fen">
+                {({ input }) => (
+                  <Box sx={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
+                    <TextField
+                      {...input}
+                      label="FEN"
+                      variant="outlined"
+                      fullWidth
+                      multiline
+                      rows={2}
+                      style={{ marginRight: "10px" }}
+                    />
+                    <Button
+                      variant="contained"
+                      color="secondary"
+                      onClick={() => handleSaveFEN(getState().values.fen)}
+                    >
+                      Display table
+                    </Button>
+                  </Box>
+                )}
+              </Field>
+
+              {showChessboard && fen && (
+                <Box sx={{ marginBottom: "10px" }}>
+                  <Chessboard position={fen} />
+                </Box>
+              )}
 
               {imagePreview && (
                 <Box sx={{ marginBottom: "10px" }}>
