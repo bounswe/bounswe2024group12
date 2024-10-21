@@ -5,36 +5,61 @@ import {
   Card,
   CardContent,
   Box,
+  Snackbar,
+  Alert,
+  Autocomplete,
+  Input,
+  Typography,
 } from "@mui/material";
 import { Form, Field } from "react-final-form";
-import Chessboard from "chessboardjsx";
+import FENRenderer from "./FENRenderer";
 
 const SharePost = () => {
   const [imagePreview, setImagePreview] = useState(null);
+  const [imageName, setImageName] = useState(null);
   const [fen, setFen] = useState(null);
   const [showChessboard, setShowChessboard] = useState(false);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("success");
+  const userId = 123;
+  const apiURL = process.env.REACT_APP_API_URL;
 
-  const onSubmit = (values) => {
-    const formData = new FormData();
-    formData.append("postContent", values.postContent);
-    
-    if (values.image && values.image[0]) {
-      formData.append("image", values.image[0]); 
-      console.log(formData.get("image"));
-      console.log(formData.get("postContent"));
-      console.log(formData);
-    }
+  const tagOptions = ["A", "B", "C", "D", "E"];
 
-    fetch("/api/posts", { // TODO: Update the URL
+  const onSubmit = (values, form) => {
+    const postData = {
+      id: userId,
+      title: values.title,
+      post_text: values.postContent,
+      image: values.imageBase64,
+      fen: values.fen,
+      tags: values.tags,
+    };
+    fetch(apiURL + "posts/create/", {
       method: "POST",
-      body: formData,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(postData),
     })
       .then((response) => response.json())
       .then((data) => {
-        console.log("Success:", data);
+        setSnackbarMessage("Post shared successfully!");
+        setSnackbarSeverity("success");
+        setOpenSnackbar(true);
+        form.reset();
+        setImagePreview(null);
+        setImageName(null);
+        setShowChessboard(false);
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
       })
       .catch((error) => {
-        console.error("Error:", error);
+        setSnackbarMessage("Error sharing post. Please try again.");
+        setSnackbarSeverity("error");
+        setOpenSnackbar(true);
       });
   };
 
@@ -42,22 +67,73 @@ const SharePost = () => {
     const file = event.target.files[0];
     if (file) {
       setImagePreview(URL.createObjectURL(file));
-      change("image", [file]);
+      setImageName(file.name);
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        change("imageBase64", reader.result);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
   const handleSaveFEN = (value) => {
     setFen(value);
-    setShowChessboard(true); // Show the chessboard after saving FEN
+    setShowChessboard(true);
+  };
+
+  const handleCloseSnackbar = () => {
+    setOpenSnackbar(false);
   };
 
   return (
-    <Card style={{ margin: "20px" }}>
-      <CardContent>
+    <Card sx={{
+      width: '75%',
+      margin: '1% auto',
+    }}>
+      <CardContent sx={{
+        width: '95%',
+        margin: '1% auto',
+      }}>
         <Form
           onSubmit={onSubmit}
           render={({ handleSubmit, form, submitting, form: { change, getState } }) => (
             <form onSubmit={handleSubmit}>
+              <Field name="title">
+                {({ input }) => (
+                  <TextField
+                    {...input}
+                    label="Title"
+                    variant="outlined"
+                    fullWidth
+                    inputProps={{ style: { fontSize: 24 } }}
+                    style={{ marginBottom: "10px" }}
+                  />
+                )}
+              </Field>
+
+              <Field name="tags">
+                {({ input }) => (
+                  <Autocomplete
+                    {...input}
+                    multiple
+                    options={tagOptions}
+                    getOptionLabel={(option) => option}
+                    value={Array.isArray(input.value) ? input.value : []}
+                    onChange={(event, newValue) => change("tags", Array.isArray(newValue) ? newValue : [])}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        variant="outlined"
+                        label="Tags"
+                        placeholder="Select tags"
+                        style={{ marginBottom: "10px" }}
+                      />
+                    )}
+                  />
+                )}
+              </Field>
+
               <Field name="postContent">
                 {({ input }) => (
                   <TextField
@@ -72,53 +148,96 @@ const SharePost = () => {
                 )}
               </Field>
 
-              <Field name="image" type="file">
-                {({ input }) => (
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(event) => handleImageChange(event, change)}
-                    style={{ marginBottom: "10px" }}
-                  />
-                )}
-              </Field>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: { xs: "column", sm: "row" },
+                  gap: 2,
+                  marginBottom: "10px",
+                  alignItems: "center",
+                }}
+              >
+                <Field name="fen">
+                  {({ input }) => (
+                    <Box sx={{ flex: 1, display: "flex", alignItems: "center" }}>
+                      <TextField
+                        {...input}
+                        label="FEN"
+                        variant="outlined"
+                        fullWidth
+                        multiline
+                        rows={1}
+                        style={{ marginRight: "10px" }}
+                      />
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => handleSaveFEN(getState().values.fen)}
+                      >
+                        Save FEN
+                      </Button>
+                    </Box>
+                  )}
+                </Field>
 
-              <Field name="fen">
-                {({ input }) => (
-                  <Box sx={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
-                    <TextField
-                      {...input}
-                      label="FEN"
-                      variant="outlined"
-                      fullWidth
-                      multiline
-                      rows={2}
-                      style={{ marginRight: "10px" }}
-                    />
-                    <Button
-                      variant="contained"
-                      color="secondary"
-                      onClick={() => handleSaveFEN(getState().values.fen)}
+                <Field name="imageBase64">
+                  {({ input }) => (
+                    <Box sx={{ flex: 1, display: "flex", alignItems: "center" }}>
+                      <Button variant="contained" component="label">
+                        Upload Image
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          onChange={(event) => handleImageChange(event, change)}
+                          style={{ display: "none" }}
+                        />
+                      </Button>
+                      {imageName && (
+                        <Typography style={{ marginLeft: "10px" }}>{imageName}</Typography>
+                      )}
+                    </Box>
+                  )}
+                </Field>
+              </Box>
+
+              {(showChessboard || imagePreview) && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: { xs: "column", sm: "row" },
+                    gap: 2,
+                    marginBottom: "10px",
+                  }}
+                >
+                  {showChessboard && fen && (
+                    <Box
+                      sx={{
+                        flex: 1,
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                      }}
                     >
-                      Display table
-                    </Button>
-                  </Box>
-                )}
-              </Field>
+                      <FENRenderer fen={fen} />
+                    </Box>
+                  )}
 
-              {showChessboard && fen && (
-                <Box sx={{ marginBottom: "10px" }}>
-                  <Chessboard position={fen} />
-                </Box>
-              )}
-
-              {imagePreview && (
-                <Box sx={{ marginBottom: "10px" }}>
-                  <img
-                    src={imagePreview}
-                    alt="Preview"
-                    style={{ maxWidth: "100%", maxHeight: "200px" }}
-                  />
+                  {imagePreview && (
+                    <Box
+                      sx={{
+                        flex: 1,
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                      }}
+                    >
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        style={{ maxWidth: "100%", maxHeight: "200px" }}
+                      />
+                    </Box>
+                  )}
                 </Box>
               )}
 
@@ -134,6 +253,16 @@ const SharePost = () => {
           )}
         />
       </CardContent>
+
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Card>
   );
 };
