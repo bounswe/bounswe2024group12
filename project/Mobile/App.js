@@ -1,4 +1,6 @@
-import React, { useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import { NavigationContainer, useNavigation } from "@react-navigation/native";
+import { createStackNavigator } from "@react-navigation/stack";
 import {
   StyleSheet,
   View,
@@ -19,15 +21,20 @@ import {
 import { Feather } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import profilePicPlaceholder from "./assets/images/react-logo.png";
-import ChessBoardComponent from "./components/ChessBoardComponent";
+import AnalysisScreen from "./AnalysisScreen";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { UserContext } from './UserContext';
+import { useContext } from "react";
+
+const Stack = createStackNavigator();
 
 const PROFILE_PIC_SIZE = 50;
 const ZOOMED_PIC_SIZE = Dimensions.get("window").width * 0.8;
 
-export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+const MainScreen = () => {
+  const { username } = useContext(UserContext);
+  const navigation = useNavigation();
+
   const [posts, setPosts] = useState([
     { id: "1", title: "Opening strategies", author: "Ozan" },
     { id: "2", title: "Endgame techniques", author: "Orhan" },
@@ -39,30 +46,6 @@ export default function App() {
   const [isProfileZoomed, setIsProfileZoomed] = useState(false);
   const sidebarPosition = useRef(new Animated.Value(-250)).current;
   const zoomAnimation = useRef(new Animated.Value(0)).current;
-
-  const [errorMessage, setErrorMessage] = useState('');
-  const [isSignUp, setIsSignUp] = useState(false);
-
-  const handleLogin = async () => {
-    try {
-      const response = await axios.post('http://167.99.133.190/api/v1/accounts/login/', {
-        mail: username,
-        password: password,
-      });
-  
-      console.log('Login successful:', response.data);
-      setIsLoggedIn(true);
-      setErrorMessage('');
-    } catch (error) {
-      console.error('Login failed:', error.response?.data);
-      
-      if (error.response?.status === 400) {
-        setErrorMessage('User not registered. Please sign up.');
-      } else {
-        setErrorMessage('An error occurred. Please try again.');
-      }
-    }
-  };
 
   const addPost = () => {
     if (newPostTitle) {
@@ -128,7 +111,7 @@ export default function App() {
                 style={styles.profilePicture}
               />
             </TouchableOpacity>
-            <Text style={styles.username}>{username || "Username"}</Text>
+            <Text style={styles.username}>{username || "Guest"}</Text>
           </View>
           <TouchableOpacity
             style={styles.sidebarItem}
@@ -150,7 +133,10 @@ export default function App() {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.sidebarItem}
-            onPress={() => console.log("Analysis")}
+            onPress={() => {
+              toggleSidebar();
+              navigation.navigate("Analysis");
+            }}
           >
             <Text style={styles.sidebarText}>Analysis</Text>
           </TouchableOpacity>
@@ -190,11 +176,72 @@ export default function App() {
     </Modal>
   );
 
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={toggleSidebar} style={styles.menuButton}>
+          <Feather name="menu" size={24} color="black" />
+        </TouchableOpacity>
+        <Text style={styles.headerText}>Chess Forum</Text>
+      </View>
+
+      {isSidebarOpen && renderSidebar()}
+
+      {renderZoomedProfile()}
+      <FlatList
+        data={posts}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id}
+        style={styles.list}
+      />
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.input}
+          value={newPostTitle}
+          onChangeText={setNewPostTitle}
+          placeholder="Enter new post title"
+        />
+        <TouchableOpacity style={styles.button} onPress={addPost}>
+          <Text style={styles.buttonText}>Add Post</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
+  );
+};
+
+export default function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isSignUp, setIsSignUp] = useState(false);
+
+  const handleLogin = async () => {
+    try {
+      const response = await axios.post(
+        "http://167.99.133.190/api/v1/accounts/login/",
+        {
+          mail: username,
+          password: password,
+        }
+      );
+
+      console.log("Login successful:", response.data);
+      setIsLoggedIn(true);
+      setErrorMessage("");
+    } catch (error) {
+      console.error("Login failed:", error.response?.data);
+
+      if (error.response?.status === 400) {
+        setErrorMessage("User not registered. Please sign up.");
+      } else {
+        setErrorMessage("An error occurred. Please try again.");
+      }
+    }
+  };
+
   const renderLoginPage = () => (
-    <KeyboardAvoidingView
-      behavior="height"
-      style={styles.loginContainer}
-    >
+    <KeyboardAvoidingView behavior="height" style={styles.loginContainer}>
       <View style={styles.loginForm}>
         <Text style={styles.loginHeader}>Chess Forum</Text>
         <TextInput
@@ -211,20 +258,31 @@ export default function App() {
           onChangeText={setPassword}
           secureTextEntry
         />
-        {errorMessage ? <Text style={styles.errorMessage}>{errorMessage}</Text> : null}
-        
+        {errorMessage ? (
+          <Text style={styles.errorMessage}>{errorMessage}</Text>
+        ) : null}
+
         {/* Log In Button */}
         <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
           <Text style={styles.loginButtonText}>Log In</Text>
         </TouchableOpacity>
-  
+
         {/* Sign Up Button */}
-        <TouchableOpacity style={styles.loginButton} onPress={() => setIsSignUp(true)}>
+        <TouchableOpacity
+          style={styles.loginButton}
+          onPress={() => setIsSignUp(true)}
+        >
           <Text style={styles.loginButtonText}>Sign Up</Text>
         </TouchableOpacity>
-        
+
         {/* Continue as Guest Button */}
-        <TouchableOpacity style={styles.loginButton} onPress={() => setIsLoggedIn(true)}>
+        <TouchableOpacity
+          style={styles.loginButton}
+          onPress={() => {
+            setIsLoggedIn(true);
+            setUsername("");
+          }}
+        >
           <Text style={styles.loginButtonText}>Continue as Guest</Text>
         </TouchableOpacity>
       </View>
@@ -232,10 +290,7 @@ export default function App() {
   );
 
   const renderSignUpPage = () => (
-    <KeyboardAvoidingView
-      behavior="height"
-      style={styles.loginContainer}
-    >
+    <KeyboardAvoidingView behavior="height" style={styles.loginContainer}>
       <View style={styles.loginForm}>
         <Text style={styles.loginHeader}>Sign Up for Chess Forum</Text>
         <TextInput
@@ -259,15 +314,20 @@ export default function App() {
           onChangeText={setPassword}
           secureTextEntry
         />
-        {errorMessage ? <Text style={styles.errorMessage}>{errorMessage}</Text> : null}
-        
+        {errorMessage ? (
+          <Text style={styles.errorMessage}>{errorMessage}</Text>
+        ) : null}
+
         {/* Sign Up Button */}
         <TouchableOpacity style={styles.loginButton} onPress={handleSignUp}>
           <Text style={styles.loginButtonText}>Sign Up</Text>
         </TouchableOpacity>
-  
+
         {/* Go Back to Log In Button */}
-        <TouchableOpacity style={styles.loginButton} onPress={() => setIsSignUp(false)}>
+        <TouchableOpacity
+          style={styles.loginButton}
+          onPress={() => setIsSignUp(false)}
+        >
           <Text style={styles.loginButtonText}>Back to Log In</Text>
         </TouchableOpacity>
       </View>
@@ -276,16 +336,19 @@ export default function App() {
 
   const handleSignUp = async () => {
     try {
-      const response = await axios.post('http://167.99.133.190/api/v1/accounts/signup/', {
-        mail: username,
-        password: password,
-      });
-  
-      console.log('Sign up successful:', response.data);
+      const response = await axios.post(
+        "http://167.99.133.190/api/v1/accounts/signup/",
+        {
+          mail: username,
+          password: password,
+        }
+      );
+
+      console.log("Sign up successful:", response.data);
       setIsSignUp(false);
     } catch (error) {
-      console.error('Sign up failed:', error.response?.data);
-      setErrorMessage('Sign up failed. Try again.');
+      console.error("Sign up failed:", error.response?.data);
+      setErrorMessage("Sign up failed. Try again.");
     }
   };
 
@@ -297,41 +360,16 @@ export default function App() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={toggleSidebar} style={styles.menuButton}>
-          <Feather name="menu" size={24} color="black" />
-        </TouchableOpacity>
-        <Text style={styles.headerText}>Chess Forum</Text>
-      </View>
-
-      {isSidebarOpen && renderSidebar()}
-
-      {renderZoomedProfile()}
-      <View style={styles.chessBoardWrapper}>
-        <ChessBoardComponent
-          fen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-          onMove={(move) => console.log("Move:", move)}
-        />
-      </View>
-      <FlatList
-        data={posts}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id}
-        style={styles.list}
-      />
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          value={newPostTitle}
-          onChangeText={setNewPostTitle}
-          placeholder="Enter new post title"
-        />
-        <TouchableOpacity style={styles.button} onPress={addPost}>
-          <Text style={styles.buttonText}>Add Post</Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <UserContext.Provider value={{ username, setUsername }}>
+        <NavigationContainer>
+          <Stack.Navigator screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="Home" component={MainScreen} />
+            <Stack.Screen name="Analysis" component={AnalysisScreen} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </UserContext.Provider>
+    </GestureHandlerRootView>
   );
 }
 
@@ -359,6 +397,7 @@ const styles = StyleSheet.create({
   },
   chessBoardWrapper: {
     alignItems: "center",
+    justifyContent: "center",
     padding: 20,
   },
   list: {
@@ -404,12 +443,12 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   overlay: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: "rgba(0,0,0,0.5)",
     zIndex: 1,
   },
   sidebar: {
