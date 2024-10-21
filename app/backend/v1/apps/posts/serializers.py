@@ -1,7 +1,7 @@
 import base64
 from django.core.files.base import ContentFile
 from rest_framework import serializers
-from .models import Post, Tag
+from .models import Post
 
 # Special field for converting image data into base64 format
 class Base64ImageField(serializers.ImageField):
