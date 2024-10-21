@@ -7,7 +7,12 @@ const Feed = () => {
   const apiURL = process.env.REACT_APP_API_URL;
   
   function getPosts() {
-    fetch(apiURL + "posts/feed/")
+    fetch(apiURL + "posts/feed/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        },
+      })
       .then((response) => response.json())
       .then((data) => {
         console.log(data);
