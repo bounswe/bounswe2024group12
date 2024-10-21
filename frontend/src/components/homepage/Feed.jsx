@@ -15,6 +15,7 @@ const Feed = () => {
       })
       .catch((error) => {
         console.error("Error:", error);
+        return [];
       });
   }
 
