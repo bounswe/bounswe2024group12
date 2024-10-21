@@ -154,7 +154,10 @@ REST_FRAMEWORK = {
     ),
         'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',  # Default to authenticated users
-    )
+    ),
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',  # Ensure JSON is the default renderer
+    ),
 }
 
 SIMPLE_JWT = {
@@ -167,3 +170,11 @@ SIMPLE_JWT = {
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_METHODS = ['GET', 'POST', 'PUT', 'DELETE']
+CORS_ALLOW_HEADERS = [
+    'authorization',
+    'content-type',
+    'x-csrftoken',
+    'accept',
+    'accept-encoding',
+]
+
