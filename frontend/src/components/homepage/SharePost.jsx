@@ -36,6 +36,7 @@ const SharePost = () => {
       fen: values.fen,
       tags: values.tags,
     };
+    console.log(postData);
     fetch(apiURL + "posts/create/", {
       method: "POST",
       headers: {
@@ -89,7 +90,7 @@ const SharePost = () => {
   return (
     <Card sx={{
       width: '75%',
-      margin: '1% auto',
+      margin: '0 auto 1% auto',
     }}>
       <CardContent sx={{
         width: '95%',
