@@ -67,7 +67,7 @@ const Login = () => {
         }}
       >
         <Typography variant="h4" align="center" gutterBottom>
-          Sign In
+          Login
         </Typography>
 
         {errorMsg && <Alert severity="error">{errorMsg}</Alert>}
