@@ -12,7 +12,6 @@ import {
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-
 const BACKEND_URL = "https://167.99.133.190/api/v1"; // Define your backend URL
 
 const Login = () => {
@@ -41,11 +40,18 @@ const Login = () => {
 
       const data = await response.json();
       setSuccess(true);
+      const token = data.token;
+      localStorage.setItem("token", token); 
       navigate('/home');
 
     } catch (error) {
       setErrorMsg(error.message);
     }
+  };
+
+  // Handle guest navigation
+  const handleGuestContinue = () => {
+    navigate('/home'); // Redirect to home page as guest
   };
 
   return (
@@ -54,7 +60,7 @@ const Login = () => {
       justifyContent="center"
       alignItems="center"
       minHeight="100vh"
-      sx={{ backgroundColor: '#e6f7e6' }} // Softer green background
+      sx={{ backgroundColor: 'background.default' }} // Softer green background
     >
       <Box
         sx={{
@@ -109,24 +115,38 @@ const Login = () => {
 
               {/* Remember Me Checkbox */}
               <FormControlLabel
-                control={<Checkbox color="primary" />}
+                control={<Checkbox color="#background.paper" />}
                 label="Remember me"
               />
 
               {/* Submit Button */}
-              <Button type="submit" variant="contained" sx={{ backgroundColor: '#4CAF50', color: 'white' }} fullWidth>
+              <Button type="submit" variant="contained" sx={{ backgroundColor: '#background.paper', color: 'white' }} fullWidth>
                 Sign In
               </Button>
 
               {/* Sign Up Link */}
               <Box mt={2}>
                 <Typography align="center">
-                  Don't have an account? <a href="/signup" style={{ color: '#4CAF50' }}>Sign up</a>
+                  Don't have an account? <a href="/signup" style={{ color: '#background.paper' }}>Sign up</a>
                 </Typography>
               </Box>
             </form>
           )}
         />
+
+        {/* Continue as Guest Button */}
+        <Box mt={2}>
+          <Typography align="center">
+            <Button 
+              onClick={handleGuestContinue}
+              variant="outlined"
+              fullWidth
+              sx={{ color: 'green', borderColor: 'green' }}
+            >
+              Continue as Guest
+            </Button>
+          </Typography>
+        </Box>
       </Box>
     </Box>
   );
