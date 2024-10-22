@@ -74,6 +74,43 @@ Before running this project, make sure you have the following installed on your 
 
 This project contains the frontend for a React application.
 
+### Prerequisites
+
+Before running this project, make sure you have the following installed on your machine:
+
+- Docker
+- Git
+
+### Steps to Run the Frontend
+
+1. **Clone the repository**:
+
+   ```bash
+   git clone https://github.com/bounswe/bounswe2024group12.git
+
+2. **Navigate to the frontend folder**:
+   
+   ```bash
+   cd app/frontend
+
+3. **Build the Docker image**:
+First, ensure Docker is running. Then, build the Docker image for the React frontend:
+
+   ```bash
+   docker build -t frontend-app .
+
+4. **Run the Docker container**:
+After building the Docker image, run the container to start the frontend:
+
+   ```bash
+   docker run -p 3000:3000 frontend-app
+   
+5. **Access the application**:
+Once the container is running, you can access the application in your browser at:
+
+http://localhost:3000
+
+
 ## Mobile App
 
 This project contains the mobile app for an Android application.
