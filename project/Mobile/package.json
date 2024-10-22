@@ -2,9 +2,11 @@
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web"
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "web": "expo start --web",
+    "eject": "expo eject",
+    "clear-cache": "expo start -c"
   },
   "dependencies": {
     "@react-navigation/native": "^6.1.18",
@@ -18,12 +20,26 @@
     "react-native": "0.74.5",
     "react-native-chessboard": "^0.1.2",
     "react-native-gesture-handler": "^2.20.0",
-    "react-native-reanimated": "~3.10.1"
+    "react-native-popover-view": "^5.1.7",
+    "react-native-reanimated": "~3.10.1",
+    "expo-network": "~6.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",
     "@types/react": "~18.2.79",
     "typescript": "~5.3.3"
   },
-  "private": true
+  "private": true,
+  "android": {
+    "networkSecurityConfig": {
+      "cleartextTrafficPermitted": true,
+      "domains": [
+        {
+          "domain": "167.99.133.190"
+        }
+      ]
+    }
+  },
+  "name": "Mobile",
+  "version": "1.0.0"
 }

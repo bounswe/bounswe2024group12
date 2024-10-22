@@ -23,10 +23,31 @@ import { BlurView } from "expo-blur";
 import profilePicPlaceholder from "./assets/images/react-logo.png";
 import AnalysisScreen from "./AnalysisScreen";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { UserContext } from './UserContext';
+import { UserContext } from "./UserContext";
 import { useContext } from "react";
+import axios from "axios";
+// import * as SslPinning from 'expo-ssl-pinning';
+import CreatePostScreen from "./CreatePostScreen";
+
+import * as Network from 'expo-network';
 
 const Stack = createStackNavigator();
+
+const api = axios.create({
+  baseURL: __DEV__ ? 'http://167.99.133.190/api/v1' : 'https://167.99.133.190/api/v1',
+  timeout: 10000,
+});
+
+// if (__DEV__) {
+//   import('react-native-ssl-pinning').then(module => {
+//     module.default.setSslPinning(false);
+//   });
+// }
+
+// Disable SSL pinning for development
+// if (__DEV__) {
+//   SslPinning.setIsEnabled(false);
+// }
 
 const PROFILE_PIC_SIZE = 50;
 const ZOOMED_PIC_SIZE = Dimensions.get("window").width * 0.8;
@@ -176,6 +197,15 @@ const MainScreen = () => {
     </Modal>
   );
 
+  const renderCreatePostButton = () => (
+    <TouchableOpacity
+      style={styles.createPostButton}
+      onPress={() => navigation.navigate("CreatePost")}
+    >
+      <Feather name="edit-2" size={24} color="white" />
+    </TouchableOpacity>
+  );
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -194,37 +224,83 @@ const MainScreen = () => {
         keyExtractor={(item) => item.id}
         style={styles.list}
       />
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          value={newPostTitle}
-          onChangeText={setNewPostTitle}
-          placeholder="Enter new post title"
-        />
-        <TouchableOpacity style={styles.button} onPress={addPost}>
-          <Text style={styles.buttonText}>Add Post</Text>
-        </TouchableOpacity>
-      </View>
+      {renderCreatePostButton()}
     </SafeAreaView>
   );
 };
 
+// const CreatePostScreen = () => {
+//   const [postContent, setPostContent] = useState("");
+//   const navigation = useNavigation();
+
+//   return (
+//     <SafeAreaView style={styles.container}>
+//       <View style={styles.createPostHeader}>
+//         <TouchableOpacity onPress={() => navigation.goBack()}>
+//           <Feather name="x" size={24} color="black" />
+//         </TouchableOpacity>
+//         <Text style={styles.createPostTitle}>Create Post</Text>
+//         <TouchableOpacity onPress={() => {
+//           // TODO: Implement post creation logic
+//           navigation.goBack();
+//         }}>
+//           <Text style={styles.postButton}>Post</Text>
+//         </TouchableOpacity>
+//       </View>
+//       <View style={styles.createPostContent}>
+//         <TextInput
+//           style={styles.postInput}
+//           multiline
+//           placeholder="What's on your mind?"
+//           value={postContent}
+//           onChangeText={setPostContent}
+//         />
+//         <TouchableOpacity style={styles.addAttachmentButton}>
+//           <Feather name="paperclip" size={20} color="black" />
+//         </TouchableOpacity>
+//       </View>
+//     </SafeAreaView>
+//   );
+// };
+
 export default function App() {
+  // useEffect(() => {
+  //   const bypassSSLPinning = async () => {
+  //     if (__DEV__) {
+  //       try {
+  //         if (Platform.OS === 'android') {
+  //           await Network.setNetworkStateAsync({
+  //             urlRewrite: {
+  //               'https://167.99.133.190': 'http://167.99.133.190'
+  //             }
+  //           });
+  //           console.log('SSL pinning bypassed for development on Android');
+  //         } else if (Platform.OS === 'ios') {
+  //           // iOS doesn't require explicit SSL bypass in Expo development builds
+  //           console.log('iOS development build: SSL pinning is already bypassed');
+  //         }
+  //       } catch (error) {
+  //         console.error('Failed to bypass SSL pinning:', error);
+  //       }
+  //     }
+  //   };
+
+  //   bypassSSLPinning();
+  // }, []);
+
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post(
-        "http://167.99.133.190/api/v1/accounts/login/",
-        {
-          mail: username,
-          password: password,
-        }
-      );
+      const response = await api.post("/accounts/login/", {
+        mail: username,
+        password: password,
+      });
 
       console.log("Login successful:", response.data);
       setIsLoggedIn(true);
@@ -289,16 +365,117 @@ export default function App() {
     </KeyboardAvoidingView>
   );
 
+  // const renderSignUpPage = () => (
+  //   <KeyboardAvoidingView behavior="height" style={styles.loginContainer}>
+  //     <View style={styles.loginForm}>
+  //       <Text style={styles.loginHeader}>Sign Up for Chess Forum</Text>
+  //       <TextInput
+  //         style={styles.loginInput}
+  //         placeholder="Email"
+  //         value={username}
+  //         onChangeText={setUsername}
+  //         autoCapitalize="none"
+  //       />
+  //       <TextInput
+  //         style={styles.loginInput}
+  //         placeholder="Username"
+  //         value={username}
+  //         onChangeText={setUsername}
+  //         autoCapitalize="none"
+  //       />
+  //       <TextInput
+  //         style={styles.loginInput}
+  //         placeholder="Password"
+  //         value={password}
+  //         onChangeText={setPassword}
+  //         secureTextEntry
+  //       />
+  //       {errorMessage ? (
+  //         <Text style={styles.errorMessage}>{errorMessage}</Text>
+  //       ) : null}
+
+  //       {/* Sign Up Button */}
+  //       <TouchableOpacity style={styles.loginButton} onPress={handleSignUp}>
+  //         <Text style={styles.loginButtonText}>Sign Up</Text>
+  //       </TouchableOpacity>
+
+  //       {/* Go Back to Log In Button */}
+  //       <TouchableOpacity
+  //         style={styles.loginButton}
+  //         onPress={() => setIsSignUp(false)}
+  //       >
+  //         <Text style={styles.loginButtonText}>Back to Log In</Text>
+  //       </TouchableOpacity>
+  //     </View>
+  //   </KeyboardAvoidingView>
+  // );
+
+  const handleSignUp = async () => {
+    try {
+      console.log("Attempting to sign up...");
+      console.log("Email:", email);
+      console.log("Username:", username);
+      // Don't log passwords in production!
+      console.log("Password length:", password.length);
+
+      const response = await api.post(
+        "/accounts/signup/",
+        {
+          mail: email,
+          username: username,
+          password: password,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("Sign up response:", response.data);
+
+      if (response.status === 201) {
+        console.log("Sign up successful");
+        Alert.alert("Success", "Account created successfully. Please log in.");
+        setIsSignUp(false);
+      } else {
+        console.log("Unexpected response status:", response.status);
+        setErrorMessage("Unexpected response from server.");
+      }
+    } catch (error) {
+      console.error("Sign up error:", error);
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        console.error("Error response data:", error.response.data);
+        console.error("Error response status:", error.response.status);
+        console.error("Error response headers:", error.response.headers);
+        setErrorMessage(JSON.stringify(error.response.data));
+      } else if (error.request) {
+        // The request was made but no response was received
+        console.error("No response received:", error.request);
+        setErrorMessage(
+          "No response from server. Please check your internet connection."
+        );
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        console.error("Error message:", error.message);
+        setErrorMessage(error.message);
+      }
+    }
+  };
+
   const renderSignUpPage = () => (
-    <KeyboardAvoidingView behavior="height" style={styles.loginContainer}>
+    <KeyboardAvoidingView behavior="padding" style={styles.loginContainer}>
       <View style={styles.loginForm}>
         <Text style={styles.loginHeader}>Sign Up for Chess Forum</Text>
         <TextInput
           style={styles.loginInput}
           placeholder="Email"
-          value={username}
-          onChangeText={setUsername}
+          value={email}
+          onChangeText={setEmail}
           autoCapitalize="none"
+          keyboardType="email-address"
         />
         <TextInput
           style={styles.loginInput}
@@ -318,12 +495,10 @@ export default function App() {
           <Text style={styles.errorMessage}>{errorMessage}</Text>
         ) : null}
 
-        {/* Sign Up Button */}
         <TouchableOpacity style={styles.loginButton} onPress={handleSignUp}>
           <Text style={styles.loginButtonText}>Sign Up</Text>
         </TouchableOpacity>
 
-        {/* Go Back to Log In Button */}
         <TouchableOpacity
           style={styles.loginButton}
           onPress={() => setIsSignUp(false)}
@@ -333,24 +508,6 @@ export default function App() {
       </View>
     </KeyboardAvoidingView>
   );
-
-  const handleSignUp = async () => {
-    try {
-      const response = await axios.post(
-        "http://167.99.133.190/api/v1/accounts/signup/",
-        {
-          mail: username,
-          password: password,
-        }
-      );
-
-      console.log("Sign up successful:", response.data);
-      setIsSignUp(false);
-    } catch (error) {
-      console.error("Sign up failed:", error.response?.data);
-      setErrorMessage("Sign up failed. Try again.");
-    }
-  };
 
   if (!isLoggedIn) {
     if (isSignUp) {
@@ -366,6 +523,7 @@ export default function App() {
           <Stack.Navigator screenOptions={{ headerShown: false }}>
             <Stack.Screen name="Home" component={MainScreen} />
             <Stack.Screen name="Analysis" component={AnalysisScreen} />
+            <Stack.Screen name="CreatePost" component={CreatePostScreen} />
           </Stack.Navigator>
         </NavigationContainer>
       </UserContext.Provider>
@@ -542,5 +700,58 @@ const styles = StyleSheet.create({
   loginButtonText: {
     color: "white",
     fontWeight: "bold",
+  },
+  createPostButton: {
+    position: "absolute",
+    bottom: 20,
+    right: 20,
+    backgroundColor: "#007AFF",
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  createPostHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
+  },
+  createPostTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  postButton: {
+    color: "#007AFF",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  createPostContent: {
+    flex: 1,
+    padding: 16,
+  },
+  postInput: {
+    flex: 1,
+    fontSize: 16,
+    textAlignVertical: "top",
+  },
+  addAttachmentButton: {
+    position: "absolute",
+    bottom: 16,
+    left: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#f0f0f0",
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
