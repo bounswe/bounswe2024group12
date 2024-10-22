@@ -13,7 +13,7 @@ const Feed = ({ isGuest }) => {
   }, []);
 
   function getPosts() {
-    fetch(BACKEND_URL + "/posts/list_items/", {
+    fetch(BACKEND_URL + "/posts/list_items/?page=2", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

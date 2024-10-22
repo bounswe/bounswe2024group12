@@ -109,7 +109,7 @@ const SharePost = () => {
                     variant="outlined"
                     fullWidth
                     inputProps={{ style: { fontSize: 24 } }}
-                    style={{ marginBottom: "10px" }}
+                    style={{ marginBottom: "10px", display: "none"}}
                   />
                 )}
               </Field>
