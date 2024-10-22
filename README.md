@@ -1,3 +1,5 @@
+To see the app: https://167.99.133.190:3000
+
 # Setup Instructions
 
 ## Backend
