@@ -14,6 +14,8 @@ import {
 import { Form, Field } from "react-final-form";
 import FENRenderer from "./FENRenderer";
 
+const BACKEND_URL = "https://167.99.133.190/api/v1";
+
 const SharePost = () => {
   const [imagePreview, setImagePreview] = useState(null);
   const [imageName, setImageName] = useState(null);
@@ -22,9 +24,8 @@ const SharePost = () => {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
-  const apiURL = process.env.REACT_APP_API_URL;
 
-  const tagOptions = ["A", "B", "C", "D", "E"];
+  const tagOptions = ["Chess", "Opening", "Endgame", "Tactics", "Strategy"];
 
   const onSubmit = (values, form) => {
     const postData = {
@@ -35,11 +36,12 @@ const SharePost = () => {
       tags: values.tags,
     };
     console.log(postData);
-    fetch(apiURL + "posts/create/", {
+    const token = localStorage.getItem("token");
+    fetch(BACKEND_URL + "/posts/create/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzI5NTY3OTE3LCJpYXQiOjE3Mjk1MjQ3MTcsImp0aSI6ImJhOTNkYzViYjU1MjRkZjY5NTRlNGQ3ZmZhMjlmNjQ0IiwidXNlcl9pZCI6MX0.UtDAWg4kvCj0DtTteVt38ux9WhU7fMPRYKFBVIZ5XuA"
+        "Authorization": `Bearer ${token}`,
       },
       body: JSON.stringify(postData),
     })
