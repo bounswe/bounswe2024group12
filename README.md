@@ -114,3 +114,44 @@ http://localhost:3000
 ## Mobile App
 
 This project contains the mobile app for an Android application.
+
+
+### Prerequisites
+
+Before running this project, make sure you have the following installed on your machine:
+
+- Docker
+- Git
+
+### Steps to Run Mobile
+
+1. **Clone the repository**:
+
+   ```bash
+   git clone https://github.com/bounswe/bounswe2024group12.git
+
+2. **Navigate to the mobile folder**:
+   
+   ```bash
+   cd project/Mobile
+
+3. Install dependencies
+
+   ```bash
+   npm install
+   ```
+
+4. Start the app
+
+   ```bash
+   npx expo start
+   ```
+
+In the output, you'll find options to open the app in a
+
+- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
+- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
+- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
+- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+
+
