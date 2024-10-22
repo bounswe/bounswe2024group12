@@ -1,0 +1,79 @@
+# Setup Instructions
+
+## Backend
+
+This project contains the backend for a Django application using MySQL as the database.
+
+### Prerequisites
+
+Before running this project, make sure you have the following installed on your machine:
+
+- [Docker](https://www.docker.com/get-started)
+
+### Steps to Run the Backend
+
+1. **Clone the repository:**
+
+   ```bash
+   git clone https://github.com/bounswe/bounswe2024group12.git
+   ```
+
+2. **Navigate to the backend folder:**
+
+   ```bash
+   cd app/backend
+   ```
+
+3. **Build and start the Docker containers in the background:**
+
+   ```bash
+   docker-compose up --build -d
+   ```
+
+   This will start two services:
+
+   - `web`: The Django backend service running on port `8000`.
+   - `db`: The MySQL database service running on port `3306`.
+
+4. **View logs to monitor the process:**
+
+   To view the logs for any service, run:
+
+   ```bash
+   docker-compose logs
+   ```
+
+5. **Apply the database migrations:**
+
+   ```bash
+   docker-compose exec web python manage.py migrate
+   ```
+
+6. **Access the application:**
+
+   - The application will be running at: `http://localhost:8000`
+   - The Django admin panel will be available at: `http://localhost:8000/admin`
+
+7. **Stop the containers:**
+
+   To stop the containers, run:
+
+   ```bash
+   docker-compose down
+   ```
+
+8. **Show the docker containers:**
+
+   To show the docker containers, run:
+
+   ```bash
+   docker ps
+   ```
+
+## Frontend
+
+This project contains the frontend for a React application.
+
+## Mobile App
+
+This project contains the mobile app for an Android application.

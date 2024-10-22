@@ -1,29 +1,46 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { AppBar, Toolbar, Button, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
-
 const Navbar = () => {
-  const login = true;
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
+
+  // Check for token in local storage to determine if user is logged in
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      setIsLoggedIn(true);
+    }
+  }, []);
+
   const handleHomeClick = () => {
     navigate('/');
-  }
+  };
+
   const handleLoginClick = () => {
     navigate('/login');
-  }
+  };
+
+  const handleLogoutClick = () => {
+    // Remove token from local storage to log out
+    localStorage.removeItem('token');
+    setIsLoggedIn(false);
+    navigate('/');
+  };
+
   return (
     <AppBar position="static">
-    <Toolbar>
-      <Typography variant="h6" style={{ flexGrow: 1 }}>
-      Chess Social
-      </Typography>
-      <Button color="inherit" onClick={handleHomeClick}>Home</Button>
-      <Button color="inherit">Archive</Button>
-      {!login && <Button color="inherit" onClick={handleLoginClick}>Login</Button>}
-      {login && <Button color="inherit">Profile</Button>}
-      {login && <Button color="inherit">Logout</Button>}
-    </Toolbar>
+      <Toolbar>
+        <Typography variant="h6" style={{ flexGrow: 1 }}>
+          Chess Social
+        </Typography>
+        <Button color="inherit" onClick={handleHomeClick}>Home</Button>
+        <Button color="inherit">Archive</Button>
+        {!isLoggedIn && <Button color="inherit" onClick={handleLoginClick}>Login</Button>}
+        {isLoggedIn && <Button color="inherit">Profile</Button>}
+        {isLoggedIn && <Button color="inherit" onClick={handleLogoutClick}>Logout</Button>}
+      </Toolbar>
     </AppBar>
   );
 };

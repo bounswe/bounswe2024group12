@@ -9,7 +9,8 @@ class Post(models.Model):
     post_image = models.ImageField(upload_to='post_images/', null=True, blank=True)
     fen = models.CharField(max_length=255, null=True, blank=True)
     post_text = models.TextField(null=True, blank=True)
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='posts', default=1)  # added user 1 as default
+    tags = models.TextField(null=True, blank=True)  # Tag relation
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='posts')
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):

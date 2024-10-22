@@ -14,6 +14,8 @@ import {
 import { Form, Field } from "react-final-form";
 import FENRenderer from "./FENRenderer";
 
+const BACKEND_URL = "https://167.99.133.190/api/v1";
+
 const SharePost = () => {
   const [imagePreview, setImagePreview] = useState(null);
   const [imageName, setImageName] = useState(null);
@@ -22,25 +24,24 @@ const SharePost = () => {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
-  const userId = 123;
-  const apiURL = process.env.REACT_APP_API_URL;
 
-  const tagOptions = ["A", "B", "C", "D", "E"];
+  const tagOptions = ["Chess", "Opening", "Endgame", "Tactics", "Strategy"];
 
   const onSubmit = (values, form) => {
     const postData = {
-      id: userId,
       title: values.title,
       post_text: values.postContent,
-      image: values.imageBase64,
+      post_image: values.imageBase64,
       fen: values.fen,
       tags: values.tags,
     };
     console.log(postData);
-    fetch(apiURL + "posts/create/", {
+    const token = localStorage.getItem("token");
+    fetch(BACKEND_URL + "/posts/create/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
       },
       body: JSON.stringify(postData),
     })
@@ -108,7 +109,7 @@ const SharePost = () => {
                     variant="outlined"
                     fullWidth
                     inputProps={{ style: { fontSize: 24 } }}
-                    style={{ marginBottom: "10px" }}
+                    style={{ marginBottom: "10px", display: "none"}}
                   />
                 )}
               </Field>
