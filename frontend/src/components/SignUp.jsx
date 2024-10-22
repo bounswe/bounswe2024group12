@@ -1,11 +1,16 @@
 import { useRef, useState, useEffect } from "react";
 import { faCheck, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
+import Box from '@mui/material/Box';
+import Container from '@mui/material/Container';
+import Typography from '@mui/material/Typography';
+import Alert from '@mui/material/Alert';
 
 const BACKEND_URL = "https://167.99.133.190/api/v1"
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 const PWD_REGEX = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
-
 
 const SignUp = () => {
   const emailRef = useRef();
@@ -81,143 +86,98 @@ const SignUp = () => {
   }
 
   return (
-    <div style={{
-      backgroundColor: "#d4edda",
-      height: "100vh",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center"
-    }}>
+    <Container maxWidth="sm" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
       {success ? (
-        <section style={{ textAlign: "center", color: "green" }}>
-          <h1>Success!</h1>
-          <p>Your account has been created.</p>
-          <p>
-            <a href="/login" style={{ color: "green" }}>Log in</a>
-          </p>
-        </section>) : (
-        <section style={{
-          backgroundColor: "#e8f5e9",
-          padding: "20px",
-          borderRadius: "8px",
-          maxWidth: "400px",
-          width: "100%",
-          boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)"
-        }}>
-          <p ref={errRef} className={errMsg ? "error" : "hidden"} style={{ color: "red" }}> {errMsg} </p>
-          <h1 style={{ color: "green", textAlign: "center" }}>Sign Up</h1>
-          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            <label htmlFor="email">
-              Email
-              <span>
-                {validEmail ? (<FontAwesomeIcon icon={faCheck} style={{ color: "green" }} />) : null}
-              </span>
-              <span>
-                {emailFocus && !validEmail ? (<FontAwesomeIcon icon={faTimes} style={{ color: "red" }} />) : null}
-              </span>
-            </label>
-            <input
-              type="text"
-              id="email"
-              ref={emailRef}
-              autoComplete="off"
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              aria-invalid={validEmail ? "false" : "true"}
-              aria-describedby="email-error"
-              onFocus={() => setEmailFocus(true)}
-              onBlur={() => setEmailFocus(false)}
-              style={{ borderColor: validEmail ? "green" : "red", padding: "8px", borderRadius: "4px" }}
-            />
-            <p id="email-error" style={{ color: "red" }}>
-              {emailFocus && !validEmail ? "Please enter a valid email address." : ""}
-            </p>
+        <Box textAlign="center">
+          <Typography variant="h4" color="success.main">Success!</Typography>
+          <Typography>Your account has been created.</Typography>
+          <Button href="/login" variant="contained" color="success">Log in</Button>
+        </Box>
+      ) : (
+        <Box component="form" onSubmit={handleSubmit} sx={{ backgroundColor: 'white', padding: 3, borderRadius: 2, boxShadow: 3 }}>
+          {errMsg && <Alert severity="error" ref={errRef}>{errMsg}</Alert>}
+          <Typography variant="h4" color="primary" textAlign="center" mb={2}>Sign Up</Typography>
+          
+          <TextField
+            label="Email"
+            type="email"
+            fullWidth
+            margin="normal"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            onFocus={() => setEmailFocus(true)}
+            onBlur={() => setEmailFocus(false)}
+            error={emailFocus && !validEmail}
+            helperText={emailFocus && !validEmail ? "Please enter a valid email address." : ""}
+            InputProps={{
+              endAdornment: validEmail && <FontAwesomeIcon icon={faCheck} style={{ color: "green" }} />,
+            }}
+          />
 
-            <label htmlFor="name">
-              Name
-              <span>
-                {name ? (<FontAwesomeIcon icon={faCheck} style={{ color: "green" }} />) : null}
-              </span>
-            </label>
-            <input
-              type="text"
-              id="name"
-              autoComplete="off"
-              onChange={(e) => setName(e.target.value)}
-              onFocus={() => setNameFocus(true)}
-              onBlur={() => setNameFocus(false)}
-              style={{ padding: "8px", borderRadius: "4px", borderColor: name ? "green" : "red" }}
-            />
-            <p></p>
-            <label htmlFor="password">
-              Password
-              <span>
-                {validPassword ? (<FontAwesomeIcon icon={faCheck} style={{ color: "green" }} />) : null}
-              </span>
-              <span>
-                {passwordFocus && !validPassword ? (<FontAwesomeIcon icon={faTimes} style={{ color: "red" }} />) : null}
-              </span>
-            </label>
-            <input
-              type="password"
-              id="password"
-              autoComplete="off"
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              aria-invalid={validPassword ? "false" : "true"}
-              aria-describedby="password-error"
-              onFocus={() => setPasswordFocus(true)}
-              onBlur={() => setPasswordFocus(false)}
-              style={{ borderColor: validPassword ? "green" : "red", padding: "8px", borderRadius: "4px" }}
-            />
-            <p id="password-error" style={{ color: "red" }}>
-              {passwordFocus && !validPassword ? "Password must be at least 8 characters long and contain at least one letter and one number." : ""}
-            </p>
+          <TextField
+            label="Username"
+            fullWidth
+            margin="normal"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            InputProps={{
+              endAdornment: name && <FontAwesomeIcon icon={faCheck} style={{ color: "green" }} />,
+            }}
+          />
 
-            <label htmlFor="confirm-password">
-              Confirm Password
-              <span>
-                {(validConfirmPassword && password) ? (<FontAwesomeIcon icon={faCheck} style={{ color: "green" }} />) : null}
-              </span>
-              <span>
-                {confirmPasswordFocus && !validConfirmPassword ? (<FontAwesomeIcon icon={faTimes} style={{ color: "red" }} />) : null}
-              </span>
-            </label>
+          <TextField
+            label="Password"
+            type="password"
+            fullWidth
+            margin="normal"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            onFocus={() => setPasswordFocus(true)}
+            onBlur={() => setPasswordFocus(false)}
+            error={passwordFocus && !validPassword}
+            helperText={passwordFocus && !validPassword ? "Password must be at least 8 characters, and contain letters and numbers." : ""}
+            InputProps={{
+              endAdornment: validPassword && <FontAwesomeIcon icon={faCheck} style={{ color: "green" }} />,
+            }}
+          />
 
-            <input
-              type="password"
-              id="confirm-password"
-              autoComplete="off"
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              aria-invalid={validConfirmPassword ? "false" : "true"}
-              aria-describedby="confirm-password-error"
-              onFocus={() => setConfirmPasswordFocus(true)}
-              onBlur={() => setConfirmPasswordFocus(false)}
-              style={{ borderColor: validConfirmPassword && confirmPassword ? "green" : "red", padding: "8px", borderRadius: "4px" }}
-            />
-            <p id="confirm-password-error" style={{ color: "red" }}>
-              {confirmPasswordFocus && !validConfirmPassword ? "Passwords do not match." : ""}
-            </p>
+          <TextField
+            label="Confirm Password"
+            type="password"
+            fullWidth
+            margin="normal"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            onFocus={() => setConfirmPasswordFocus(true)}
+            onBlur={() => setConfirmPasswordFocus(false)}
+            error={confirmPasswordFocus && !validConfirmPassword}
+            helperText={confirmPasswordFocus && !validConfirmPassword ? "Passwords do not match." : ""}
+            InputProps={{
+              endAdornment: validConfirmPassword && confirmPassword && <FontAwesomeIcon icon={faCheck} style={{ color: "green" }} />,
+            }}
+          />
 
-            <button
-              type="submit"
-              disabled={!(validEmail && validPassword && validConfirmPassword)}
-              style={{ backgroundColor: "green", color: "white", padding: "10px", borderRadius: "4px", border: "none", cursor: "pointer" }}
-            >
-              Sign Up
-            </button>
-          </form>
-          <p>
-            Already have an account? <a href="/login" style={{ color: "green" }}>Log in</a>
-          </p>
-          <p>
-            Continue as a guest? <a href="/home" style={{ color: "green" }}>Continue</a>
-          </p>
-        </section>)}
-    </div>
-  )
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            fullWidth
+            disabled={!(validEmail && validPassword && validConfirmPassword)}
+            sx={{ mt: 2 }}
+          >
+            Sign Up
+          </Button>
 
+          <Typography mt={2} textAlign="center">
+            Already have an account? <Button href="/login" variant="text" color="primary">Log in</Button>
+          </Typography>
+          <Typography mt={1} textAlign="center">
+            Continue as a guest? <Button href="/home" variant="text" color="primary">Continue</Button>
+          </Typography>
+        </Box>
+      )}
+    </Container>
+  );
 }
 
 export default SignUp;
