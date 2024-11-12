@@ -90,8 +90,9 @@ const SharePost = () => {
 
   return (
     <Card sx={{
-      width: '75%',
+      width: '50%',
       margin: '0 auto 1% auto',
+      borderRadius: "0px 0px 10px 10px",
     }}>
       <CardContent sx={{
         width: '95%',

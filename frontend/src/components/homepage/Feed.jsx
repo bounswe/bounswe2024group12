@@ -67,10 +67,10 @@ const Feed = ({ isGuest }) => {
               justifyContent: "center",
               margin: "20px auto -3px auto",
               padding: "5px 5px",
-              backgroundColor: "#769656",
+              backgroundColor: "secondary.main",
               borderRadius: "10px 10px 0px 0px",
               boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
-              width: "75%",
+              width: "50%",
             }}
           >
             <Typography
@@ -87,12 +87,12 @@ const Feed = ({ isGuest }) => {
         sx={{
           display: "flex",
           justifyContent: "center",
-          margin: "20px auto -10px auto",
+          margin: "20px auto -20px auto",
           padding: "10px 20px",
-          backgroundColor: "#769656",
-          borderRadius: "10px",
+          backgroundColor: "secondary.main",
+          borderRadius: "10px 10px 0px 0px",
           boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
-          width: "75%",
+          width: "50%",
         }}
       >
         <Typography

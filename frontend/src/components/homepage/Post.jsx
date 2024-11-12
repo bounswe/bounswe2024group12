@@ -33,7 +33,7 @@ const Post = ({ post }) => {
   };
 
   return (
-    <Card sx={{ width: '75%', margin: '1% auto' }}>
+    <Card sx={{ width: '50%', margin: '1% auto' }}>
       <CardContent sx={{ width: '95%', margin: '1% auto' }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
           <Typography variant="h6" sx={{ fontWeight: 'bold' }}>

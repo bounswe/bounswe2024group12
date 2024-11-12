@@ -32,7 +32,7 @@ const Navbar = () => {
   return (
     <AppBar position="static">
       <Toolbar>
-        <Typography variant="h6" style={{ flexGrow: 1 }}>
+        <Typography variant="h5" color= "text.secondary" style={{ flexGrow: 1, fontFamily: "Helvetica", justifyContent:'center', fontWeight: "bold"}}>
           Chess Social
         </Typography>
         <Button color="inherit" onClick={handleHomeClick}>Home</Button>
