@@ -3,7 +3,7 @@ import Post from "./Post";
 import SharePost from "./SharePost";
 import { Typography, Box } from "@mui/material";
 
-const BACKEND_URL = "https://167.99.133.190/api/v1";
+const BACKEND_URL = process.env.REACT_APP_API_URL;
 
 const Feed = ({ isGuest }) => {
   const [posts, setPosts] = useState([]);

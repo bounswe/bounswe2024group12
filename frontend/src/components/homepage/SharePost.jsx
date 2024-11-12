@@ -14,7 +14,7 @@ import {
 import { Form, Field } from "react-final-form";
 import FENRenderer from "./FENRenderer";
 
-const BACKEND_URL = "https://167.99.133.190/api/v1";
+const BACKEND_URL = process.env.REACT_APP_API_URL;
 
 const SharePost = () => {
   const [imagePreview, setImagePreview] = useState(null);
@@ -109,7 +109,7 @@ const SharePost = () => {
                     variant="outlined"
                     fullWidth
                     inputProps={{ style: { fontSize: 24 } }}
-                    style={{ marginBottom: "10px", display: "none"}}
+                    style={{ marginBottom: "10px", display: "none" }}
                   />
                 )}
               </Field>

@@ -3,7 +3,7 @@ import Navbar from './Navbar';
 import Feed from './Feed';
 import { useNavigate } from 'react-router-dom'; // For navigation
 
-const BACKEND_URL = "https://167.99.133.190/api/v1";
+const BACKEND_URL = process.env.REACT_APP_API_URL;
 
 const HomeCard = () => {
   const navigate = useNavigate();
