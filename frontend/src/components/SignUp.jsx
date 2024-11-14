@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from "react";
-import { faCheck, faTimes } from "@fortawesome/free-solid-svg-icons";
+import { faCheck } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
@@ -8,12 +8,11 @@ import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import Alert from '@mui/material/Alert';
 
-const BACKEND_URL = "https://167.99.133.190/api/v1"
+const BACKEND_URL = process.env.REACT_APP_API_URL;
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 const PWD_REGEX = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
 
 const SignUp = () => {
-  const emailRef = useRef();
   const errRef = useRef();
 
   const [email, setEmail] = useState("");
@@ -21,7 +20,6 @@ const SignUp = () => {
   const [emailFocus, setEmailFocus] = useState(false);
 
   const [name, setName] = useState("");
-  const [nameFocus, setNameFocus] = useState(false);
 
   const [password, setPassword] = useState("");
   const [validPassword, setValidPassword] = useState(false);
@@ -97,7 +95,7 @@ const SignUp = () => {
         <Box component="form" onSubmit={handleSubmit} sx={{ backgroundColor: 'white', padding: 3, borderRadius: 2, boxShadow: 3 }}>
           {errMsg && <Alert severity="error" ref={errRef}>{errMsg}</Alert>}
           <Typography variant="h4" color="primary" textAlign="center" mb={2}>Sign Up</Typography>
-          
+
           <TextField
             label="Email"
             type="email"

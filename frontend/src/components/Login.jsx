@@ -12,7 +12,7 @@ import {
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const BACKEND_URL = "https://167.99.133.190/api/v1"; // Define your backend URL
+const BACKEND_URL = process.env.REACT_APP_API_URL;
 
 const Login = () => {
   const [errorMsg, setErrorMsg] = useState("");
