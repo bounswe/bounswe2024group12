@@ -12,7 +12,7 @@ import {
   Typography,
 } from "@mui/material";
 import { Form, Field } from "react-final-form";
-import FENRenderer from "./FENRenderer";
+import FENRenderer from "../common/FENRenderer";
 
 const BACKEND_URL = process.env.REACT_APP_API_URL;
 

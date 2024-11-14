@@ -9,7 +9,7 @@ import {
   Chip,
   Divider,
 } from "@mui/material";
-import FENRenderer from "./FENRenderer";
+import FENRenderer from "../common/FENRenderer";
 import ThumbUpIcon from "@mui/icons-material/ThumbUp";
 import ThumbDownIcon from "@mui/icons-material/ThumbDown";
 import ShareIcon from "@mui/icons-material/Share";

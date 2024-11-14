@@ -1,19 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import Navbar from '../common/Navbar';
-import Feed from './Feed';
-import { useNavigate } from 'react-router-dom'; // For navigation
+import GameScreen from './GameScreen';
+import { useNavigate } from 'react-router-dom';
+import { Typography, Box } from '@mui/material';
 
 const BACKEND_URL = process.env.REACT_APP_API_URL;
 
-const HomeCard = () => {
+const ArchiveCard = () => {
   const navigate = useNavigate();
   const [isGuest, setIsGuest] = useState(false);
+
+  const exampleMoves = [
+    "start",
+    "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
+    "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2",
+    "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2",
+    "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3"
+  ];
 
   useEffect(() => {
     const token = localStorage.getItem("token");
 
     if (!token) {
-      // If no token, the user is continuing as a guest
       setIsGuest(true);
       return;
     }
@@ -42,19 +50,19 @@ const HomeCard = () => {
     checkHealth();
   }, [navigate]);
 
+  const gameTitle = "Chess Match - November 14, 2024";
+
   return (
     <div>
       <Navbar />
-      <Feed isGuest={isGuest}/>
-      {isGuest && (
-        <div style={{ padding: '20px', textAlign: 'center' }}>
-          <h2>Welcome, Guest!</h2>
-          <p>Feel free to explore the app, but certain features may require an account.</p>
-          <button onClick={() => navigate('/login')}>Sign Up / Login</button>
-        </div>
-      )}
+      <Box sx={{ p: 3, textAlign: 'center', backgroundColor: 'background.paper', borderRadius: 0, mb: 2 }}>
+        <Typography variant="h5" sx={{ color: 'text.primary', fontWeight: 'bold' }}>
+          {gameTitle}
+        </Typography>
+      </Box>
+      <GameScreen moves={exampleMoves} />
     </div>
   );
 };
 
-export default HomeCard;
+export default ArchiveCard;
