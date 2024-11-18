@@ -1,7 +1,7 @@
 import base64
 from django.core.files.base import ContentFile
 from rest_framework import serializers
-from .models import Post
+from .models import Post, Like, Comment
 
 # Special field for converting image data into base64 format
 class Base64ImageField(serializers.ImageField):
@@ -47,3 +47,14 @@ class PostSerializer(serializers.ModelSerializer):
     def get_user(self, obj):
         return obj.user.username
     
+
+
+class LikeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Like
+        fields = ['id', 'user', 'post', 'created_at']
+
+class CommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = ['id', 'user', 'post', 'text', 'created_at']

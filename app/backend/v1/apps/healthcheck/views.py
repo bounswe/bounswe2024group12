@@ -2,9 +2,10 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.db import connection
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+
 
 # Define the Authorization header
 auth_header = openapi.Parameter(
@@ -35,6 +36,7 @@ def hc(request):
     }
 )
 @api_view(['GET'])
+@permission_classes([AllowAny])  # No authentication required
 def hc_db(request):
     try:
         with connection.cursor() as cursor:
@@ -42,3 +44,10 @@ def hc_db(request):
         return JsonResponse({"db_status": "healthy"}, status=200)
     except Exception as e:
         return JsonResponse({"db_status": "unhealthy", "error": str(e)}, status=500)
+    
+
+# Mock endpoint for testing
+@api_view(['GET'])
+@permission_classes([AllowAny])  # No authentication required
+def mock(request):
+    return JsonResponse({"message": "This is a mock endpoint for testing purposes."})
