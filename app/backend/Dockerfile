@@ -12,6 +12,7 @@ RUN pip install drf-yasg
 RUN pip install setuptools
 RUN pip install Pillow
 RUN pip install django-cors-headers
+RUN pip install requests
 
 
 # port
