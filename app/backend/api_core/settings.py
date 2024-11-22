@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'v1.apps.test_endpoint',
     'v1.apps.accounts',
     'v1.apps.posts',
+    'v1.apps.games',
     
 ]
 
