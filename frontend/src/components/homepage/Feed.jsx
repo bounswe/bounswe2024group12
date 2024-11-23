@@ -23,7 +23,7 @@ const Feed = ({ isGuest }) => {
     setError(null);
 
     try {
-      const response = await fetch(`${BACKEND_URL}/posts/list_items/?page=${page}`);
+      const response = await fetch(`${BACKEND_URL}/posts/list_posts/?page=${page}`);
       const data = await response.json();
 
       // Filter out posts without title or content and map to the required structure
