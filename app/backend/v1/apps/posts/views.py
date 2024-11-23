@@ -8,6 +8,7 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
 from v1.apps.posts.models import Post, Like, Comment
+from v1.apps.accounts.models import CustomUser
 from v1.apps.posts.serializers import PostSerializer, LikeSerializer, CommentSerializer
 
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -264,13 +265,33 @@ comment_id_param = openapi.Parameter(
     method='post',
     request_body=openapi.Schema(
         type=openapi.TYPE_OBJECT,
-        properties={'text': openapi.Schema(type=openapi.TYPE_STRING, description="Comment text")},
+        properties={
+            'text': openapi.Schema(type=openapi.TYPE_STRING, description="Comment text"),
+            'fen_notations': openapi.Schema(
+                type=openapi.TYPE_STRING, 
+                description="Optional FEN notations as a comma-separated string (e.g., 'rnbqkbnr/ppp2ppp/4p3/3p4/3P1B2/8/PPP1PPPP/RN1QKBNR w KQkq - 0 3,rnbqkbnr/ppp2ppp/4p3/3p4/3P1B2/5N2/PPP1PPPP/RN1QKB1R b KQkq - 1 3 ')",
+                nullable=True
+            )
+        },
         required=['text']
     ),
-    operation_description="Add a new comment to a specific post.",
+    operation_description="Add a new comment to a specific post. Optionally include FEN notations.",
     operation_summary="Create Comment",
     responses={
-        201: openapi.Response(description="Comment created"),
+        201: openapi.Response(
+            description="Comment created successfully.",
+            examples={
+                "application/json": {
+                    "id": 7,
+                    "user": "soner",
+                    "post": 1,
+                    "text": "I think that this line might be better. ",
+                    "created_at": "2024-11-23T18:10:14.312264Z",
+                    "fen_notations": "rnbqkbnr/ppp2ppp/4p3/3p4/3P1B2/8/PPP1PPPP/RN1QKBNR w KQkq - 0 3,rnbqkbnr/ppp2ppp/4p3/3p4/3P1B2/5N2/PPP1PPPP/RN1QKB1R b KQkq - 1 3",
+                    "user_id": 1
+                }
+            }
+        ),
         400: "Invalid request",
         404: "Post not found"
     }
@@ -282,25 +303,48 @@ def create_comment(request, post_id):
         post = Post.objects.get(id=post_id)
     except Post.DoesNotExist:
         return Response({"error": "Post not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    request.data['post'] = post.id
+    request.data['user'] = request.user.id
 
+    # Allow optional fen_notations in request data
     serializer = CommentSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save(user=request.user, post=post)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
 # Separate view for updating and deleting a comment
 @swagger_auto_schema(
     method='put',
     request_body=openapi.Schema(
         type=openapi.TYPE_OBJECT,
-        properties={'text': openapi.Schema(type=openapi.TYPE_STRING, description="Updated comment text")}
+        properties={
+            'text': openapi.Schema(type=openapi.TYPE_STRING, description="Updated comment text"),
+            'fen_notations': openapi.Schema(
+                type=openapi.TYPE_STRING, 
+                description="Optional FEN notations as a comma-separated string (e.g., 'rnbqkbnr/ppp2ppp/4p3/3p4/3P1B2/8/PPP1PPPP/RN1QKBNR w KQkq - 0 3,rnbqkbnr/ppp2ppp/4p3/3p4/3P1B2/5N2/PPP1PPPP/RN1QKB1R b KQkq - 1 3 ')",
+                nullable=True
+            )
+        }
     ),
-    operation_description="Update an existing comment on a specific post.",
+    operation_description="Update an existing comment on a specific post. Optionally include FEN notations.",
     operation_summary="Update Comment",
     responses={
-        200: openapi.Response(description="Comment updated"),
+        200: openapi.Response(
+            description="Comment updated successfully.",
+            examples={
+                "application/json": {
+                    "id": 7,
+                    "user": "soner",
+                    "post": 1,
+                    "text": "Updated FEN Comment",
+                    "created_at": "2024-11-23T18:10:14.312264Z",
+                    "fen_notations": "rnbqkbnr/ppp2ppp/4p3/3p4/3P1B2/8/PPP1PPPP/RN1QKBNR w KQkq - 0 3,rnbqkbnr/ppp2ppp/4p3/3p4/3P1B2/5N2/PPP1PPPP/RN1QKB1R b KQkq - 1 3",
+                    "user_id": 1
+                }
+            }
+        ),
         400: "Invalid request",
         403: "Unauthorized",
         404: "Comment not found"
@@ -345,11 +389,29 @@ def update_delete_comment(request, post_id, comment_id):
     operation_summary="List Comments",
     responses={
         200: openapi.Response(
-            description="Comments retrieved",
-            examples={"application/json": [
-                {"id": 1, "text": "Great post!", "user": "user1", "created_at": "2024-10-16T12:00:00Z"},
-                {"id": 2, "text": "Thanks for sharing.", "user": "user2", "created_at": "2024-10-17T10:00:00Z"}
-            ]}
+            description="Comments retrieved successfully.",
+            examples={
+                "application/json": [
+                    {
+                        "id": 7,
+                        "user": "soner",
+                        "post": 1,
+                        "text": "FEN Comment",
+                        "created_at": "2024-11-23T18:10:14.312264Z",
+                        "fen_notations": "rnbqkbnr/ppp2ppp/4p3/3p4/3P1B2/8/PPP1PPPP/RN1QKBNR w KQkq - 0 3,rnbqkbnr/ppp2ppp/4p3/3p4/3P1B2/5N2/PPP1PPPP/RN1QKB1R b KQkq - 1 3",
+                        "user_id": 1
+                    },
+                    {
+                        "id": 8,
+                        "user": "jane",
+                        "post": 1,
+                        "text": "Another comment",
+                        "created_at": "2024-11-23T19:15:22.123456Z",
+                        "fen_notations": "null",
+                        "user_id": 2
+                    }
+                ]
+            }
         ),
         404: "Post not found"
     }
@@ -359,4 +421,20 @@ def update_delete_comment(request, post_id, comment_id):
 def list_comments(request, post_id):
     comments = Comment.objects.filter(post_id=post_id)
     serializer = CommentSerializer(comments, many=True)
-    return Response(serializer.data, status=status.HTTP_200_OK)
+    # fetch user name for each comment and return at the response
+
+    res = []
+    for comment in serializer.data:
+        user = CustomUser.objects.get(id=comment['user'])
+        comment['user_id'] = user.id
+        comment['user'] = user.username
+        res.append(comment)
+    
+    return Response(res, status=status.HTTP_200_OK)
+
+    
+        
+    
+
+
+    
