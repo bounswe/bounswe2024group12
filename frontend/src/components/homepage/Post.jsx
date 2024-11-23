@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from 'react';
 import {
   Card,
   CardContent,
@@ -15,7 +15,10 @@ import ThumbDownIcon from "@mui/icons-material/ThumbDown";
 import ShareIcon from "@mui/icons-material/Share";
 import CommentIcon from "@mui/icons-material/Comment";
 
+const BACKEND_URL = process.env.REACT_APP_API_URL;
+
 const Post = ({ post }) => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const postID = post.id;
   const postHeader = post.title;
   const postContent = post.post_text;
@@ -30,19 +33,52 @@ const Post = ({ post }) => {
   const timestamp = new Date(post.timestamp); // Parse timestamp as Date
 
   const [likeCount, setLikeCount] = useState(initialLikeCount);
-  const [liked, setLiked] = useState(false); // Track if the post is liked
+  const [liked, setLiked] = useState(post.liked); // Track if the post is liked
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      setIsLoggedIn(true);
+    }
+  }, []);
 
   const getImageSrc = (image, mimeType = "jpeg") => {
     if (!image) return "";
     return image.startsWith("data:") ? image : `data:image/${mimeType};base64,${image}`;
   };
 
-  const handleLikeToggle = async () => {
+  const getLikeCount = async () => {
     try {
-      const response = await fetch(`/posts/like/${postID}/`, {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`/posts/likes_summary/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setLikeCount(data.likes);
+        setLiked(data.liked);
+      } else {
+        console.error("Failed to fetch like summary");
+      }
+    } catch (error) {
+      console.error("An error occurred while fetching like summary:", error);
+    }
+  };
+
+
+  const handleLikeToggle = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`${BACKEND_URL}/posts/like/${postID}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
         },
       });
 
@@ -137,13 +173,13 @@ const Post = ({ post }) => {
             {formattedDate} {formattedTime}
           </Typography>
         </Box>
-
+        <Divider sx={{ backgroundColor: 'gray', mt: '20px' }} />
+        {isLoggedIn && (
         <Box
           sx={{
             display: 'flex',
             justifyContent: 'space-around',
             alignItems: 'center',
-            marginTop: '10px',
             borderTop: '1px solid #ddd',
             paddingTop: '10px',
           }}
@@ -172,7 +208,7 @@ const Post = ({ post }) => {
           <IconButton>
             <ShareIcon />
           </IconButton>
-        </Box>
+        </Box>)}
       </CardContent>
     </Card>
   );

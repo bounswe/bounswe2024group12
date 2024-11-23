@@ -17,15 +17,37 @@ const Feed = ({ isGuest }) => {
     fetchData();
   }, [page]);
 
+  const fetchLikeData = async (postIds) => {
+    console.log("Fetching like data for posts:", postIds);
+    try {
+      const response = await fetch(`${BACKEND_URL}/posts/get_likes/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ post_ids: postIds }),
+      });
+
+      if (response.ok) {
+        return await response.json(); // Returns an array of like data
+      } else {
+        console.error("Failed to fetch like data");
+        return null;
+      }
+    } catch (error) {
+      console.error("Error fetching like data:", error);
+      return null;
+    }
+  };
+
   const fetchData = async () => {
     setIsLoading(true);
     setError(null);
-  
+
     try {
       const response = await fetch(`${BACKEND_URL}/posts/list_posts/?page=${page}`);
       const data = await response.json();
-      console.log(data);
-      // Filter out posts without title or content and map to the required structure
+
       const filteredPosts = data.results
         .filter((post) => post.post_text && post.user)
         .map((post) => ({
@@ -38,12 +60,26 @@ const Feed = ({ isGuest }) => {
           tags: post.tags || [],
           timestamp: new Date(post.created_at),
         }));
-  
-      // Combine existing posts and new posts, then sort by timestamp
+
+      // Fetch like data for the filtered posts
+      const postIds = filteredPosts.map((post) => post.id);
+      const likeData = await fetchLikeData(postIds);
+
+      // Combine the like data with the posts
+      const postsWithLikes = filteredPosts.map((post) => {
+        const likeInfo = likeData?.find((like) => like.post_id === post.id);
+        return {
+          ...post,
+          likeCount: likeInfo?.like_count || 0,
+          liked: likeInfo?.liked || false, // Set initial liked status
+        };
+      });
+
+      // Update state with sorted posts including like data
       setPosts((prevPosts) =>
-        [...prevPosts, ...filteredPosts].sort((a, b) => b.timestamp - a.timestamp)
+        [...prevPosts, ...postsWithLikes].sort((a, b) => b.timestamp - a.timestamp)
       );
-  
+
       // Determine if there are more posts to load
       if (data.next === null) {
         setHasMore(false); // No more data to load
@@ -56,7 +92,6 @@ const Feed = ({ isGuest }) => {
       setIsLoading(false);
     }
   };
-  
 
   return (
     <div>
