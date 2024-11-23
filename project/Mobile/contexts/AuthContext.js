@@ -1,33 +1,35 @@
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { authService } from '../services/AuthService';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const checkAuth = async () => {
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      const userData = await AsyncStorage.getItem('userData');
+      if (token && userData) {
+        setUser(JSON.parse(userData));
+      }
+    } catch (err) {
+      console.error('Auth check error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const login = async (email, password) => {
     try {
       setLoading(true);
       setError('');
       const response = await authService.login(email, password);
+      await AsyncStorage.setItem('userData', JSON.stringify(response));
       setUser(response);
-      return true;
-    } catch (err) {
-      setError(err.message);
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const signup = async (email, username, password) => {
-    try {
-      setLoading(true);
-      setError('');
-      const response = await authService.signup(email, username, password);
       return true;
     } catch (err) {
       setError(err.message);
@@ -41,6 +43,8 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       await authService.logout();
+      await AsyncStorage.removeItem('userToken');
+      await AsyncStorage.removeItem('userData');
       setUser(null);
     } catch (err) {
       setError(err.message);
@@ -54,8 +58,8 @@ export const AuthProvider = ({ children }) => {
     loading,
     error,
     login,
-    signup,
-    logout
+    logout,
+    checkAuth
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

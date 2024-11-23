@@ -10,7 +10,6 @@ export default function LoginScreen({ navigation }) {
   const handleLogin = async () => {
     const success = await login(email, password);
     if (success) {
-      // Navigation handled by App.js based on auth state
     }
   };
 
@@ -34,18 +33,18 @@ export default function LoginScreen({ navigation }) {
           secureTextEntry
         />
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
-        
-        <TouchableOpacity 
-          style={styles.button} 
+
+        <TouchableOpacity
+          style={styles.button}
           onPress={handleLogin}
-          disabled={loading}
+          disabled={loading} // Prevent multiple clicks during loading
         >
           <Text style={styles.buttonText}>
             {loading ? 'Logging in...' : 'Log In'}
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.button}
           onPress={() => navigation.navigate('Signup')}
         >

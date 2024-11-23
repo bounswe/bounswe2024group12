@@ -11,12 +11,12 @@ import {
   SafeAreaView,
   Platform,
   StatusBar,
+  Alert,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import Popover from "react-native-popover-view";
 import Chessboard from "react-native-chessboard";
-import axios from "axios";
-import { UserContext } from "./UserContext";
+import { api } from './services/AuthService';
 
 const RemoveButton = ({ onPress }) => (
   <TouchableOpacity style={styles.removeButton} onPress={onPress}>
@@ -36,39 +36,56 @@ const CreatePostScreen = ({ navigation }) => {
 
   const createPost = async () => {
     if (!postContent && !chessboardFen) {
-      Alert.alert(
-        "Error",
-        "Please enter some content or add a chess position."
-      );
+      Alert.alert("Error", "Please enter some content or add a chess position.");
       return;
     }
-
+  
     try {
-      const response = await axios.post(
-        "http://167.99.133.190/api/v1/posts/create/",
-        {
-          post_text: postContent,
-          fen: chessboardFen,
-          // Note: We're not handling image upload in this version
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            // Add authorization header if required
-            // 'Authorization': `Bearer ${userToken}`
-          },
-        }
-      );
-
+      console.log('Creating post with data:', {
+        title: postContent.substring(0, 50),
+        post_text: postContent,
+        fen: chessboardFen,
+        tags: []
+      });
+  
+      const response = await api.post("/posts/create/", {
+        title: postContent.substring(0, 50),
+        post_text: postContent,
+        fen: chessboardFen,
+        tags: []
+      });
+  
+      console.log('Create post response:', response.data);
+  
       if (response.status === 201) {
-        Alert.alert("Success", "Post created successfully!");
-        navigation.goBack();
+        Alert.alert(
+          "Success",
+          "Post created successfully!",
+          [
+            {
+              text: "OK",
+              onPress: () => {
+                console.log('Navigating back to Home');
+                navigation.navigate('Home', { refresh: Date.now() });
+                setTimeout(() => {
+                  try {
+                    navigation.setParams({ refresh: Date.now() });
+                  } catch (e) {
+                    console.error('Error setting refresh param:', e);
+                  }
+                }, 500);
+              }
+            }
+          ]
+        );
       }
     } catch (error) {
       console.error("Error creating post:", error);
-      Alert.alert("Error", "Failed to create post. Please try again.");
+      console.error("Error response:", error.response?.data);
+      const errorMsg = error.response?.data?.message || "Failed to create post. Please try again.";
+      Alert.alert("Error", errorMsg);
     }
-  };
+  };  
 
   const renderDropdown = () => (
     <Popover
@@ -136,10 +153,6 @@ const CreatePostScreen = ({ navigation }) => {
     </Modal>
   );
 
-  const removeChessboard = () => {
-    setChessboardFen("");
-  };
-
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
@@ -167,7 +180,7 @@ const CreatePostScreen = ({ navigation }) => {
                 boardSize={boardSize}
                 gestureEnabled={false}
               />
-              <RemoveButton onPress={removeChessboard} />
+              <RemoveButton onPress={() => setChessboardFen("")} />
             </View>
           )}
           {renderDropdown()}
@@ -181,7 +194,7 @@ const CreatePostScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "white", // or any color that matches your design
+    backgroundColor: "white",
     paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
   },
   container: {
@@ -268,7 +281,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
     marginHorizontal: 20,
-    position: "relative", // This allows absolute positioning of children
+    position: "relative",
   },
   removeButton: {
     position: "absolute",
@@ -280,7 +293,7 @@ const styles = StyleSheet.create({
     height: 24,
     justifyContent: "center",
     alignItems: "center",
-    zIndex: 1, // Ensures the button is above the chessboard
+    zIndex: 1,
   },
 });
 

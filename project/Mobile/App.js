@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -12,19 +12,25 @@ import SignupScreen from './screens/SignupScreen';
 const Stack = createStackNavigator();
 
 function AppNavigator() {
-  const { user } = useAuth();
+  const { user, loading, checkAuth } = useAuth();
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  if (loading) {
+    return null;
+  }
 
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {!user ? (
-          // Auth screens
           <>
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="Signup" component={SignupScreen} />
           </>
         ) : (
-          // App screens
           <>
             <Stack.Screen name="Home" component={MainScreen} />
             <Stack.Screen name="Analysis" component={AnalysisScreen} />

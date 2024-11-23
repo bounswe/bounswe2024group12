@@ -1,9 +1,39 @@
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const api = axios.create({
-  baseURL: __DEV__ ? 'https://buchessocial.online/api/v1' : 'https://buchessocial.online/api/v1',
+  baseURL: 'https://buchessocial.online/api/v1',
   timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  }
 });
+
+api.interceptors.request.use(
+  async (config) => {
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    } catch (error) {
+      console.error('Error getting token:', error);
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+api.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response?.status === 401) {
+      AsyncStorage.removeItem('userToken');
+    }
+    return Promise.reject(error);
+  }
+);
 
 export const authService = {
   async login(email, password) {
@@ -12,26 +42,25 @@ export const authService = {
         mail: email,
         password: password,
       });
+      
+      if (response.data.token) {
+        await AsyncStorage.setItem('userToken', response.data.token);
+      }
       return response.data;
     } catch (error) {
+      console.error('Login error:', error.response?.data || error.message);
       throw new Error(error.response?.data?.message || 'Login failed');
     }
   },
 
-  async signup(email, username, password) {
+  async logout() {
     try {
-      const response = await api.post('/accounts/signup/', {
-        mail: email,
-        username: username,
-        password: password,
-      });
-      return response.data;
+      await AsyncStorage.removeItem('userToken');
     } catch (error) {
-      throw new Error(error.response?.data?.message || 'Signup failed');
+      console.error('Logout error:', error);
+      throw error;
     }
-  },
-
-  logout() {
-    return Promise.resolve();
   }
 };
+
+export { api };
