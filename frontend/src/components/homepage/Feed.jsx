@@ -18,18 +18,18 @@ const Feed = ({ isGuest }) => {
   }, [page]);
 
   const fetchData = async () => {
-
     setIsLoading(true);
     setError(null);
-
+  
     try {
       const response = await fetch(`${BACKEND_URL}/posts/list_posts/?page=${page}`);
       const data = await response.json();
-
+      console.log(data);
       // Filter out posts without title or content and map to the required structure
       const filteredPosts = data.results
         .filter((post) => post.post_text && post.user)
         .map((post) => ({
+          id: post.id,
           username: post.user,
           title: `${post.user}'s post:`,
           post_text: post.post_text,
@@ -37,13 +37,13 @@ const Feed = ({ isGuest }) => {
           fen: post.fen || "",
           tags: post.tags || [],
           timestamp: new Date(post.created_at),
-        }))
-        // Sort posts by timestamp in descending order
-        .sort((a, b) => b.timestamp - a.timestamp);
-
-      // Append the filtered and sorted posts to the existing posts
-      setPosts((prevPosts) => [...prevPosts, ...filteredPosts]);
-
+        }));
+  
+      // Combine existing posts and new posts, then sort by timestamp
+      setPosts((prevPosts) =>
+        [...prevPosts, ...filteredPosts].sort((a, b) => b.timestamp - a.timestamp)
+      );
+  
       // Determine if there are more posts to load
       if (data.next === null) {
         setHasMore(false); // No more data to load
@@ -56,6 +56,7 @@ const Feed = ({ isGuest }) => {
       setIsLoading(false);
     }
   };
+  
 
   return (
     <div>

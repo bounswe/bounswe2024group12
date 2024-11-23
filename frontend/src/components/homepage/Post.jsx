@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Card,
   CardContent,
@@ -16,21 +16,50 @@ import ShareIcon from "@mui/icons-material/Share";
 import CommentIcon from "@mui/icons-material/Comment";
 
 const Post = ({ post }) => {
+  const postID = post.id;
   const postHeader = post.title;
   const postContent = post.post_text;
   const postImage = post.image;
   const postFen = post.fen;
   const username = post.username || "User";
   const userIcon = post.userIcon;
-  const likeCount = post.likeCount || 0;
+  const initialLikeCount = post.likeCount || 0;
   const dislikeCount = post.dislikeCount || 0;
   const commentCount = post.commentCount || 0;
   const tags = post.tags || [];
+  const timestamp = new Date(post.timestamp); // Parse timestamp as Date
+
+  const [likeCount, setLikeCount] = useState(initialLikeCount);
+  const [liked, setLiked] = useState(false); // Track if the post is liked
 
   const getImageSrc = (image, mimeType = "jpeg") => {
     if (!image) return "";
     return image.startsWith("data:") ? image : `data:image/${mimeType};base64,${image}`;
   };
+
+  const handleLikeToggle = async () => {
+    try {
+      const response = await fetch(`/posts/like/${postID}/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        setLiked(!liked); // Toggle the liked state
+        setLikeCount((prev) => (liked ? prev - 1 : prev + 1)); // Update like count
+      } else {
+        console.error("Failed to toggle like status");
+      }
+    } catch (error) {
+      console.error("An error occurred while liking the post:", error);
+    }
+  };
+
+  // Format date and time
+  const formattedDate = timestamp.toLocaleDateString();
+  const formattedTime = timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   return (
     <Card sx={{ width: '50%', margin: '1% auto' }}>
@@ -82,15 +111,32 @@ const Post = ({ post }) => {
           </Box>
         )}
 
-        {tags.length > 0 && (
-          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', marginBottom: '10px'}}>
-            {tags.map((tag, index) => (
-              <Chip key={index} label={tag} variant="filled" 
-                sx={{ backgroundColor: 'secondary.main', color: '#000' }} 
-              />
-            ))}
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '10px',
+          }}
+        >
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+            {tags.length > 0 &&
+              tags.map((tag, index) => (
+                <Chip
+                  key={index}
+                  label={tag}
+                  variant="filled"
+                  sx={{ backgroundColor: 'secondary.main', color: '#000' }}
+                />
+              ))}
           </Box>
-        )}
+          <Typography
+            variant="caption"
+            sx={{ color: 'gray', textAlign: 'right', marginLeft: 'auto' }}
+          >
+            {formattedDate} {formattedTime}
+          </Typography>
+        </Box>
 
         <Box
           sx={{
@@ -103,7 +149,7 @@ const Post = ({ post }) => {
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <IconButton>
+            <IconButton onClick={handleLikeToggle} color={liked ? "primary" : "default"}>
               <ThumbUpIcon />
             </IconButton>
             <Typography variant="body2">{likeCount}</Typography>
