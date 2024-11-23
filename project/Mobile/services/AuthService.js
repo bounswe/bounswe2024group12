@@ -10,6 +10,7 @@ const api = axios.create({
   }
 });
 
+// Request interceptor for API calls
 api.interceptors.request.use(
   async (config) => {
     try {
@@ -22,43 +23,136 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    return Promise.reject(error);
+  }
 );
 
+// Response interceptor for API calls
 api.interceptors.response.use(
-  response => response,
-  error => {
+  (response) => response,
+  async (error) => {
     if (error.response?.status === 401) {
-      AsyncStorage.removeItem('userToken');
+      await AsyncStorage.removeItem('userToken');
     }
     return Promise.reject(error);
   }
 );
 
+const parseErrorMessage = (error) => {
+  // Check if it's a database integrity error
+  if (error.message && error.message.includes('IntegrityError')) {
+    if (error.message.includes('Duplicate entry') && error.message.includes('username')) {
+      return 'This username is already taken. Please choose a different one.';
+    }
+    if (error.message.includes('Duplicate entry') && error.message.includes('mail')) {
+      return 'An account with this email already exists.';
+    }
+    return 'There was a problem creating your account. Please try again with different information.';
+  }
+
+  // Handle structured API error responses
+  if (error.response?.data) {
+    if (typeof error.response.data === 'string') {
+      return error.response.data;
+    }
+    
+    const errorMessages = [];
+    Object.entries(error.response.data).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        errorMessages.push(`${key}: ${value.join(', ')}`);
+      } else if (typeof value === 'string') {
+        errorMessages.push(`${key}: ${value}`);
+      }
+    });
+    
+    if (errorMessages.length > 0) {
+      return errorMessages.join('\n');
+    }
+  }
+
+  // Handle network errors
+  if (error.message === 'Network Error') {
+    return 'Unable to connect to the server. Please check your internet connection.';
+  }
+
+  // Handle timeout errors
+  if (error.code === 'ECONNABORTED') {
+    return 'The request timed out. Please try again.';
+  }
+
+  // Default error message
+  return 'An unexpected error occurred. Please try again.';
+};
+
 export const authService = {
-  async login(email, password) {
+  async login(mail, password) {
     try {
+      console.log('Attempting login with:', { mail, password });
       const response = await api.post('/accounts/login/', {
-        mail: email,
+        mail: mail,
         password: password,
       });
       
+      console.log('Login response:', response.data);
+      
       if (response.data.token) {
         await AsyncStorage.setItem('userToken', response.data.token);
+        await AsyncStorage.setItem('userData', JSON.stringify({
+          username: response.data.username,
+          mail: mail
+        }));
       }
       return response.data;
     } catch (error) {
       console.error('Login error:', error.response?.data || error.message);
-      throw new Error(error.response?.data?.message || 'Login failed');
+      throw new Error(parseErrorMessage(error));
+    }
+  },
+
+  async signup(mail, username, password) {
+    try {
+      console.log('Attempting signup with:', { mail, username });
+      const response = await api.post('/accounts/signup/', {
+        mail: mail,
+        username: username,
+        password: password,
+      });
+      
+      console.log('Signup response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Signup error:', error.response?.data || error.message);
+      throw new Error(parseErrorMessage(error));
     }
   },
 
   async logout() {
     try {
-      await AsyncStorage.removeItem('userToken');
+      await AsyncStorage.multiRemove(['userToken', 'userData']);
     } catch (error) {
       console.error('Logout error:', error);
-      throw error;
+      throw new Error('Failed to logout. Please try again.');
+    }
+  },
+
+  async isLoggedIn() {
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      return !!token;
+    } catch (error) {
+      console.error('Auth check error:', error);
+      return false;
+    }
+  },
+
+  async getCurrentUser() {
+    try {
+      const userData = await AsyncStorage.getItem('userData');
+      return userData ? JSON.parse(userData) : null;
+    } catch (error) {
+      console.error('Get user error:', error);
+      return null;
     }
   }
 };

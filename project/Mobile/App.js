@@ -8,6 +8,7 @@ import AnalysisScreen from './AnalysisScreen';
 import CreatePostScreen from './CreatePostScreen';
 import LoginScreen from './screens/LoginScreen';
 import SignupScreen from './screens/SignupScreen';
+import ThreadScreen from './ThreadScreen';
 
 const Stack = createStackNavigator();
 
@@ -35,6 +36,7 @@ function AppNavigator() {
             <Stack.Screen name="Home" component={MainScreen} />
             <Stack.Screen name="Analysis" component={AnalysisScreen} />
             <Stack.Screen name="CreatePost" component={CreatePostScreen} />
+            <Stack.Screen name="Thread" component={ThreadScreen} />
           </>
         )}
       </Stack.Navigator>

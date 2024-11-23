@@ -23,13 +23,27 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = async (email, password) => {
+  const login = async (username, password) => {
     try {
       setLoading(true);
       setError('');
-      const response = await authService.login(email, password);
+      const response = await authService.login(username, password);
       await AsyncStorage.setItem('userData', JSON.stringify(response));
       setUser(response);
+      return true;
+    } catch (err) {
+      setError(err.message);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signup = async (email, username, password) => {
+    try {
+      setLoading(true);
+      setError('');
+      await authService.signup(email, username, password);
       return true;
     } catch (err) {
       setError(err.message);
@@ -58,6 +72,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     error,
     login,
+    signup,
     logout,
     checkAuth
   };

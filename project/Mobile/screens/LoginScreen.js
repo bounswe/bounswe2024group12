@@ -1,54 +1,155 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, StyleSheet } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  StyleSheet,
+  ActivityIndicator,
+  Platform,
+  Alert
+} from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function LoginScreen({ navigation }) {
-  const { login, error, loading } = useAuth();
+  const { login, error: authError, loading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [validationError, setValidationError] = useState('');
+
+  const validateInputs = () => {
+    // Reset previous errors
+    setValidationError('');
+
+    // Check for empty fields
+    if (!email.trim() || !password.trim()) {
+      setValidationError('Please fill in all fields');
+      return false;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setValidationError('Please enter a valid email address');
+      return false;
+    }
+
+    // Basic password validation
+    if (password.length < 6) {
+      setValidationError('Password must be at least 6 characters long');
+      return false;
+    }
+
+    return true;
+  };
 
   const handleLogin = async () => {
-    const success = await login(email, password);
-    if (success) {
+    try {
+      if (!validateInputs()) {
+        return;
+      }
+
+      // Attempt login
+      const success = await login(email.trim(), password);
+      
+      if (success) {
+        // Reset form
+        setEmail('');
+        setPassword('');
+        setValidationError('');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      Alert.alert(
+        'Login Failed',
+        error.message || 'An error occurred during login. Please try again.',
+        [{ text: 'OK' }]
+      );
     }
   };
 
+  const navigateToSignup = () => {
+    // Reset form when navigating away
+    setEmail('');
+    setPassword('');
+    setValidationError('');
+    navigation.navigate('Signup');
+  };
+
   return (
-    <KeyboardAvoidingView behavior="padding" style={styles.container}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
+    >
       <View style={styles.form}>
         <Text style={styles.header}>Chess Forum</Text>
+        
+        {/* Email Input */}
         <TextInput
           style={styles.input}
           placeholder="Email"
           value={email}
-          onChangeText={setEmail}
+          onChangeText={(text) => {
+            setEmail(text);
+            setValidationError('');
+          }}
           autoCapitalize="none"
+          autoCorrect={false}
           keyboardType="email-address"
+          textContentType="emailAddress" // iOS only
+          autoComplete="email" // Android only
+          returnKeyType="next"
+          blurOnSubmit={false}
+          onSubmitEditing={() => this.passwordInput && this.passwordInput.focus()}
         />
+        
+        {/* Password Input */}
         <TextInput
+          ref={(input) => { this.passwordInput = input; }}
           style={styles.input}
           placeholder="Password"
           value={password}
-          onChangeText={setPassword}
+          onChangeText={(text) => {
+            setPassword(text);
+            setValidationError('');
+          }}
           secureTextEntry
+          autoCapitalize="none"
+          autoCorrect={false}
+          textContentType="password" // iOS only
+          autoComplete="password" // Android only
+          returnKeyType="done"
+          onSubmitEditing={handleLogin}
         />
-        {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-        <TouchableOpacity
-          style={styles.button}
-          onPress={handleLogin}
-          disabled={loading} // Prevent multiple clicks during loading
-        >
-          <Text style={styles.buttonText}>
-            {loading ? 'Logging in...' : 'Log In'}
+        {/* Error Messages */}
+        {(validationError || authError) && (
+          <Text style={styles.errorText}>
+            {validationError || authError}
           </Text>
+        )}
+
+        {/* Login Button */}
+        <TouchableOpacity
+          style={[styles.button, loading && styles.disabledButton]}
+          onPress={handleLogin}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <Text style={styles.buttonText}>Log In</Text>
+          )}
         </TouchableOpacity>
 
+        {/* Signup Navigation Button */}
         <TouchableOpacity
           style={styles.button}
-          onPress={() => navigation.navigate('Signup')}
+          onPress={navigateToSignup}
+          disabled={loading}
         >
-          <Text style={styles.buttonText}>Sign Up</Text>
+          <Text style={styles.buttonText}>Create New Account</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -88,20 +189,26 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 10,
     borderRadius: 4,
+    backgroundColor: '#fff',
   },
   button: {
     backgroundColor: '#007AFF',
-    padding: 10,
+    padding: 12,
     borderRadius: 4,
     alignItems: 'center',
-    marginVertical: 10,
+    marginVertical: 8,
+  },
+  disabledButton: {
+    opacity: 0.7,
   },
   buttonText: {
     color: 'white',
     fontWeight: 'bold',
+    fontSize: 16,
   },
   errorText: {
     color: '#FF3B30',
     marginBottom: 10,
+    textAlign: 'center',
   }
 });

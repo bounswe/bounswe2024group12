@@ -14,6 +14,7 @@ import {
   Dimensions,
   Alert,
   ActivityIndicator,
+  TextInput,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Feather } from '@expo/vector-icons';
@@ -37,10 +38,11 @@ const LoadingScreen = () => (
   </View>
 );
 
-const PostListItem = ({ item }) => {
+const PostListItem = ({ item, navigation }) => {
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     loadLikeSummary();
@@ -73,9 +75,45 @@ const PostListItem = ({ item }) => {
     }
   };
 
+  const getImageSource = (imageData) => {
+    if (!imageData) return null;
+
+    // Handle both URL and base64 formats
+    if (imageData.startsWith('data:image')) {
+      // It's already a base64 string
+      return { uri: imageData };
+    } else if (imageData.startsWith('http')) {
+      // It's a URL
+      return { uri: imageData };
+    } else {
+      // Assume it's a base64 string without the prefix
+      return { uri: `data:image/jpeg;base64,${imageData}` };
+    }
+  };
+
+  const renderImage = () => {
+    if (!item.post_image || imageError) return null;
+
+    return (
+      <View style={styles.imageContainer}>
+        <Image
+          source={getImageSource(item.post_image)}
+          style={styles.postImage}
+          resizeMode="cover"
+          onError={() => setImageError(true)}
+        />
+      </View>
+    );
+  };
+
   return (
-    <View style={styles.postItem}>
+    <TouchableOpacity 
+      style={styles.postItem}
+      onPress={() => navigation.navigate('Thread', { post: item })}
+      activeOpacity={0.7}
+    >
       <Text style={styles.postTitle}>{item.title}</Text>
+      {renderImage()}
       <Text style={styles.postContent}>{item.post_text}</Text>
       {item.fen && (
         <View style={styles.chessboardContainer}>
@@ -86,14 +124,80 @@ const PostListItem = ({ item }) => {
           />
         </View>
       )}
+      {item.tags && item.tags.length > 0 && (
+        <View style={styles.tagsContainer}>
+          {item.tags.map((tag, index) => (
+            <View key={index} style={styles.tag}>
+              <Text style={styles.tagText}>#{tag}</Text>
+            </View>
+          ))}
+        </View>
+      )}
       <Text style={styles.postAuthor}>by {item.user}</Text>
       <Text style={styles.timestamp}>{new Date(item.created_at).toLocaleDateString()}</Text>
-      <LikeButton
-        isLiked={isLiked}
-        likeCount={likeCount}
-        onPress={handleLike}
-        disabled={isLoading}
+      
+      {/* Wrap LikeButton in a View to prevent touch event propagation */}
+      <View onStartShouldSetResponder={() => true}>
+        <LikeButton
+          isLiked={isLiked}
+          likeCount={likeCount}
+          onPress={handleLike}
+          disabled={isLoading}
+        />
+      </View>
+    </TouchableOpacity>
+  );
+};
+
+const SearchBar = ({ onSearch }) => {
+  const [postId, setPostId] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+
+  const handleSearch = async () => {
+    if (!postId.trim()) {
+      Alert.alert('Error', 'Please enter a post ID');
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const response = await api.get(`/posts/${postId}/`);
+      onSearch(response.data);
+      setPostId(''); // Clear input after successful search
+    } catch (error) {
+      if (error.response?.status === 404) {
+        Alert.alert('Not Found', 'No post found with this ID');
+      } else {
+        Alert.alert('Error', 'Failed to search for post');
+      }
+      console.error('Search error:', error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  return (
+    <View style={styles.searchContainer}>
+      <TextInput
+        style={styles.searchInput}
+        placeholder="Enter Post ID..."
+        value={postId}
+        onChangeText={setPostId}
+        keyboardType="numeric"
+        returnKeyType="search"
+        onSubmitEditing={handleSearch}
       />
+      <TouchableOpacity 
+        style={styles.searchButton} 
+        onPress={handleSearch}
+        disabled={isSearching}
+      >
+        {isSearching ? (
+          <ActivityIndicator color="white" size="small" />
+        ) : (
+          <Feather name="search" size={20} color="white" />
+        )}
+      </TouchableOpacity>
     </View>
   );
 };
@@ -106,6 +210,12 @@ const MainScreen = ({ navigation }) => {
   const [isProfileZoomed, setIsProfileZoomed] = useState(false);
   const sidebarPosition = useRef(new Animated.Value(-250)).current;
   const zoomAnimation = useRef(new Animated.Value(0)).current;
+
+  const handleSearchResult = (searchResult) => {
+    if (searchResult) {
+      setPosts([searchResult]); // Show only the searched post
+    }
+  };
 
   const fetchPosts = async () => {
     try {
@@ -271,6 +381,7 @@ const MainScreen = ({ navigation }) => {
           <Feather name="menu" size={24} color="black" />
         </TouchableOpacity>
         <Text style={styles.headerText}>Chess Forum</Text>
+        <SearchBar onSearch={handleSearchResult} />
       </View>
 
       {isSidebarOpen && renderSidebar()}
@@ -281,7 +392,9 @@ const MainScreen = ({ navigation }) => {
       ) : (
         <FlatList
           data={posts}
-          renderItem={({ item }) => <PostListItem item={item} />}
+          renderItem={({ item }) => (
+            <PostListItem item={item} navigation={navigation} />
+          )}
           keyExtractor={(item) => item.id.toString()}
           style={styles.list}
           onRefresh={fetchPosts}
@@ -439,6 +552,66 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 'auto',
+    marginRight: 8,
+  },
+  searchInput: {
+    backgroundColor: '#f0f0f0',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    width: 120,
+    fontSize: 14,
+  },
+  searchButton: {
+    backgroundColor: '#007AFF',
+    padding: 8,
+    borderRadius: 16,
+    marginLeft: 8,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: 'white',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  headerText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginLeft: 16,
+  },
+  imageContainer: {
+    marginVertical: 10,
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: '#f0f0f0',
+  },
+  postImage: {
+    width: '100%',
+    height: 200,
+    backgroundColor: '#f0f0f0',
+  },
+  tagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 8,
+    gap: 8,
+  },
+  tag: {
+    backgroundColor: '#007AFF20',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  tagText: {
+    color: '#007AFF',
+    fontSize: 12,
   },
 });
 
