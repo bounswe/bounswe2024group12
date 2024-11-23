@@ -43,10 +43,21 @@ const PostListItem = ({ item, navigation }) => {
   const [likeCount, setLikeCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [commentCount, setCommentCount] = useState(0);
 
   useEffect(() => {
-    loadLikeSummary();
-  }, []);
+    const fetchCommentCount = async () => {
+      try {
+        const response = await api.get(`/posts/comments/${item.id}/`);
+        setCommentCount(Array.isArray(response.data) ? response.data.length : 0);
+      } catch (error) {
+        console.error('Failed to fetch comment count:', error);
+        setCommentCount(0);
+      }
+    };
+
+    fetchCommentCount();
+  }, [item.id]);
 
   const loadLikeSummary = async () => {
     try {
@@ -78,15 +89,11 @@ const PostListItem = ({ item, navigation }) => {
   const getImageSource = (imageData) => {
     if (!imageData) return null;
 
-    // Handle both URL and base64 formats
     if (imageData.startsWith('data:image')) {
-      // It's already a base64 string
       return { uri: imageData };
     } else if (imageData.startsWith('http')) {
-      // It's a URL
       return { uri: imageData };
     } else {
-      // Assume it's a base64 string without the prefix
       return { uri: `data:image/jpeg;base64,${imageData}` };
     }
   };
@@ -107,7 +114,7 @@ const PostListItem = ({ item, navigation }) => {
   };
 
   return (
-    <TouchableOpacity 
+    <TouchableOpacity
       style={styles.postItem}
       onPress={() => navigation.navigate('Thread', { post: item })}
       activeOpacity={0.7}
@@ -135,7 +142,7 @@ const PostListItem = ({ item, navigation }) => {
       )}
       <Text style={styles.postAuthor}>by {item.user}</Text>
       <Text style={styles.timestamp}>{new Date(item.created_at).toLocaleDateString()}</Text>
-      
+
       {/* Wrap LikeButton in a View to prevent touch event propagation */}
       <View onStartShouldSetResponder={() => true}>
         <LikeButton
@@ -187,8 +194,8 @@ const SearchBar = ({ onSearch }) => {
         returnKeyType="search"
         onSubmitEditing={handleSearch}
       />
-      <TouchableOpacity 
-        style={styles.searchButton} 
+      <TouchableOpacity
+        style={styles.searchButton}
         onPress={handleSearch}
         disabled={isSearching}
       >
@@ -328,7 +335,10 @@ const MainScreen = ({ navigation }) => {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.sidebarItem}
-            onPress={() => console.log('Archive')}
+            onPress={() => {
+              toggleSidebar();
+              navigation.navigate('Archive');
+            }}
           >
             <Text style={styles.sidebarText}>Archive</Text>
           </TouchableOpacity>

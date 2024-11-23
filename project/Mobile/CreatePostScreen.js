@@ -26,9 +26,9 @@ const compressImage = async (uri) => {
   try {
     const manipulatedImage = await ImageManipulator.manipulateAsync(
       uri,
-      [{ resize: { width: 1080 } }], // Resize to a reasonable width while maintaining aspect ratio
+      [{ resize: { width: 1080 } }],
       {
-        compress: 0.7, // Compress the image to 70% quality
+        compress: 0.7,
         format: ImageManipulator.SaveFormat.JPEG,
         base64: true
       }

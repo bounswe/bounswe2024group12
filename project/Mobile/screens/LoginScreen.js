@@ -19,23 +19,19 @@ export default function LoginScreen({ navigation }) {
   const [validationError, setValidationError] = useState('');
 
   const validateInputs = () => {
-    // Reset previous errors
     setValidationError('');
 
-    // Check for empty fields
     if (!email.trim() || !password.trim()) {
       setValidationError('Please fill in all fields');
       return false;
     }
 
-    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       setValidationError('Please enter a valid email address');
       return false;
     }
 
-    // Basic password validation
     if (password.length < 6) {
       setValidationError('Password must be at least 6 characters long');
       return false;
@@ -50,11 +46,9 @@ export default function LoginScreen({ navigation }) {
         return;
       }
 
-      // Attempt login
       const success = await login(email.trim(), password);
       
       if (success) {
-        // Reset form
         setEmail('');
         setPassword('');
         setValidationError('');
@@ -70,7 +64,6 @@ export default function LoginScreen({ navigation }) {
   };
 
   const navigateToSignup = () => {
-    // Reset form when navigating away
     setEmail('');
     setPassword('');
     setValidationError('');
@@ -97,8 +90,8 @@ export default function LoginScreen({ navigation }) {
           autoCapitalize="none"
           autoCorrect={false}
           keyboardType="email-address"
-          textContentType="emailAddress" // iOS only
-          autoComplete="email" // Android only
+          textContentType="emailAddress"
+          autoComplete="email"
           returnKeyType="next"
           blurOnSubmit={false}
           onSubmitEditing={() => this.passwordInput && this.passwordInput.focus()}
@@ -117,8 +110,8 @@ export default function LoginScreen({ navigation }) {
           secureTextEntry
           autoCapitalize="none"
           autoCorrect={false}
-          textContentType="password" // iOS only
-          autoComplete="password" // Android only
+          textContentType="password"
+          autoComplete="password"
           returnKeyType="done"
           onSubmitEditing={handleLogin}
         />

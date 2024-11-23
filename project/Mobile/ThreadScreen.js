@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
     View,
@@ -12,29 +11,118 @@ import {
     ActivityIndicator,
     Image,
     SafeAreaView,
+    Alert,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import Chessboard from 'react-native-chessboard';
 import { LikeButton } from '@/components/LikeButton';
 import { useAuth } from '@/contexts/AuthContext';
+import { api } from '@/services/AuthService';
+import { likeService } from '@/services/LikeService';
 
-const Comment = ({ comment }) => (
-    <View style={styles.commentContainer}>
-        <View style={styles.commentHeader}>
-            <Text style={styles.commentAuthor}>{comment.user}</Text>
-            <Text style={styles.commentTime}>
-                {new Date(comment.created_at).toLocaleDateString()}
-            </Text>
+const Comment = ({ comment }) => {
+    return (
+        <View style={styles.commentContainer}>
+            <View style={styles.commentHeader}>
+                <Text style={styles.commentAuthor}>@{comment.user}</Text>
+                <Text style={styles.commentTime}>
+                    {new Date(comment.created_at).toLocaleDateString()}
+                </Text>
+            </View>
+            <Text style={styles.commentText}>{comment.text}</Text>
         </View>
-        <Text style={styles.commentText}>{comment.text}</Text>
-    </View>
-);
+    );
+};
 
 const ThreadScreen = ({ route, navigation }) => {
     const { post } = route.params;
     const [newComment, setNewComment] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [comments, setComments] = useState([]);
+    const [isLoadingComments, setIsLoadingComments] = useState(true);
+    const [isLiked, setIsLiked] = useState(false);
+    const [likeCount, setLikeCount] = useState(0);
+    const [isLikeLoading, setIsLikeLoading] = useState(false);
     const { user } = useAuth();
+
+    const loadLikeSummary = async () => {
+        try {
+            const summary = await likeService.getLikesSummary([post.id]);
+            const postSummary = summary.find(s => s.post_id === post.id);
+            if (postSummary && !postSummary.error) {
+                setIsLiked(postSummary.liked_by_requester);
+                setLikeCount(postSummary.like_count);
+            }
+        } catch (error) {
+            console.error('Failed to load like summary:', error);
+        }
+    };
+
+    const handleLike = async () => {
+        try {
+            setIsLikeLoading(true);
+            await likeService.toggleLike(post.id);
+            setIsLiked(!isLiked);
+            setLikeCount((prevCount) => (isLiked ? prevCount - 1 : prevCount + 1));
+        } catch (error) {
+            console.error('Like operation failed:', error.message);
+            Alert.alert('Error', 'Unable to process your like request.');
+        } finally {
+            setIsLikeLoading(false);
+        }
+    };
+
+    const fetchComments = async () => {
+        try {
+            setIsLoadingComments(true);
+            const response = await api.get(`/posts/comments/${post.id}/`);
+            
+            if (Array.isArray(response.data)) {
+                setComments(response.data);
+            } else {
+                console.error('Unexpected response format:', response.data);
+                setComments([]);
+            }
+        } catch (error) {
+            console.error('Error fetching comments:', error);
+            Alert.alert(
+                'Error',
+                'Failed to load comments. Please try again later.'
+            );
+            setComments([]);
+        } finally {
+            setIsLoadingComments(false);
+        }
+    };
+
+    const handleSubmitComment = async () => {
+        if (!newComment.trim()) return;
+
+        try {
+            setIsLoading(true);
+            const response = await api.post(`/posts/comment/${post.id}/`, {
+                text: newComment.trim()
+            });
+
+            if (response.status === 201) {
+                setNewComment('');
+                await fetchComments();
+            }
+        } catch (error) {
+            console.error('Error posting comment:', error);
+            Alert.alert(
+                'Error',
+                error.response?.data?.message || 'Failed to post comment. Please try again.'
+            );
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchComments();
+        loadLikeSummary();
+    }, [post.id]);
 
     useEffect(() => {
         navigation.setOptions({
@@ -64,28 +152,6 @@ const ThreadScreen = ({ route, navigation }) => {
         });
     }, [navigation, post.title]);
 
-    // Dummy comments data
-    const [comments] = useState([
-        {
-            id: 1,
-            user: 'GrandMaster42',
-            text: 'Interesting position! Have you considered Nf3 instead?',
-            created_at: new Date(2024, 10, 15),
-        },
-        {
-            id: 2,
-            user: 'ChessLover99',
-            text: 'The queenside weakness could be exploited with a timely b5 break.',
-            created_at: new Date(2024, 10, 16),
-        },
-        {
-            id: 3,
-            user: 'TacticalWizard',
-            text: 'I played a similar position last week. The key is to maintain tension in the center.',
-            created_at: new Date(2024, 10, 17),
-        },
-    ]);
-
     const getImageSource = (imageData) => {
         if (!imageData) return null;
         if (imageData.startsWith('data:image')) {
@@ -97,17 +163,6 @@ const ThreadScreen = ({ route, navigation }) => {
         }
     };
 
-    const handleSubmitComment = async () => {
-        if (!newComment.trim()) return;
-
-        setIsLoading(true);
-        // Simulate API call
-        setTimeout(() => {
-            setNewComment('');
-            setIsLoading(false);
-        }, 1000);
-    };
-
     return (
         <SafeAreaView style={styles.container}>
             <KeyboardAvoidingView
@@ -116,7 +171,6 @@ const ThreadScreen = ({ route, navigation }) => {
                 keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
             >
                 <ScrollView style={styles.content}>
-                    {/* Original Post */}
                     <View style={styles.postContainer}>
                         <View style={styles.postHeader}>
                             <Text style={styles.postAuthor}>{post.user}</Text>
@@ -158,25 +212,29 @@ const ThreadScreen = ({ route, navigation }) => {
                         )}
 
                         <LikeButton
-                            isLiked={false}
-                            likeCount={post.likes_count || 0}
-                            onPress={() => { }}
-                            disabled={false}
+                            isLiked={isLiked}
+                            likeCount={likeCount}
+                            onPress={handleLike}
+                            disabled={isLikeLoading}
                         />
                     </View>
 
-                    {/* Comments Section */}
                     <View style={styles.commentsSection}>
                         <Text style={styles.commentsHeader}>
                             Comments ({comments.length})
                         </Text>
-                        {comments.map((comment) => (
-                            <Comment key={comment.id} comment={comment} />
-                        ))}
+                        {isLoadingComments ? (
+                            <ActivityIndicator size="large" color="#007AFF" style={styles.loadingIndicator} />
+                        ) : comments.length > 0 ? (
+                            comments.map((comment) => (
+                                <Comment key={comment.id} comment={comment} />
+                            ))
+                        ) : (
+                            <Text style={styles.noCommentsText}>No comments yet. Be the first to comment!</Text>
+                        )}
                     </View>
                 </ScrollView>
 
-                {/* Comment Input */}
                 <View style={styles.commentInputContainer}>
                     <TextInput
                         style={styles.commentInput}
@@ -343,6 +401,14 @@ const styles = StyleSheet.create({
     },
     disabledButton: {
         opacity: 0.5,
+    },
+    loadingIndicator: {
+        padding: 20,
+    },
+    noCommentsText: {
+        textAlign: 'center',
+        color: '#666',
+        padding: 20,
     },
 });
 
