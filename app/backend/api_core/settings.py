@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-c_wp0u5-_d*&-+y%xzg0gsv1_oyo=l0)#5_()bf*)(#^y@zeq$
 DEBUG = True
 # DEBUG = True
 
-ALLOWED_HOSTS = ['167.99.133.190','localhost']
+ALLOWED_HOSTS = ['167.99.133.190','localhost', 'buchessocial.online']
 # ALLOWED_HOSTS = []
 
 
