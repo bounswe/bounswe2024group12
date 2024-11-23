@@ -18,6 +18,10 @@ const Navbar = () => {
     navigate('/');
   };
 
+  const handleArchiveClick = () => {
+    navigate('/archive');
+  };
+
   const handleLoginClick = () => {
     navigate('/login');
   };
@@ -36,7 +40,7 @@ const Navbar = () => {
           Chess Social
         </Typography>
         <Button color="inherit" onClick={handleHomeClick}>Home</Button>
-        <Button color="inherit">Archive</Button>
+        <Button color="inherit" onClick={handleArchiveClick}>Archive</Button>
         {!isLoggedIn && <Button color="inherit" onClick={handleLoginClick}>Login</Button>}
         {isLoggedIn && <Button color="inherit">Profile</Button>}
         {isLoggedIn && <Button color="inherit" onClick={handleLogoutClick}>Logout</Button>}

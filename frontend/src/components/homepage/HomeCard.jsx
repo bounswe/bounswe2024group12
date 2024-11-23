@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import Navbar from './Navbar';
+import Navbar from '../common/Navbar';
 import Feed from './Feed';
 import { useNavigate } from 'react-router-dom'; // For navigation
 
