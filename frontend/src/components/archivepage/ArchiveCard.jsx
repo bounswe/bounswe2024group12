@@ -1,66 +1,138 @@
 import React, { useEffect, useState } from 'react';
 import Navbar from '../common/Navbar';
 import GameScreen from './GameScreen';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, TextField, Button, List, ListItem, ListItemText } from '@mui/material';
+import { Chess } from 'chess.js';
 
 const BACKEND_URL = process.env.REACT_APP_API_URL;
 
-const ArchiveCard = () => {
-  const [isGuest, setIsGuest] = useState(false);
+function pgnToFenList(pgn) {
+  const chess = new Chess();
+  const fenList = [chess.fen()]; // Start with the initial position
 
-  // Example moves for the game
-  const exampleMoves = [
-    "start", // Initial board setup
-    "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1", // After 1. e4
-    "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2", // After 1... e5
-    "rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2", // After 2. Nf3
-    "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3" // After 2... Nc6
-  ];
+  try {
+    // Remove metadata headers (lines enclosed in square brackets)
+    const movesSection = pgn.split("\n").filter(line => !line.startsWith("[")).join(" ");
 
-  // Example game title
-  const gameTitle = "Chess Match - October 15, 2023";
+    // Extract moves by removing move numbers and splitting by spaces
+    const moves = movesSection
+      .split(/\s*\d+\.\s*/) // Split at move numbers
+      .flatMap(part => part.trim().split(/\s+/)) // Split moves by spaces
+      .filter(move => move && move !== "1/2-1/2" && move !== "0-1" && move !== "1-0"); // Remove result notations
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      setIsGuest(true);
-      return;
-    }
-
-    const checkHealth = async () => {
-      try {
-        const response = await fetch(BACKEND_URL + "/healthcheck/hc/", {
-          method: "GET",
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json"
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch health check data');
-        }
-
-        const data = await response.json();
-        console.log(data);
-      } catch (error) {
-        console.error('Error:', error);
+    moves.forEach((move) => {
+      const success = chess.move(move); // Attempt to make each move
+      if (!success) {
+        throw new Error(`Invalid move: ${move}`);
       }
-    };
+      fenList.push(chess.fen()); // Add the position after the move
+    });
+  } catch (error) {
+    console.error("Error processing PGN:", error.message);
+    return [];
+  }
 
-    checkHealth();
-  }, []);
+  return fenList;
+}
+
+
+const ArchiveCard = () => {
+  const [filters, setFilters] = useState({
+    year: '',
+    player: '',
+    site: '',
+    event: '',
+    result: ''
+  });
+  const [games, setGames] = useState([]);
+  const [selectedGame, setSelectedGame] = useState(null);
+  const [hasSearched, setHasSearched] = useState(false);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFilters({ ...filters, [name]: value });
+  };
+
+  const handleSearch = async () => {
+    setHasSearched(true);
+    try {
+      const queryParams = new URLSearchParams(filters).toString();
+      const response = await fetch(`${BACKEND_URL}/games/filter/?${queryParams}`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (!response.ok) throw new Error('Failed to fetch filtered games');
+      const data = await response.json();
+      setGames(data.games);
+    } catch (error) {
+      console.error('Error fetching games:', error.message);
+    }
+  };
+
+  const handleGameClick = (game) => {
+    console.log(game.pgn);
+    setSelectedGame(game);
+  };
+
+  const handleReturnToSearch = () => {
+    setSelectedGame(null);
+  };
 
   return (
     <div>
       <Navbar />
-      <Box sx={{ p: 3, textAlign: 'center', backgroundColor: 'background.paper', borderRadius: 2, mb: 2 }}>
-        <Typography variant="h5" sx={{ color: 'text.primary', fontWeight: 'bold' }}>
-          {gameTitle}
-        </Typography>
-      </Box>
-      <GameScreen moves={exampleMoves} />
+      {!selectedGame ? (
+        <>
+          {/* Search Filters */}
+          <Box sx={{ p: 3 }}>
+            <Typography variant="h5" sx={{ mb: 2 }}>Advanced Game Search</Typography>
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 3 }}>
+              <TextField fullWidth label="Year" name="year" value={filters.year} onChange={handleInputChange} />
+              <TextField fullWidth label="Player" name="player" value={filters.player} onChange={handleInputChange} />
+              <TextField fullWidth label="Site" name="site" value={filters.site} onChange={handleInputChange} />
+              <TextField fullWidth label="Event" name="event" value={filters.event} onChange={handleInputChange} />
+              <TextField fullWidth label="Result" name="result" value={filters.result} onChange={handleInputChange} placeholder="e.g., 1-0, 0-1" />
+            </Box>
+            <Button variant="contained" onClick={handleSearch}>Search</Button>
+          </Box>
+
+          {/* Display Games */}
+          <Box sx={{ mt: 3 }}>
+            {!hasSearched ? (
+              <Typography>Use the search form above to find games.</Typography>
+            ) : games.length > 0 ? (
+              <List>
+                {games.map((game, index) => (
+                  <ListItem
+                    key={index}
+                    button
+                    onClick={() => handleGameClick(game)}
+                    sx={{ border: '1px solid #ccc', borderRadius: 2, mb: 1 }}
+                  >
+                    <ListItemText
+                      primary={`${game.white} vs ${game.black}`}
+                      secondary={`${game.event} | ${game.year} | Result: ${game.result}`}
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            ) : (
+              <Typography>No games found. Try refining your search criteria.</Typography>
+            )}
+          </Box>
+        </>
+      ) : (
+        <>
+          {/* Game Details */}
+          <Box sx={{ p: 3 }}>
+            <Button variant="outlined" onClick={handleReturnToSearch} sx={{ mb: 2 }}>
+              Return to Search
+            </Button>
+            <GameScreen moves={pgnToFenList(selectedGame.pgn)} />
+          </Box>
+        </>
+      )}
     </div>
   );
 };
