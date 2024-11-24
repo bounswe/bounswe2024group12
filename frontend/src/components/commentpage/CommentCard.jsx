@@ -13,12 +13,35 @@ const CommentCard = () => {
   const [comments, setComments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const fetchLikeData = async (postIds) => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/posts/likes_summary/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({ post_ids: postIds }),
+      });
+
+      if (response.ok) {
+        return await response.json(); // Returns an array of like data
+      } else {
+        console.error("Failed to fetch like data");
+        return null;
+      }
+    } catch (error) {
+      console.error("Error fetching like data:", error);
+      return null;
+    }
+  };
+
   const fetchPostAndComments = async () => {
     try {
       // Fetch the post details
       const postResponse = await fetch(`${BACKEND_URL}/posts/${id}/`);
       const postData = await postResponse.json();
-
+      const likeData = await fetchLikeData([id]);
       const mappedPost = {
         id: postData.id,
         username: postData.user,
@@ -28,6 +51,8 @@ const CommentCard = () => {
         fen: postData.fen || "",
         tags: postData.tags || [],
         timestamp: new Date(postData.created_at),
+        likeCount: likeData ? likeData[0].like_count : 0,
+        liked: likeData ? likeData[0].liked_by_requester : false,
       };
 
       // Fetch the comments for the post
