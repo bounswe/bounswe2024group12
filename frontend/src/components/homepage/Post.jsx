@@ -19,7 +19,6 @@ import CommentIcon from "@mui/icons-material/Comment";
 const BACKEND_URL = process.env.REACT_APP_API_URL;
 
 const Post = ({ post, width}) => {
-  console.log("Post:", post);
   const postWidth = width || '50%';
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const currUser = localStorage.getItem('username');
@@ -56,12 +55,11 @@ const Post = ({ post, width}) => {
 
   const handleLikeToggle = async () => {
     try {
-      const token = localStorage.getItem("token");
       const response = await fetch(`${BACKEND_URL}/posts/like/${postID}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
+          "Authorization": `Bearer ${localStorage.getItem("token")}`,
         },
       });
 

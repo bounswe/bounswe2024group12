@@ -18,7 +18,6 @@ const Feed = ({ isGuest }) => {
   }, [page]);
 
   const fetchLikeData = async (postIds) => {
-    console.log("Fetching like data for posts:", postIds);
     try {
       const response = await fetch(`${BACKEND_URL}/posts/likes_summary/`, {
         method: "POST",
@@ -48,7 +47,6 @@ const Feed = ({ isGuest }) => {
     try {
       const response = await fetch(`${BACKEND_URL}/posts/list_posts/?page=${page}`);
       const data = await response.json();
-      console.log("Fetched posts:", data);
       const filteredPosts = data.results
         .filter((post) => post.post_text && post.user)
         .map((post) => ({
@@ -68,10 +66,7 @@ const Feed = ({ isGuest }) => {
 
       // Combine the like data with the posts
       const postsWithLikes = filteredPosts.map((post) => {
-        console.log("Post:", post);
-        console.log("Like data:", likeData);
         const likeInfo = likeData?.find((like) => like.post_id === post.id);
-        console.log("Like info:", likeInfo);
         return {
           ...post,
           likeCount: likeInfo?.like_count || 0,
