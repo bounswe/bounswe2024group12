@@ -34,16 +34,21 @@ const Post = ({ post, width}) => {
   const tags = post.tags || [];
   const timestamp = new Date(post.timestamp); // Parse timestamp as Date
 
-  const [likeCount, setLikeCount] = useState(initialLikeCount);
-  const [liked, setLiked] = useState(post.liked); // Track if the post is liked
+  const [like_count, setLikeCount] = useState(post.likeCount || 0);
 
+  const [liked, setLiked] = useState(post.liked || false); // Track if the post is liked
+  // console.log("Post id:", postID);
+  // console.log("Initial like count:", initialLikeCount);
+  // console.log("like count", like_count);
   const navigate = useNavigate();
   useEffect(() => {
+    setLikeCount(initialLikeCount);
+    setLiked(post.liked || false);
     const token = localStorage.getItem('token');
     if (token) {
       setIsLoggedIn(true);
     }
-  }, []);
+  }, [post.likeCount, post.liked]);
 
   const getImageSrc = (image, mimeType = "jpeg") => {
     if (!image) return "";
@@ -52,12 +57,11 @@ const Post = ({ post, width}) => {
 
   const handleLikeToggle = async () => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`${BACKEND_URL}/posts/like/${postID}`, {
+      const response = await fetch(`${BACKEND_URL}/posts/like/${postID}/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
+          "Authorization": `Bearer ${localStorage.getItem("token")}`,
         },
       });
 
@@ -99,7 +103,7 @@ const Post = ({ post, width}) => {
   const handleShare = () => {
     console.log("Sharing post:", postID);
     navigator.clipboard
-      .writeText(`${window.location.origin}/post/${postID}`)
+      .writeText(`${window.location.origin}/post/${postID}/comments`)
       .then(() => {
         alert("Post link copied to clipboard!");
       })
@@ -205,7 +209,7 @@ const Post = ({ post, width}) => {
             <IconButton onClick={handleLikeToggle} color={liked ? "primary" : "default"}>
               <ThumbUpIcon />
             </IconButton>
-            <Typography variant="body2">{likeCount}</Typography>
+            <Typography variant="body2">{like_count}</Typography>
           </Box>
 
           <Box sx={{ display: "flex", alignItems: "center" }}>

@@ -18,12 +18,12 @@ const Feed = ({ isGuest }) => {
   }, [page]);
 
   const fetchLikeData = async (postIds) => {
-    console.log("Fetching like data for posts:", postIds);
     try {
-      const response = await fetch(`${BACKEND_URL}/posts/get_likes/`, {
+      const response = await fetch(`${BACKEND_URL}/posts/likes_summary/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`,
         },
         body: JSON.stringify({ post_ids: postIds }),
       });
@@ -47,7 +47,6 @@ const Feed = ({ isGuest }) => {
     try {
       const response = await fetch(`${BACKEND_URL}/posts/list_posts/?page=${page}`);
       const data = await response.json();
-      console.log("Fetched posts:", data);
       const filteredPosts = data.results
         .filter((post) => post.post_text && post.user)
         .map((post) => ({
@@ -64,14 +63,15 @@ const Feed = ({ isGuest }) => {
       // Fetch like data for the filtered posts
       const postIds = filteredPosts.map((post) => post.id);
       const likeData = await fetchLikeData(postIds);
-
+      console.log("Like data:", likeData);
       // Combine the like data with the posts
       const postsWithLikes = filteredPosts.map((post) => {
         const likeInfo = likeData?.find((like) => like.post_id === post.id);
+        console.log("Like info:", likeInfo);
         return {
           ...post,
           likeCount: likeInfo?.like_count || 0,
-          liked: likeInfo?.liked || false, // Set initial liked status
+          liked: likeInfo?.liked_by_requester || false, // Set initial liked status
         };
       });
 
