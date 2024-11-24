@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import FENRenderer from "../common/FENRenderer";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import { Button, Select, MenuItem, Box, Stack, Typography } from "@mui/material";
 import ShareComment from "./ShareComment";
 import CommentsList from "./CommentsList";
 import { Chess } from "chess.js";
+
+const BACKEND_URL = process.env.REACT_APP_API_URL;
 
 function pgnToFenListAndMetadata(pgn) {
   const chess = new Chess();
@@ -50,30 +52,48 @@ const GameScreen = ({ game }) => {
   useEffect(() => {
     window.scrollTo(0, 0); // Scroll to the top of the page
   }, []);
-  const { fenList, metadata } = pgnToFenListAndMetadata(game.pgn);
+
+  // Memoize fenList to avoid unnecessary recalculations on re-renders
+  const { fenList, metadata } = useMemo(() => pgnToFenListAndMetadata(game.pgn), [game.pgn]);
+
   const [currentMoveIndex, setCurrentMoveIndex] = useState(0);
-  const initialCommentsByStep = {
-    0: [
-      {
-        id: 1,
-        username: "Alice",
-        text: "Great opening move!",
-        fen: "start",
-        image: null,
-        userIcon: null,
-      },
-      {
-        id: 2,
-        username: "Bob",
-        text: "Looking forward to seeing how this goes.",
-        fen: null,
-        image: null,
-        userIcon: null,
-      },
-    ],
+  const [commentsByStep, setCommentsByStep] = useState({}); // To store comments by step
+  const [loadingComments, setLoadingComments] = useState(true); // To handle loading state
+
+  const fetchComments = async () => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/games/${game.id}/comments/`);
+      if (!response.ok) throw new Error('Failed to fetch comments');
+      const data = await response.json();
+
+      const commentsByFen = data.comments.reduce((acc, comment) => {
+        const fenIndex = fenList.indexOf(comment.position_fen);
+        if (fenIndex !== -1) {
+          if (!acc[fenIndex]) acc[fenIndex] = [];
+          acc[fenIndex].push({
+            id: comment.id,
+            username: comment.user,
+            text: comment.comment_text,
+            fen: comment.comment_fens,
+          });
+        }
+        return acc;
+      }, {});
+
+      setCommentsByStep(commentsByFen);
+      setLoadingComments(false);
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+      setLoadingComments(false);
+    }
   };
 
-  const [commentsByStep, setCommentsByStep] = useState(initialCommentsByStep);
+  // Fetch comments for the game (only when game.id changes)
+  useEffect(() => {
+    if (game.id) {
+      fetchComments();
+    }
+  }, [game.id]); // Only depend on game.id for fetching comments
 
   const goToMove = (index) => {
     if (index >= 0 && index < fenList.length) {
@@ -89,14 +109,8 @@ const GameScreen = ({ game }) => {
     goToMove(selectedMove);
   };
 
-  const handleAddComment = (comment) => {
-    setCommentsByStep((prev) => ({
-      ...prev,
-      [currentMoveIndex]: [
-        ...(prev[currentMoveIndex] || []),
-        { ...comment, id: (prev[currentMoveIndex]?.length || 0) + 1 },
-      ],
-    }));
+  const handleAddComment = () => {
+    fetchComments(); // Refetch comments after adding a new comment
   };
 
   const commentsForCurrentStep = commentsByStep[currentMoveIndex] || [];
@@ -175,8 +189,12 @@ const GameScreen = ({ game }) => {
 
       {/* Comments Section */}
       <Box sx={{ width: "50%", mt: 3 }}>
-        <ShareComment onCommentSubmit={handleAddComment} />
-        <CommentsList comments={commentsForCurrentStep} />
+        <ShareComment onCommentSubmit={handleAddComment} gameId={game.id} currentFEN={currentPosition} />
+        {loadingComments ? (
+          <Typography>Loading comments...</Typography>
+        ) : (
+          <CommentsList comments={commentsForCurrentStep} />
+        )}
       </Box>
     </Box>
   );
