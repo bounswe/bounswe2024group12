@@ -170,7 +170,7 @@ const SearchBar = ({ onSearch }) => {
     try {
       const response = await api.get(`/posts/${postId}/`);
       onSearch(response.data);
-      setPostId(''); // Clear input after successful search
+      setPostId('');
     } catch (error) {
       if (error.response?.status === 404) {
         Alert.alert('Not Found', 'No post found with this ID');
@@ -220,7 +220,7 @@ const MainScreen = ({ navigation }) => {
 
   const handleSearchResult = (searchResult) => {
     if (searchResult) {
-      setPosts([searchResult]); // Show only the searched post
+      setPosts([searchResult]);
     }
   };
 

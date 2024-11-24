@@ -11,15 +11,13 @@ import {
     ActivityIndicator,
     TextInput,
     Alert,
-    Modal,
     StyleSheet,
     Dimensions
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
 import { api } from './services/AuthService';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 const FilterButton = ({ title, isActive, onPress }) => (
     <TouchableOpacity
@@ -32,14 +30,58 @@ const FilterButton = ({ title, isActive, onPress }) => (
     </TouchableOpacity>
 );
 
-const ArchiveScreen = () => {
-    const navigation = useNavigation();
+const GameSummary = ({ pgn, onAnalyze }) => {
+    const getGameDetails = (pgn) => {
+        const details = {
+            event: pgn.match(/\[Event "(.*?)"\]/)?.[1] || 'Unknown Event',
+            site: pgn.match(/\[Site "(.*?)"\]/)?.[1] || 'Unknown Site',
+            date: pgn.match(/\[Date "(.*?)"\]/)?.[1] || 'Unknown Date',
+            white: pgn.match(/\[White "(.*?)"\]/)?.[1] || 'Unknown White',
+            black: pgn.match(/\[Black "(.*?)"\]/)?.[1] || 'Unknown Black',
+            result: pgn.match(/\[Result "(.*?)"\]/)?.[1] || 'Unknown Result',
+        };
+        return details;
+    };
+
+    const details = getGameDetails(pgn);
+
+    return (
+        <View style={styles.gameSummaryContainer}>
+            <View style={styles.gameSummaryHeader}>
+                <Text style={styles.gameSummaryTitle}>Game Found!</Text>
+                <Text style={styles.eventText}>{details.event}</Text>
+                <Text style={styles.siteText}>{details.site}</Text>
+            </View>
+            
+            <View style={styles.playersContainer}>
+                <Text style={styles.playerText}>{details.white}</Text>
+                <Text style={styles.vsText}>vs</Text>
+                <Text style={styles.playerText}>{details.black}</Text>
+            </View>
+            
+            <View style={styles.detailsRow}>
+                <Text style={styles.dateText}>{details.date}</Text>
+                <Text style={styles.resultText}>{details.result}</Text>
+            </View>
+
+            <TouchableOpacity
+                style={styles.analyzeButton}
+                onPress={() => onAnalyze(pgn)}
+            >
+                <Text style={styles.analyzeButtonText}>Analyze Game</Text>
+            </TouchableOpacity>
+        </View>
+    );
+};
+
+const ArchiveScreen = ({ navigation }) => {
     const [games, setGames] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [mode, setMode] = useState('filter'); // 'filter', 'explore', or 'master'
+    const [mode, setMode] = useState('filter');
     const [masterGameError, setMasterGameError] = useState('');
+    const [selectedGamePGN, setSelectedGamePGN] = useState(null);
+    const [hasSearched, setHasSearched] = useState(false);
 
-    // Filter mode state
     const [filters, setFilters] = useState({
         year: '',
         player: '',
@@ -48,7 +90,6 @@ const ArchiveScreen = () => {
         result: '',
     });
 
-    // Explore mode state
     const [exploreParams, setExploreParams] = useState({
         fen: '',
         play: '',
@@ -56,17 +97,17 @@ const ArchiveScreen = () => {
         until: '',
     });
 
-    // Master game mode state
     const [masterGameId, setMasterGameId] = useState('');
-    const [selectedGamePGN, setSelectedGamePGN] = useState(null);
-    const [isModalVisible, setIsModalVisible] = useState(false);
 
     useEffect(() => {
         navigation.setOptions({
             headerShown: true,
             headerTitle: 'Chess Games',
             headerLeft: () => (
-                <TouchableOpacity onPress={() => navigation.goBack()}>
+                <TouchableOpacity
+                    style={styles.headerButton}
+                    onPress={() => navigation.goBack()}
+                >
                     <Feather name="arrow-left" size={24} color="#000" />
                 </TouchableOpacity>
             ),
@@ -77,10 +118,15 @@ const ArchiveScreen = () => {
         return /^[a-zA-Z0-9]{8}$/.test(id);
     };
 
+    const handleAnalyze = (pgn) => {
+        navigation.navigate('Analysis', { pgn });
+    };
+
     const fetchGames = async () => {
         try {
             setIsLoading(true);
             setMasterGameError('');
+            setHasSearched(true);
             let response;
 
             if (mode === 'master') {
@@ -98,7 +144,7 @@ const ArchiveScreen = () => {
                     response = await api.get(`/games/master_game/${masterGameId}`);
                     if (response.data?.pgn) {
                         setSelectedGamePGN(response.data.pgn);
-                        setGames([]); // Clear any previous games
+                        setGames([]);
                     }
                 } catch (error) {
                     if (error.response?.status === 404) {
@@ -137,27 +183,6 @@ const ArchiveScreen = () => {
         } catch (error) {
             console.error('Error fetching games:', error);
             Alert.alert('Error', 'Failed to load games. Please try again later.');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleGamePress = async (gameId) => {
-        try {
-            setIsLoading(true);
-            const response = await api.get(`/games/master_game/${gameId}`);
-            if (response.data?.pgn) {
-                setSelectedGamePGN(response.data.pgn);
-                setIsModalVisible(true);
-            }
-        } catch (error) {
-            console.error('Error fetching master game:', error);
-            Alert.alert(
-                'Error',
-                error.response?.status === 404
-                    ? 'Game not found'
-                    : 'Failed to load game details'
-            );
         } finally {
             setIsLoading(false);
         }
@@ -262,14 +287,10 @@ const ArchiveScreen = () => {
             </View>
         </View>
     );
-
     const renderMasterGameInput = () => (
-        <View style={styles.filterInputsContainer}>
+        <View style={styles.masterGameContainer}>
             <TextInput
-                style={[
-                    styles.input,
-                    masterGameError ? styles.inputError : null
-                ]}
+                style={[styles.input, masterGameError && styles.inputError]}
                 placeholder="Enter 8-character Game ID"
                 placeholderTextColor="#666"
                 value={masterGameId}
@@ -290,23 +311,19 @@ const ArchiveScreen = () => {
         </View>
     );
 
-    const renderGameList = () => {
+    const renderGameContent = () => {
         if (mode === 'master' && selectedGamePGN) {
             return (
-                <View style={styles.pgnOuterContainer}>
-                    <ScrollView 
-                        style={styles.pgnScrollContainer}
-                        contentContainerStyle={styles.pgnContentContainer}
-                    >
-                        <Text style={styles.pgnText}>{selectedGamePGN}</Text>
-                    </ScrollView>
-                    <TouchableOpacity 
-                        style={[styles.searchButton, styles.analyzeButton]}
-                        onPress={() => navigation.navigate('Analysis', { pgn: selectedGamePGN })}
-                    >
-                        <Text style={styles.searchButtonText}>Analyze Game</Text>
-                    </TouchableOpacity>
-                </View>
+                <ScrollView
+                    style={styles.masterGameScroll}
+                    contentContainerStyle={styles.masterGameScrollContent}
+                    showsVerticalScrollIndicator={false}
+                >
+                    <GameSummary 
+                        pgn={selectedGamePGN}
+                        onAnalyze={handleAnalyze}
+                    />
+                </ScrollView>
             );
         }
 
@@ -348,9 +365,11 @@ const ArchiveScreen = () => {
                 keyExtractor={(item, index) => `${item.event}-${item.white}-${item.black}-${index}`}
                 contentContainerStyle={styles.listContent}
                 ListEmptyComponent={
-                    <View style={styles.emptyContainer}>
-                        <Text style={styles.emptyText}>No games found</Text>
-                    </View>
+                    hasSearched ? (
+                        <View style={styles.emptyContainer}>
+                            <Text style={styles.emptyText}>No games found</Text>
+                        </View>
+                    ) : null
                 }
             />
         );
@@ -366,6 +385,7 @@ const ArchiveScreen = () => {
                         setGames([]);
                         setSelectedGamePGN(null);
                         setMasterGameError('');
+                        setHasSearched(false);
                     }}
                 >
                     <Text style={[styles.modeButtonText, mode === 'filter' && styles.modeButtonTextActive]}>
@@ -379,6 +399,7 @@ const ArchiveScreen = () => {
                         setGames([]);
                         setSelectedGamePGN(null);
                         setMasterGameError('');
+                        setHasSearched(false);
                     }}
                 >
                     <Text style={[styles.modeButtonText, mode === 'explore' && styles.modeButtonTextActive]}>
@@ -392,6 +413,7 @@ const ArchiveScreen = () => {
                         setGames([]);
                         setSelectedGamePGN(null);
                         setMasterGameError('');
+                        setHasSearched(false);
                     }}
                 >
                     <Text style={[styles.modeButtonText, mode === 'master' && styles.modeButtonTextActive]}>
@@ -407,10 +429,15 @@ const ArchiveScreen = () => {
             <TouchableOpacity
                 style={styles.searchButton}
                 onPress={fetchGames}
+                disabled={isLoading}
             >
-                <Text style={styles.searchButtonText}>
-                    {mode === 'master' ? 'Load Game' : 'Search Games'}
-                </Text>
+                {isLoading ? (
+                    <ActivityIndicator color="white" />
+                ) : (
+                    <Text style={styles.searchButtonText}>
+                        {mode === 'master' ? 'Load Game' : 'Search Games'}
+                    </Text>
+                )}
             </TouchableOpacity>
 
             {isLoading ? (
@@ -418,7 +445,7 @@ const ArchiveScreen = () => {
                     <ActivityIndicator size="large" color="#007AFF" />
                 </View>
             ) : (
-                renderGameList()
+                renderGameContent()
             )}
         </SafeAreaView>
     );
@@ -456,7 +483,7 @@ const styles = StyleSheet.create({
     modeButtonTextActive: {
         color: 'white',
     },
-    filterInputsContainer: {
+    masterGameContainer: {
         padding: 16,
         backgroundColor: 'white',
         borderBottomWidth: 1,
@@ -481,6 +508,19 @@ const styles = StyleSheet.create({
         fontSize: 14,
         marginTop: 4,
         marginBottom: 8,
+        textAlign: 'center',
+    },
+    helperText: {
+        color: '#666',
+        fontSize: 14,
+        textAlign: 'center',
+        marginBottom: 8,
+    },
+    filterInputsContainer: {
+        padding: 16,
+        backgroundColor: 'white',
+        borderBottomWidth: 1,
+        borderBottomColor: '#e0e0e0',
     },
     yearRange: {
         flexDirection: 'row',
@@ -489,30 +529,6 @@ const styles = StyleSheet.create({
     },
     halfInput: {
         flex: 1,
-    },
-    resultButtons: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginTop: 8,
-    },
-    filterButton: {
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 6,
-        borderWidth: 1,
-        borderColor: '#007AFF',
-        backgroundColor: 'white',
-    },
-    filterButtonActive: {
-        backgroundColor: '#007AFF',
-    },
-    filterButtonText: {
-        color: '#007AFF',
-        fontSize: 14,
-        fontWeight: '500',
-    },
-    filterButtonTextActive: {
-        color: 'white',
     },
     searchButton: {
         backgroundColor: '#007AFF',
@@ -526,23 +542,17 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
     },
-    analyzeButton: {
-        marginTop: 16,
-        marginHorizontal: 0,
-    },
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
     },
-    listContent: {
-        padding: 8,
-    },
     gameCard: {
         backgroundColor: 'white',
         padding: 16,
-        borderRadius: 12,
-        marginBottom: 8,
+        marginVertical: 8,
+        marginHorizontal: 16,
+        borderRadius: 8,
         elevation: 2,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
@@ -617,40 +627,117 @@ const styles = StyleSheet.create({
         color: '#666',
         fontSize: 16,
     },
-    helperText: {
-        color: '#666',
+    filterButton: {
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 6,
+        borderWidth: 1,
+        borderColor: '#007AFF',
+        backgroundColor: 'white',
+    },
+    filterButtonActive: {
+        backgroundColor: '#007AFF',
+    },
+    filterButtonText: {
+        color: '#007AFF',
         fontSize: 14,
-        marginTop: 4,
+        fontWeight: '500',
+    },
+    filterButtonTextActive: {
+        color: 'white',
+    },
+    resultButtons: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 8,
+    },
+    headerButton: {
+        padding: 8,
+        marginLeft: 8,
+    },
+    gameSummaryContainer: {
+        backgroundColor: 'white',
+        borderRadius: 12,
+        padding: 20,
+        marginHorizontal: 16,
+        marginVertical: 8,
+        elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+    },
+    gameSummaryHeader: {
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    gameSummaryTitle: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: '#007AFF',
+        marginBottom: 8,
+    },
+    eventText: {
+        fontSize: 18,
+        fontWeight: '600',
+        textAlign: 'center',
+        marginBottom: 4,
+    },
+    siteText: {
+        fontSize: 16,
+        color: '#666',
         textAlign: 'center',
     },
-    pgnContainer: {
-        backgroundColor: 'white',
-        margin: 16,
-        padding: 16,
+    playersContainer: {
+        marginVertical: 16,
+        padding: 12,
+        backgroundColor: '#f8f8f8',
         borderRadius: 8,
-        maxHeight: height * 0.6,
     },
-    pgnOuterContainer: {
-        flex: 1,
-        margin: 16,
+    playerText: {
+        fontSize: 16,
+        fontWeight: '500',
+        textAlign: 'center',
+        marginVertical: 4,
     },
-    pgnScrollContainer: {
-        backgroundColor: 'white',
-        borderRadius: 8,
-        maxHeight: height * 0.6,
-    },
-    pgnContentContainer: {
-        padding: 16,
-    },
-    pgnText: {
-        fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    vsText: {
         fontSize: 14,
-        color: '#333',
-        lineHeight: 20,
+        color: '#666',
+        textAlign: 'center',
+        marginVertical: 4,
+    },
+    detailsRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginBottom: 20,
+    },
+    dateText: {
+        fontSize: 14,
+        color: '#666',
+    },
+    resultText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#007AFF',
     },
     analyzeButton: {
-        marginTop: 16,
-        marginHorizontal: 0,
+        backgroundColor: '#007AFF',
+        paddingVertical: 12,
+        paddingHorizontal: 24,
+        borderRadius: 8,
+        alignItems: 'center',
+    },
+    analyzeButtonText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: '600',
+    },
+    masterGameScroll: {
+        flex: 1,
+        backgroundColor: '#f5f5f5',
+    },
+    masterGameScrollContent: {
+        padding: 16,
     },
 });
 
