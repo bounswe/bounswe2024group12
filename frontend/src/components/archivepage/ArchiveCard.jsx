@@ -2,39 +2,8 @@ import React, { useEffect, useState } from 'react';
 import Navbar from '../common/Navbar';
 import GameScreen from './GameScreen';
 import { Box, Typography, TextField, Button, List, ListItem, ListItemText } from '@mui/material';
-import { Chess } from 'chess.js';
 
 const BACKEND_URL = process.env.REACT_APP_API_URL;
-
-function pgnToFenList(pgn) {
-  const chess = new Chess();
-  const fenList = [chess.fen()]; // Start with the initial position
-
-  try {
-    // Remove metadata headers (lines enclosed in square brackets)
-    const movesSection = pgn.split("\n").filter(line => !line.startsWith("[")).join(" ");
-
-    // Extract moves by removing move numbers and splitting by spaces
-    const moves = movesSection
-      .split(/\s*\d+\.\s*/) // Split at move numbers
-      .flatMap(part => part.trim().split(/\s+/)) // Split moves by spaces
-      .filter(move => move && move !== "1/2-1/2" && move !== "0-1" && move !== "1-0"); // Remove result notations
-
-    moves.forEach((move) => {
-      const success = chess.move(move); // Attempt to make each move
-      if (!success) {
-        throw new Error(`Invalid move: ${move}`);
-      }
-      fenList.push(chess.fen()); // Add the position after the move
-    });
-  } catch (error) {
-    console.error("Error processing PGN:", error.message);
-    return [];
-  }
-
-  return fenList;
-}
-
 
 const ArchiveCard = () => {
   const [filters, setFilters] = useState({
@@ -129,7 +98,7 @@ const ArchiveCard = () => {
             <Button variant="outlined" onClick={handleReturnToSearch} sx={{ mb: 2 }}>
               Return to Search
             </Button>
-            <GameScreen moves={pgnToFenList(selectedGame.pgn)} />
+            <GameScreen game={selectedGame} />
           </Box>
         </>
       )}
