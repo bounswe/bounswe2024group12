@@ -1,26 +1,42 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { 
   View, 
   StyleSheet, 
-  Text, 
   TouchableOpacity, 
   SafeAreaView, 
   Platform, 
   StatusBar,
-  Dimensions,
-  ScrollView 
+  Dimensions
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { PgnViewer } from './components/PgnViewer';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 const CONTAINER_PADDING = 16;
-const MAX_BOARD_WIDTH = Math.min(width - (CONTAINER_PADDING * 2), 400);
+
+// Default PGN showing the "Immortal Game" - Anderssen vs Kieseritzky, 1851
+const DEFAULT_PGN = `[Event "London"]
+[Site "London ENG"]
+[Date "1851.06.21"]
+[Round "?"]
+[White "Anderssen, Adolf"]
+[Black "Kieseritzky, Lionel"]
+[Result "1-0"]
+[ECO "C33"]
+[WhiteElo "?"]
+[BlackElo "?"]
+[PlyCount "45"]
+
+1.e4 e5 2.f4 exf4 3.Bc4 Qh4+ 4.Kf1 b5 5.Bxb5 Nf6 6.Nf3 Qh6 7.d3 Nh5 8.Nh4 Qg5
+9.Nf5 c6 10.g4 Nf6 11.Rg1 cxb5 12.h4 Qg6 13.h5 Qg5 14.Qf3 Ng8 15.Bxf4 Qf6
+16.Nc3 Bc5 17.Nd5 Qxb2 18.Bd6 Bxg1 19.e5 Qxa1+ 20.Ke2 Na6 21.Nxg7+ Kd8
+22.Qf6+ Nxf6 23.Be7# 1-0`;
 
 const AnalysisScreen = ({ route, navigation }) => {
-  const { pgn } = route.params;
+  // Use the provided PGN from navigation or fall back to default PGN
+  const pgn = route?.params?.pgn || DEFAULT_PGN;
 
-  useEffect(() => {
+  React.useEffect(() => {
     navigation.setOptions({
       headerShown: true,
       headerTitle: 'Game Analysis',
@@ -49,39 +65,16 @@ const AnalysisScreen = ({ route, navigation }) => {
     });
   }, [navigation]);
 
-  if (!pgn) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.errorContainer}>
-          <Feather name="alert-circle" size={48} color="#666" />
-          <Text style={styles.errorText}>No game data available</Text>
-          <TouchableOpacity 
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Text style={styles.backButtonText}>Go Back</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.analysisContainer}>
-        <ScrollView 
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.content}>
-            <PgnViewer 
-              pgn={pgn}
-              darkSquareColor="#769656"
-              lightSquareColor="#eeeed2"
-            />
-          </View>
-        </ScrollView>
+        <View style={styles.content}>
+          <PgnViewer 
+            pgn={pgn}
+            darkSquareColor="#769656"
+            lightSquareColor="#eeeed2"
+          />
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -97,46 +90,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'white',
   },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-  },
   content: {
     flex: 1,
     paddingHorizontal: CONTAINER_PADDING,
     paddingTop: CONTAINER_PADDING,
     paddingBottom: CONTAINER_PADDING * 2,
   },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-    backgroundColor: 'white',
-  },
-  errorText: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-    marginTop: 16,
-    marginBottom: 24,
-  },
   headerButton: {
     padding: 8,
     marginLeft: 8,
-  },
-  backButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    backgroundColor: '#007AFF',
-    borderRadius: 8,
-  },
-  backButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '500',
   }
 });
 

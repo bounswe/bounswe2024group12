@@ -14,13 +14,20 @@ import {
   ChevronLeft,
   ChevronRight,
   Play,
-  Pause
+  Pause,
+  RotateCcw
 } from 'lucide-react-native';
 import Chessboard from 'react-native-chessboard';
 import { Chess } from 'chess.js';
 
-const { width } = Dimensions.get('window');
-const BOARD_SIZE = Math.min(Dimensions.get('window').width - 32, Dimensions.get('window').height / 2);
+const CONTAINER_PADDING = 16;
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const SCREEN_HEIGHT = Dimensions.get('window').height;
+const BOARD_SIZE = Math.min(
+  SCREEN_WIDTH - (CONTAINER_PADDING * 2),
+  SCREEN_HEIGHT * 0.45
+);
+
 const INITIAL_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 const AUTO_PLAY_DELAY = 2000;
 
@@ -33,6 +40,7 @@ export const PgnViewer = ({ pgn, darkSquareColor = '#769656', lightSquareColor =
   const [currentMoveIndex, setCurrentMoveIndex] = useState(-1);
   const [isAutoPlaying, setIsAutoPlaying] = useState(false);
   const [currentFen, setCurrentFen] = useState(INITIAL_FEN);
+  const [boardKey, setBoardKey] = useState(0);
 
   useEffect(() => {
     const initializeGame = () => {
@@ -40,32 +48,34 @@ export const PgnViewer = ({ pgn, darkSquareColor = '#769656', lightSquareColor =
       setError(null);
 
       try {
+        game.reset();
         if (!pgn) {
-          game.reset();
+          console.log('No PGN provided, resetting to initial position');
           setMoveHistory([]);
           setPositions([INITIAL_FEN]);
           setCurrentMoveIndex(-1);
           setCurrentFen(INITIAL_FEN);
+          setBoardKey(prev => prev + 1);
           return;
         }
 
-        game.reset();
         game.loadPgn(pgn.trim());
-
         const moves = game.history();
         setMoveHistory(moves);
 
         game.reset();
-        const positions = [game.fen()];
+        const newPositions = [game.fen()];
 
         for (const move of moves) {
           game.move(move);
-          positions.push(game.fen());
+          newPositions.push(game.fen());
         }
 
-        setPositions(positions);
+        setPositions(newPositions);
         setCurrentMoveIndex(-1);
-        setCurrentFen(positions[0]);
+        setCurrentFen(newPositions[0]);
+        setBoardKey(prev => prev + 1);
+
       } catch (error) {
         console.error('Error initializing game:', error);
         setError('Failed to load chess game. Please check the PGN format.');
@@ -74,6 +84,7 @@ export const PgnViewer = ({ pgn, darkSquareColor = '#769656', lightSquareColor =
         setMoveHistory([]);
         setPositions([INITIAL_FEN]);
         setCurrentMoveIndex(-1);
+        setBoardKey(prev => prev + 1);
       } finally {
         setIsLoading(false);
       }
@@ -85,14 +96,16 @@ export const PgnViewer = ({ pgn, darkSquareColor = '#769656', lightSquareColor =
   useEffect(() => {
     const position = positions[currentMoveIndex + 1];
     if (position) {
+      game.load(position);
       setCurrentFen(position);
+      setBoardKey(prev => prev + 1);
     }
   }, [currentMoveIndex, positions]);
 
   useEffect(() => {
     let interval;
 
-    if (isAutoPlaying && moveHistory.length > 0) {
+    if (isAutoPlaying) {
       interval = setInterval(() => {
         setCurrentMoveIndex(prev => {
           if (prev >= moveHistory.length - 1) {
@@ -131,8 +144,6 @@ export const PgnViewer = ({ pgn, darkSquareColor = '#769656', lightSquareColor =
         break;
       case 'end':
         setCurrentMoveIndex(moveHistory.length - 1);
-        break;
-      default:
         break;
     }
   }, [moveHistory.length]);
@@ -197,28 +208,39 @@ export const PgnViewer = ({ pgn, darkSquareColor = '#769656', lightSquareColor =
 
   return (
     <View style={styles.container}>
-      <View style={styles.boardContainer}>
-        <Chessboard
-          fen={currentFen}
-          boardSize={BOARD_SIZE}
-          darkSquareColor={darkSquareColor}
-          lightSquareColor={lightSquareColor}
-          gestureEnabled={false}
-        />
+      <View style={styles.boardWrapper}>
+        <View style={styles.boardContainer}>
+          <Chessboard
+            key={boardKey}
+            fen={currentFen}
+            boardSize={BOARD_SIZE}
+            darkSquareColor={darkSquareColor}
+            lightSquareColor={lightSquareColor}
+            gestureEnabled={false}
+          />
+        </View>
+      </View>
+
+      <View style={styles.positionInfoContainer}>
+        <Text style={styles.positionInfoText}>
+          Move: {currentMoveIndex + 1} / {moveHistory.length}
+        </Text>
+        <Text style={styles.positionInfoText}>
+          Turn: {currentFen.split(' ')[1] === 'w' ? 'White' : 'Black'}
+        </Text>
+        {game.inCheck() && (
+          <Text style={styles.checkText}>CHECK!</Text>
+        )}
       </View>
 
       <View style={styles.controlsContainer}>
         <TouchableOpacity
-          onPress={() => handleControlClick('play')}
-          style={[styles.button, isAutoPlaying && styles.buttonActive]}
+          onPress={() => handleControlClick('start')}
+          style={[styles.button, currentMoveIndex === -1 && styles.buttonDisabled]}
           accessible={true}
-          accessibilityLabel={isAutoPlaying ? "Pause autoplay" : "Start autoplay"}
+          accessibilityLabel="Go to start of the game"
         >
-          {isAutoPlaying ? (
-            <Pause size={24} color="#fff" />
-          ) : (
-            <Play size={24} color="#333" />
-          )}
+          <RotateCcw size={24} color={currentMoveIndex === -1 ? '#ccc' : '#333'} />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -233,12 +255,12 @@ export const PgnViewer = ({ pgn, darkSquareColor = '#769656', lightSquareColor =
 
         <TouchableOpacity
           onPress={() => handleControlClick('play')}
-          style={styles.button}
+          style={[styles.button, isAutoPlaying && styles.buttonActive]}
           accessible={true}
           accessibilityLabel={isAutoPlaying ? "Pause autoplay" : "Start autoplay"}
         >
           {isAutoPlaying ?
-            <Pause size={24} color="#007AFF" /> :
+            <Pause size={24} color="#fff" /> :
             <Play size={24} color="#333" />
           }
         </TouchableOpacity>
@@ -247,7 +269,7 @@ export const PgnViewer = ({ pgn, darkSquareColor = '#769656', lightSquareColor =
           onPress={() => handleControlClick('next')}
           disabled={currentMoveIndex === moveHistory.length - 1}
           style={[styles.button,
-          currentMoveIndex === moveHistory.length - 1 && styles.buttonDisabled]}
+            currentMoveIndex === moveHistory.length - 1 && styles.buttonDisabled]}
           accessible={true}
           accessibilityLabel="Go to next move"
         >
@@ -261,7 +283,7 @@ export const PgnViewer = ({ pgn, darkSquareColor = '#769656', lightSquareColor =
           onPress={() => handleControlClick('end')}
           disabled={currentMoveIndex === moveHistory.length - 1}
           style={[styles.button,
-          currentMoveIndex === moveHistory.length - 1 && styles.buttonDisabled]}
+            currentMoveIndex === moveHistory.length - 1 && styles.buttonDisabled]}
           accessible={true}
           accessibilityLabel="Skip to end of the game"
         >
@@ -286,14 +308,21 @@ export const PgnViewer = ({ pgn, darkSquareColor = '#769656', lightSquareColor =
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     backgroundColor: '#fff',
-    padding: 16,
     borderRadius: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+  },
+  boardWrapper: {
+    width: '100%',
+    alignItems: 'center',
+    paddingVertical: 16,
+  },
+  boardContainer: {
+    width: BOARD_SIZE,
+    height: BOARD_SIZE,
+    backgroundColor: '#f8f8f8',
+    borderRadius: 8,
+    overflow: 'hidden',
   },
   loadingContainer: {
     flex: 1,
@@ -310,15 +339,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 16,
   },
-  boardContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: BOARD_SIZE,
-    height: BOARD_SIZE,
-    backgroundColor: '#f8f8f8',
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
   controlsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-evenly',
@@ -327,10 +347,6 @@ const styles = StyleSheet.create({
     marginVertical: 8,
     backgroundColor: '#fff',
     borderRadius: 8,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   button: {
     padding: 12,
@@ -347,6 +363,8 @@ const styles = StyleSheet.create({
     maxHeight: 200,
     backgroundColor: '#f8f8f8',
     borderRadius: 8,
+    marginHorizontal: 16,
+    marginBottom: 16,
   },
   moveListContent: {
     padding: 12,
@@ -377,6 +395,25 @@ const styles = StyleSheet.create({
   },
   selectedMoveText: {
     color: '#007AFF',
+    fontWeight: 'bold',
+  },
+  positionInfoContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    padding: 8,
+    backgroundColor: '#f8f8f8',
+    borderRadius: 8,
+    marginHorizontal: 16,
+    marginBottom: 8,
+  },
+  positionInfoText: {
+    fontSize: 14,
+    color: '#333',
+  },
+  checkText: {
+    fontSize: 14,
+    color: '#ff3b30',
     fontWeight: 'bold',
   }
 });
