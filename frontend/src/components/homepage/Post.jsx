@@ -79,7 +79,7 @@ const Post = ({ post, width}) => {
   const handleDelete = async () => {
     if (!isLoggedIn) return;
     try {
-      const response = await fetch(`/posts/${postID}/`, {
+      const response = await fetch(`${BACKEND_URL}/posts/${postID}/`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
