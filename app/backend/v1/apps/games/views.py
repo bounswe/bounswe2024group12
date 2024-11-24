@@ -43,6 +43,7 @@ result_param = openapi.Parameter(
             'application/json': {
                 "games": [
                     {
+                        "id": 1,  
                         "event": "Amsterdam",
                         "site": "Amsterdam NED",
                         "white": "Browne, Walter S",
@@ -93,6 +94,7 @@ def filter_games(request):
         # Prepare response data
         games_data = [
             {
+                "id": game.id,
                 "event": game.event,
                 "site": game.site,
                 "white": game.white,
