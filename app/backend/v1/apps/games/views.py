@@ -5,9 +5,11 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from v1.apps.headers import auth_header
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from .models import Game
+from .models import Game, GameComment
 import requests
 import os
+
+from .serializers import GameCommentSerializer
 
 
 # Swagger Parameters
@@ -241,3 +243,107 @@ def master_game(request, game_id):
             return JsonResponse({"error": "Failed to fetch game data"}, status=response.status_code)
     except Exception as e:
         return JsonResponse({"error": "Internal server error", "details": str(e)}, status=500)
+    
+@swagger_auto_schema(
+    method='post',
+    operation_description="Add a comment to a specific move in a game.",
+    operation_summary="Add Game Comment",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'position_fen': openapi.Schema(type=openapi.TYPE_STRING, description="FEN string of the commented position"),
+            'comment_fens': openapi.Schema(
+                type=openapi.TYPE_ARRAY,
+                items=openapi.Items(type=openapi.TYPE_STRING),
+                description="List of FENs related to the comment (optional)"
+            ),
+            'comment_text': openapi.Schema(type=openapi.TYPE_STRING, description="Text of the comment")
+        },
+        required=['position_fen', 'comment_text']
+    ),
+    responses={
+        201: openapi.Response(description="Comment added successfully", examples={
+            'application/json': {
+                'id': 1,
+                'user': 'example_user',
+                'game': 5,
+                'position_fen': 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR',
+                'comment_fens': 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR',
+                'fens_list': ['rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR'],
+                'comment_text': 'Great move!',
+                'created_at': '2024-11-22T12:00:00Z'
+            }
+        }),
+        400: openapi.Response(description="Invalid data"),
+        404: openapi.Response(description="Game not found"),
+    },
+)
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def add_game_comment(request, game_id):
+    """
+    Endpoint for adding comment to a game position(move)
+    """
+    data = request.data
+    data['game'] = game_id  # Add game ID to the request data
+    serializer = GameCommentSerializer(data=data)
+    if serializer.is_valid():
+        comment = serializer.save(user=request.user)
+        response_data = {
+            'id': comment.id,
+            'user': comment.user.username,
+            'game': comment.game.id,
+            'position_fen': comment.position_fen,
+            'comment_fens': comment.comment_fens,
+            'fens_list': comment.get_fens_list(),
+            'comment_text': comment.comment_text,
+            'created_at': comment.created_at
+        }
+        return JsonResponse(response_data, status=201)
+    return JsonResponse(serializer.errors, status=400)
+
+@swagger_auto_schema(
+    method='get',
+    operation_description="List all comments for a specific game.",
+    operation_summary="List Game Comments",
+    responses={
+        200: openapi.Response(description="Comments retrieved successfully", examples={
+            'application/json': {
+                'comments': [
+                    {
+                        'id': 1,
+                        'user': 'example_user',
+                        'game': 5,
+                        'position_fen': 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR',
+                        'comment_fens': 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR',
+                        'fens_list': ['rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR'],
+                        'comment_text': 'Great move!',
+                        'created_at': '2024-11-22T12:00:00Z'
+                    }
+                ]
+            }
+        }),
+        404: openapi.Response(description="Game not found")
+    },
+)
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def list_game_comments(request, game_id):
+    """
+    Lists all the comments of a game.
+    """
+    comments = GameComment.objects.filter(game_id=game_id).order_by('created_at')
+    response_data = [
+        {
+            'id': comment.id,
+            'user': comment.user.username,
+            'game': comment.game.id,
+            'position_fen': comment.position_fen,
+            'comment_fens': comment.comment_fens,
+            'fens_list': comment.get_fens_list(),
+            'comment_text': comment.comment_text,
+            'created_at': comment.created_at
+        }
+        for comment in comments
+    ]
+    return JsonResponse({'comments': response_data}, status=200)

@@ -3,9 +3,9 @@ from django.db import models
 
 from v1.apps.accounts.models import CustomUser
 
-# TODO: post image size and format check may be implemented here
 
 class Post(models.Model):
+    title = models.CharField(max_length=255, null=False, blank=False)
     post_image = models.ImageField(upload_to='post_images/', null=True, blank=True)
     fen = models.CharField(max_length=255, null=True, blank=True)
     post_text = models.TextField(null=True, blank=True)
@@ -14,7 +14,7 @@ class Post(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
-        return f"Post by {self.user.username}"
+        return f"{self.title} by {self.user.username}" 
 
 
 class Like(models.Model):

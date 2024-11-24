@@ -11,6 +11,7 @@ venv.bak/
 
 /media/
 .vscode
+data/
 
 */.env
 
