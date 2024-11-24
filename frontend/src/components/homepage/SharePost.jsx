@@ -109,8 +109,14 @@ const SharePost = () => {
                     label="Title"
                     variant="outlined"
                     fullWidth
-                    inputProps={{ style: { fontSize: 24 } }}
-                    style={{ marginBottom: "10px", display: "none" }}
+                    sx={{
+                      marginBottom: "10px",
+                      "& .MuiInputLabel-root": {
+                        fontSize: "24px",
+                      },
+                      "& .MuiInputBase-input": {
+                        fontSize: "24px",
+                      }}}
                   />
                 )}
               </Field>

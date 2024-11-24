@@ -41,7 +41,10 @@ const Login = () => {
       const data = await response.json();
       setSuccess(true);
       const token = data.token;
+      const username = data.username;
       localStorage.setItem("token", token); 
+      console.log(data);
+      localStorage.setItem("username", username);
       navigate('/home');
 
     } catch (error) {
