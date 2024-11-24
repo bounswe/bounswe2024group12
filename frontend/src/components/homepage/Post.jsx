@@ -19,6 +19,7 @@ import CommentIcon from "@mui/icons-material/Comment";
 const BACKEND_URL = process.env.REACT_APP_API_URL;
 
 const Post = ({ post, width}) => {
+  console.log("Post:", post);
   const postWidth = width || '50%';
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const currUser = localStorage.getItem('username');
@@ -34,9 +35,12 @@ const Post = ({ post, width}) => {
   const tags = post.tags || [];
   const timestamp = new Date(post.timestamp); // Parse timestamp as Date
 
-  const [likeCount, setLikeCount] = useState(initialLikeCount);
-  const [liked, setLiked] = useState(post.liked); // Track if the post is liked
+  const [like_count, setLikeCount] = useState(initialLikeCount);
 
+  const [liked, setLiked] = useState(post.liked); // Track if the post is liked
+  console.log("Post id:", postID);
+  console.log("Initial like count:", initialLikeCount);
+  console.log("like count", like_count);
   const navigate = useNavigate();
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -205,7 +209,7 @@ const Post = ({ post, width}) => {
             <IconButton onClick={handleLikeToggle} color={liked ? "primary" : "default"}>
               <ThumbUpIcon />
             </IconButton>
-            <Typography variant="body2">{likeCount}</Typography>
+            <Typography variant="body2">{like_count}</Typography>
           </Box>
 
           <Box sx={{ display: "flex", alignItems: "center" }}>
