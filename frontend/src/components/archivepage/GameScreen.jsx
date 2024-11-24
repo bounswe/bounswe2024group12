@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import FENRenderer from "../common/FENRenderer";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
 import { Button, Select, MenuItem, Box, Stack, Typography } from "@mui/material";
@@ -47,6 +47,9 @@ function pgnToFenListAndMetadata(pgn) {
 }
 
 const GameScreen = ({ game }) => {
+  useEffect(() => {
+    window.scrollTo(0, 0); // Scroll to the top of the page
+  }, []);
   const { fenList, metadata } = pgnToFenListAndMetadata(game.pgn);
   const [currentMoveIndex, setCurrentMoveIndex] = useState(0);
   const initialCommentsByStep = {
@@ -122,7 +125,7 @@ const GameScreen = ({ game }) => {
 
       {/* FEN Renderer */}
       <Box sx={{ display: "flex", justifyContent: "center" }}>
-        <FENRenderer fen={currentPosition} width={600} />
+        <FENRenderer fen={currentPosition} width={520} />
       </Box>
 
       {/* Navigation Controls */}
