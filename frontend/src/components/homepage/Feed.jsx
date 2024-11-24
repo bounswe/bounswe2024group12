@@ -63,10 +63,11 @@ const Feed = ({ isGuest }) => {
       // Fetch like data for the filtered posts
       const postIds = filteredPosts.map((post) => post.id);
       const likeData = await fetchLikeData(postIds);
-
+      console.log("Like data:", likeData);
       // Combine the like data with the posts
       const postsWithLikes = filteredPosts.map((post) => {
         const likeInfo = likeData?.find((like) => like.post_id === post.id);
+        console.log("Like info:", likeInfo);
         return {
           ...post,
           likeCount: likeInfo?.like_count || 0,
