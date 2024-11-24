@@ -103,7 +103,7 @@ const Post = ({ post, width}) => {
   const handleShare = () => {
     console.log("Sharing post:", postID);
     navigator.clipboard
-      .writeText(`${window.location.origin}/post/${postID}`)
+      .writeText(`${window.location.origin}/post/${postID}/comments`)
       .then(() => {
         alert("Post link copied to clipboard!");
       })
