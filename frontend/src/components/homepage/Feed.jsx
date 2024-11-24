@@ -47,7 +47,7 @@ const Feed = ({ isGuest }) => {
     try {
       const response = await fetch(`${BACKEND_URL}/posts/list_posts/?page=${page}`);
       const data = await response.json();
-
+      console.log("Fetched posts:", data);
       const filteredPosts = data.results
         .filter((post) => post.post_text && post.user)
         .map((post) => ({

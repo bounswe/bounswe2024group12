@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -11,14 +12,16 @@ import {
 } from "@mui/material";
 import FENRenderer from "../common/FENRenderer";
 import ThumbUpIcon from "@mui/icons-material/ThumbUp";
-import ThumbDownIcon from "@mui/icons-material/ThumbDown";
+import DeleteIcon from "@mui/icons-material/Delete";
 import ShareIcon from "@mui/icons-material/Share";
 import CommentIcon from "@mui/icons-material/Comment";
 
 const BACKEND_URL = process.env.REACT_APP_API_URL;
 
-const Post = ({ post }) => {
+const Post = ({ post, width}) => {
+  const postWidth = width || '50%';
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const currUser = localStorage.getItem('username');
   const postID = post.id;
   const postHeader = post.title;
   const postContent = post.post_text;
@@ -27,7 +30,6 @@ const Post = ({ post }) => {
   const username = post.username || "User";
   const userIcon = post.userIcon;
   const initialLikeCount = post.likeCount || 0;
-  const dislikeCount = post.dislikeCount || 0;
   const commentCount = post.commentCount || 0;
   const tags = post.tags || [];
   const timestamp = new Date(post.timestamp); // Parse timestamp as Date
@@ -35,6 +37,7 @@ const Post = ({ post }) => {
   const [likeCount, setLikeCount] = useState(initialLikeCount);
   const [liked, setLiked] = useState(post.liked); // Track if the post is liked
 
+  const navigate = useNavigate();
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -46,30 +49,6 @@ const Post = ({ post }) => {
     if (!image) return "";
     return image.startsWith("data:") ? image : `data:image/${mimeType};base64,${image}`;
   };
-
-  const getLikeCount = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`/posts/likes_summary/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setLikeCount(data.likes);
-        setLiked(data.liked);
-      } else {
-        console.error("Failed to fetch like summary");
-      }
-    } catch (error) {
-      console.error("An error occurred while fetching like summary:", error);
-    }
-  };
-
 
   const handleLikeToggle = async () => {
     try {
@@ -93,12 +72,50 @@ const Post = ({ post }) => {
     }
   };
 
+  const handleDelete = async () => {
+    if (!isLoggedIn) return;
+    try {
+      const response = await fetch(`/posts/${postID}/`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+  
+      if (response.ok) {
+        console.log("Post deleted successfully");
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      } else {
+        console.error("Failed to delete post");
+      }
+    } catch (error) {
+      console.error("An error occurred while deleting the post:", error);
+    }
+  };
+
+  const handleShare = () => {
+    console.log("Sharing post:", postID);
+    navigator.clipboard
+      .writeText(`${window.location.origin}/post/${postID}`)
+      .then(() => {
+        alert("Post link copied to clipboard!");
+      })
+      .catch(() => {
+        alert("Failed to copy link!");
+      });
+  };
+  
+  
+
   // Format date and time
   const formattedDate = timestamp.toLocaleDateString();
   const formattedTime = timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   return (
-    <Card sx={{ width: '50%', margin: '1% auto' }}>
+    <Card sx={{ width: postWidth, margin: '1% auto' }}>
       <CardContent sx={{ width: '95%', margin: '1% auto' }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
           <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
@@ -131,7 +148,7 @@ const Post = ({ post }) => {
           >
             {postFen && (
               <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                <FENRenderer fen={postFen} />
+                <FENRenderer fen={postFen} width={300} />
               </Box>
             )}
 
@@ -191,23 +208,21 @@ const Post = ({ post }) => {
             <Typography variant="body2">{likeCount}</Typography>
           </Box>
 
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <IconButton>
-              <ThumbDownIcon />
-            </IconButton>
-            <Typography variant="body2">{dislikeCount}</Typography>
-          </Box>
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+              <IconButton onClick={() => navigate(`/post/${postID}/comments`)}>
+                <CommentIcon />
+              </IconButton>
+              <Typography variant="body2">{commentCount}</Typography>
+            </Box>
 
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <IconButton>
-              <CommentIcon />
-            </IconButton>
-            <Typography variant="body2">{commentCount}</Typography>
-          </Box>
-
-          <IconButton>
+          <IconButton onClick={handleShare}>
             <ShareIcon />
           </IconButton>
+
+          {(currUser === username) && (<IconButton onClick={handleDelete}>
+            <DeleteIcon />
+          </IconButton>)}
+          
         </Box>)}
       </CardContent>
     </Card>

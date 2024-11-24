@@ -3,6 +3,7 @@ import LoginPage from './pages/LoginPage';
 import SignUpPage from './pages/SignUpPage';
 import HomePage from './pages/HomePage';
 import ArchivePage from './pages/ArchivePage';
+import CommentPage from './pages/CommentPage';
 
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 
@@ -44,6 +45,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignUpPage />} />
           <Route path="/archive" element={<ArchivePage />} />
+          <Route path="/post/:id/comments" element={<CommentPage />} />
       </Routes>
     </Router>
   </ThemeProvider>

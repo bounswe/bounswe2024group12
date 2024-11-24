@@ -1,0 +1,81 @@
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { Box, Typography, Divider } from "@mui/material";
+import Post from "../homepage/Post"; // Reuse the Post component
+import ShareComment from "./ShareComment"; // Import ShareComment
+import Comment from "./Comment"; // Import the Comment component
+
+const BACKEND_URL = process.env.REACT_APP_API_URL;
+
+const CommentCard = () => {
+  const { id } = useParams(); // Get post ID from the URL
+  const [post, setPost] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchPostAndComments = async () => {
+    try {
+      // Fetch the post details
+      const postResponse = await fetch(`${BACKEND_URL}/posts/${id}/`);
+      const postData = await postResponse.json();
+
+      const mappedPost = {
+        id: postData.id,
+        username: postData.user,
+        title: `${postData.user}'s post:`,
+        post_text: postData.post_text,
+        image: postData.post_image || "",
+        fen: postData.fen || "",
+        tags: postData.tags || [],
+        timestamp: new Date(postData.created_at),
+      };
+
+      // Fetch the comments for the post
+      const commentResponse = await fetch(`${BACKEND_URL}/posts/comments/${id}/`);
+      const commentData = await commentResponse.json();
+      console.log(commentData);
+
+      setPost(mappedPost);
+      setComments(commentData);
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error fetching post or comments:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchPostAndComments();
+  }, [id]);
+
+  if (isLoading) return <Typography>Loading...</Typography>;
+
+  return (
+    <Box sx={{ display: "flex", margin: "20px" }}>
+      <Box sx={{ flex: 3 }}>
+        <Post post={post} width={"75%"} />
+      </Box>
+
+      <Box sx={{ flex: 2 }}>
+        <Typography variant="h4" sx={{ fontWeight: "bold", mt: "20px" }}>
+          Comments
+        </Typography>
+
+        <ShareComment postId={id}/>
+        <Divider sx={{ margin: "20px 0" }} />
+
+        {comments.map((comment, index) => (
+          <Comment
+            key={index}
+            comment={comment}
+            postId={id}
+            onDelete={(commentId) =>
+              setComments((prev) => prev.filter((c) => c.id !== commentId))
+            }
+          />
+        ))}
+      </Box>
+    </Box>
+  );
+};
+
+export default CommentCard;
