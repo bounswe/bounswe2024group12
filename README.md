@@ -72,6 +72,18 @@ Before running this project, make sure you have the following installed on your 
    docker ps
    ```
 
+### Testing the Backend
+
+To run all tests for the backend, execute the following command at /backend :
+
+```bash
+docker-compose exec web bash /app/api_core/test.sh
+```
+### Database Initialization (IMPORTANT)
+
+We scraped chess games from https://www.pgnmentor.com/ and there is a function at "/app/backend/v1/apps/games/management/commands/import_games.py" to import json file to database. Due to file size is too big (~300MB) we will send it if exact database table is needed.
+
+
 ## Frontend
 
 This project contains the frontend for a React application.
