@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-c_wp0u5-_d*&-+y%xzg0gsv1_oyo=l0)#5_()bf*)(#^y@zeq$
 DEBUG = True
 # DEBUG = True
 
-ALLOWED_HOSTS = ['167.99.133.190','localhost']
+ALLOWED_HOSTS = ['167.99.133.190','localhost', 'buchessocial.online']
 # ALLOWED_HOSTS = []
 
 
@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'v1.apps.test_endpoint',
     'v1.apps.accounts',
     'v1.apps.posts',
+    'v1.apps.games',
     
 ]
 
@@ -132,7 +133,7 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
-STATIC_URL = '/static/'
+STATIC_URL = '/api/static/'
 
 # Absolute path where collected static files will be stored.
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
