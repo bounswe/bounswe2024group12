@@ -6,5 +6,6 @@ urlpatterns = [
     path('test_endpoint/', include('v1.apps.test_endpoint.urls')), 
     path('accounts/', include('v1.apps.accounts.urls')),
     path('posts/', include('v1.apps.posts.urls')),  # Post endpoints
+    path('games/', include('v1.apps.games.urls')),  # Game endpoints
     # Product endpoints
 ]

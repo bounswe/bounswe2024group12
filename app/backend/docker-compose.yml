@@ -29,6 +29,10 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    environment:
+      - LICHESS_ACCESS_TOKEN
+    env_file:
+      - .env
 volumes:
   db_data:                                        # Docker volume for MySQL persistence
   media_data:  # Docker volume for Django media files
