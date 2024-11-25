@@ -12,9 +12,9 @@ import {
   Typography,
 } from "@mui/material";
 import { Form, Field } from "react-final-form";
-import FENRenderer from "./FENRenderer";
+import FENRenderer from "../common/FENRenderer";
 
-const BACKEND_URL = "https://167.99.133.190/api/v1";
+const BACKEND_URL = process.env.REACT_APP_API_URL;
 
 const SharePost = () => {
   const [imagePreview, setImagePreview] = useState(null);
@@ -90,8 +90,9 @@ const SharePost = () => {
 
   return (
     <Card sx={{
-      width: '75%',
+      width: '50%',
       margin: '0 auto 1% auto',
+      borderRadius: "0px 0px 10px 10px",
     }}>
       <CardContent sx={{
         width: '95%',
@@ -108,8 +109,14 @@ const SharePost = () => {
                     label="Title"
                     variant="outlined"
                     fullWidth
-                    inputProps={{ style: { fontSize: 24 } }}
-                    style={{ marginBottom: "10px", display: "none"}}
+                    sx={{
+                      marginBottom: "10px",
+                      "& .MuiInputLabel-root": {
+                        fontSize: "24px",
+                      },
+                      "& .MuiInputBase-input": {
+                        fontSize: "24px",
+                      }}}
                   />
                 )}
               </Field>
@@ -184,7 +191,7 @@ const SharePost = () => {
 
                 <Field name="imageBase64">
                   {({ input }) => (
-                    <Box sx={{ flex: 1, display: "flex", alignItems: "center" }}>
+                    <Box sx={{  flex: 1, display: 'flex', gap: 2, marginBottom: 2, justifyContent: "space-around"  }}>
                       <Button variant="contained" component="label">
                         Upload Image
                         <Input
@@ -194,9 +201,8 @@ const SharePost = () => {
                           style={{ display: "none" }}
                         />
                       </Button>
-                      {imageName && (
-                        <Typography style={{ marginLeft: "10px" }}>{imageName}</Typography>
-                      )}
+                      {imageName && <Typography style={{  ml: 1, mt: 1}}>{imageName}</Typography>}
+                      {!imageName && <Typography sx={{ ml: 1, mt: 1 }}>No file chosen.</Typography>}
                     </Box>
                   )}
                 </Field>
@@ -242,15 +248,17 @@ const SharePost = () => {
                   )}
                 </Box>
               )}
-
+              <Box sx={{ display: "flex", justifyContent: "right" }}>
               <Button
                 type="submit"
                 variant="contained"
                 color="primary"
                 disabled={submitting}
+                sx={{pl:5, pr:5}}
               >
                 Share
               </Button>
+              </Box>
             </form>
           )}
         />

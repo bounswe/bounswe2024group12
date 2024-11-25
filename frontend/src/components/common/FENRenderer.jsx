@@ -2,11 +2,12 @@
 import React from "react";
 import Chessboard from "chessboardjsx";
 
-const FENRenderer = ({ fen }) => {
+const FENRenderer = ({ fen, width }) => {
   return (
     <Chessboard
       position={fen}
-      width={200}
+      width={width}
+      draggable={false}
     />
   );
 };
