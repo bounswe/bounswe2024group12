@@ -31,7 +31,13 @@ const BOARD_SIZE = Math.min(
 const INITIAL_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 const AUTO_PLAY_DELAY = 2000;
 
-export const PgnViewer = ({ pgn, darkSquareColor = '#769656', lightSquareColor = '#eeeed2' }) => {
+export const PgnViewer = ({
+  pgn,
+  darkSquareColor = '#769656',
+  lightSquareColor = '#eeeed2',
+  onPositionChange,
+  onMovesUpdate
+}) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [game] = useState(new Chess());
@@ -94,6 +100,12 @@ export const PgnViewer = ({ pgn, darkSquareColor = '#769656', lightSquareColor =
   }, [pgn]);
 
   useEffect(() => {
+    if (currentFen && onPositionChange) {
+      onPositionChange(currentFen);
+    }
+  }, [currentFen, onPositionChange]);
+
+  useEffect(() => {
     const position = positions[currentMoveIndex + 1];
     if (position) {
       game.load(position);
@@ -119,6 +131,12 @@ export const PgnViewer = ({ pgn, darkSquareColor = '#769656', lightSquareColor =
 
     return () => clearInterval(interval);
   }, [isAutoPlaying, moveHistory.length]);
+
+  useEffect(() => {
+    if (moveHistory && onMovesUpdate) {
+      onMovesUpdate(moveHistory);
+    }
+  }, [moveHistory, onMovesUpdate]);
 
   const handleMoveClick = useCallback((index) => {
     setCurrentMoveIndex(index);
@@ -269,7 +287,7 @@ export const PgnViewer = ({ pgn, darkSquareColor = '#769656', lightSquareColor =
           onPress={() => handleControlClick('next')}
           disabled={currentMoveIndex === moveHistory.length - 1}
           style={[styles.button,
-            currentMoveIndex === moveHistory.length - 1 && styles.buttonDisabled]}
+          currentMoveIndex === moveHistory.length - 1 && styles.buttonDisabled]}
           accessible={true}
           accessibilityLabel="Go to next move"
         >
@@ -283,7 +301,7 @@ export const PgnViewer = ({ pgn, darkSquareColor = '#769656', lightSquareColor =
           onPress={() => handleControlClick('end')}
           disabled={currentMoveIndex === moveHistory.length - 1}
           style={[styles.button,
-            currentMoveIndex === moveHistory.length - 1 && styles.buttonDisabled]}
+          currentMoveIndex === moveHistory.length - 1 && styles.buttonDisabled]}
           accessible={true}
           accessibilityLabel="Skip to end of the game"
         >
@@ -294,10 +312,7 @@ export const PgnViewer = ({ pgn, darkSquareColor = '#769656', lightSquareColor =
         </TouchableOpacity>
       </View>
 
-      <ScrollView
-        style={styles.moveListContainer}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView style={styles.moveListContainer}>
         <View style={styles.moveListContent}>
           {renderMoveList()}
         </View>
@@ -324,21 +339,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     overflow: 'hidden',
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  errorContainer: {
-    padding: 20,
-    alignItems: 'center',
-  },
-  errorText: {
-    color: '#ff3b30',
-    textAlign: 'center',
-    fontSize: 16,
-  },
   controlsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-evenly',
@@ -360,11 +360,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#007AFF',
   },
   moveListContainer: {
-    maxHeight: 200,
+    maxHeight: 150,
     backgroundColor: '#f8f8f8',
     borderRadius: 8,
-    marginHorizontal: 16,
-    marginBottom: 16,
+    margin: 16,
   },
   moveListContent: {
     padding: 12,
@@ -373,7 +372,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 8,
-    flexWrap: 'wrap',
   },
   moveNumber: {
     width: 32,
@@ -381,6 +379,7 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   move: {
+    flex: 1,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 4,

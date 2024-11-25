@@ -11,13 +11,13 @@ import {
     ActivityIndicator,
     TextInput,
     Alert,
+    Dimensions,
     StyleSheet,
-    Dimensions
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { api } from './services/AuthService';
 
-const { width } = Dimensions.get('window');
+const screenWidth = Dimensions.get('window').width;
 
 const FilterButton = ({ title, isActive, onPress }) => (
     <TouchableOpacity
@@ -31,17 +31,14 @@ const FilterButton = ({ title, isActive, onPress }) => (
 );
 
 const GameSummary = ({ pgn, onAnalyze }) => {
-    const getGameDetails = (pgn) => {
-        const details = {
-            event: pgn.match(/\[Event "(.*?)"\]/)?.[1] || 'Unknown Event',
-            site: pgn.match(/\[Site "(.*?)"\]/)?.[1] || 'Unknown Site',
-            date: pgn.match(/\[Date "(.*?)"\]/)?.[1] || 'Unknown Date',
-            white: pgn.match(/\[White "(.*?)"\]/)?.[1] || 'Unknown White',
-            black: pgn.match(/\[Black "(.*?)"\]/)?.[1] || 'Unknown Black',
-            result: pgn.match(/\[Result "(.*?)"\]/)?.[1] || 'Unknown Result',
-        };
-        return details;
-    };
+    const getGameDetails = (pgn) => ({
+        event: pgn.match(/\[Event "(.*?)"\]/)?.[1] || 'Unknown Event',
+        site: pgn.match(/\[Site "(.*?)"\]/)?.[1] || 'Unknown Site',
+        date: pgn.match(/\[Date "(.*?)"\]/)?.[1] || 'Unknown Date',
+        white: pgn.match(/\[White "(.*?)"\]/)?.[1] || 'Unknown White',
+        black: pgn.match(/\[Black "(.*?)"\]/)?.[1] || 'Unknown Black',
+        result: pgn.match(/\[Result "(.*?)"\]/)?.[1] || 'Unknown Result',
+    });
 
     const details = getGameDetails(pgn);
 
@@ -52,13 +49,13 @@ const GameSummary = ({ pgn, onAnalyze }) => {
                 <Text style={styles.eventText}>{details.event}</Text>
                 <Text style={styles.siteText}>{details.site}</Text>
             </View>
-            
+
             <View style={styles.playersContainer}>
                 <Text style={styles.playerText}>{details.white}</Text>
                 <Text style={styles.vsText}>vs</Text>
                 <Text style={styles.playerText}>{details.black}</Text>
             </View>
-            
+
             <View style={styles.detailsRow}>
                 <Text style={styles.dateText}>{details.date}</Text>
                 <Text style={styles.resultText}>{details.result}</Text>
@@ -81,7 +78,6 @@ const ArchiveScreen = ({ navigation }) => {
     const [masterGameError, setMasterGameError] = useState('');
     const [selectedGamePGN, setSelectedGamePGN] = useState(null);
     const [hasSearched, setHasSearched] = useState(false);
-
     const [filters, setFilters] = useState({
         year: '',
         player: '',
@@ -89,14 +85,12 @@ const ArchiveScreen = ({ navigation }) => {
         event: '',
         result: '',
     });
-
     const [exploreParams, setExploreParams] = useState({
         fen: '',
         play: '',
         since: '',
         until: '',
     });
-
     const [masterGameId, setMasterGameId] = useState('');
 
     useEffect(() => {
@@ -113,6 +107,13 @@ const ArchiveScreen = ({ navigation }) => {
             ),
         });
     }, [navigation]);
+
+    const handleGamePress = (game) => {
+        navigation.navigate('Analysis', {
+            pgn: game.pgn,
+            gameId: game.id
+        });
+    };
 
     const validateGameId = (id) => {
         return /^[a-zA-Z0-9]{8}$/.test(id);
@@ -147,37 +148,28 @@ const ArchiveScreen = ({ navigation }) => {
                         setGames([]);
                     }
                 } catch (error) {
-                    if (error.response?.status === 404) {
-                        setMasterGameError('Game not found');
-                    } else {
-                        setMasterGameError('Failed to load game. Please try again.');
-                    }
+                    setMasterGameError(error.response?.status === 404 ? 'Game not found' : 'Failed to load game. Please try again.');
                     return;
-                }
-            } else if (mode === 'filter') {
-                const params = new URLSearchParams();
-                if (filters.year) params.append('year', parseInt(filters.year));
-                if (filters.player) params.append('player', filters.player);
-                if (filters.site) params.append('site', filters.site);
-                if (filters.event) params.append('event', filters.event);
-                if (filters.result) params.append('result', filters.result);
-
-                response = await api.get(`/games/filter/?${params.toString()}`);
-                if (response.data?.games) {
-                    setSelectedGamePGN(null);
-                    setGames(response.data.games);
                 }
             } else if (mode === 'explore') {
                 const params = new URLSearchParams();
-                if (exploreParams.fen) params.append('fen', exploreParams.fen);
-                if (exploreParams.play) params.append('play', exploreParams.play);
-                if (exploreParams.since) params.append('since', parseInt(exploreParams.since));
-                if (exploreParams.until) params.append('until', parseInt(exploreParams.until));
-
+                Object.entries(exploreParams).forEach(([key, value]) => {
+                    if (value) params.append(key, value);
+                });
                 response = await api.get(`/games/explore/?${params.toString()}`);
                 if (response.data?.data) {
                     setSelectedGamePGN(null);
                     setGames(response.data.data);
+                }
+            } else if (mode === 'filter') {
+                const params = new URLSearchParams();
+                Object.entries(filters).forEach(([key, value]) => {
+                    if (value) params.append(key, value);
+                });
+                response = await api.get(`/games/filter/?${params.toString()}`);
+                if (response.data?.games) {
+                    setSelectedGamePGN(null);
+                    setGames(response.data.games);
                 }
             }
         } catch (error) {
@@ -193,14 +185,12 @@ const ArchiveScreen = ({ navigation }) => {
             <TextInput
                 style={styles.input}
                 placeholder="Player surname"
-                placeholderTextColor="#666"
                 value={filters.player}
                 onChangeText={(text) => setFilters(prev => ({ ...prev, player: text }))}
             />
             <TextInput
                 style={styles.input}
                 placeholder="Year"
-                placeholderTextColor="#666"
                 value={filters.year}
                 onChangeText={(text) => {
                     const numericText = text.replace(/[^0-9]/g, '');
@@ -212,14 +202,12 @@ const ArchiveScreen = ({ navigation }) => {
             <TextInput
                 style={styles.input}
                 placeholder="Event"
-                placeholderTextColor="#666"
                 value={filters.event}
                 onChangeText={(text) => setFilters(prev => ({ ...prev, event: text }))}
             />
             <TextInput
                 style={styles.input}
                 placeholder="Site"
-                placeholderTextColor="#666"
                 value={filters.site}
                 onChangeText={(text) => setFilters(prev => ({ ...prev, site: text }))}
             />
@@ -248,14 +236,12 @@ const ArchiveScreen = ({ navigation }) => {
             <TextInput
                 style={styles.input}
                 placeholder="FEN (optional)"
-                placeholderTextColor="#666"
                 value={exploreParams.fen}
                 onChangeText={(text) => setExploreParams(prev => ({ ...prev, fen: text }))}
             />
             <TextInput
                 style={styles.input}
                 placeholder="Moves in UCI notation (optional)"
-                placeholderTextColor="#666"
                 value={exploreParams.play}
                 onChangeText={(text) => setExploreParams(prev => ({ ...prev, play: text }))}
             />
@@ -263,7 +249,6 @@ const ArchiveScreen = ({ navigation }) => {
                 <TextInput
                     style={[styles.input, styles.halfInput]}
                     placeholder="Since year"
-                    placeholderTextColor="#666"
                     value={exploreParams.since}
                     onChangeText={(text) => {
                         const numericText = text.replace(/[^0-9]/g, '');
@@ -275,7 +260,6 @@ const ArchiveScreen = ({ navigation }) => {
                 <TextInput
                     style={[styles.input, styles.halfInput]}
                     placeholder="Until year"
-                    placeholderTextColor="#666"
                     value={exploreParams.until}
                     onChangeText={(text) => {
                         const numericText = text.replace(/[^0-9]/g, '');
@@ -287,12 +271,12 @@ const ArchiveScreen = ({ navigation }) => {
             </View>
         </View>
     );
+
     const renderMasterGameInput = () => (
         <View style={styles.masterGameContainer}>
             <TextInput
                 style={[styles.input, masterGameError && styles.inputError]}
                 placeholder="Enter 8-character Game ID"
-                placeholderTextColor="#666"
                 value={masterGameId}
                 onChangeText={(text) => {
                     setMasterGameId(text.trim());
@@ -319,7 +303,7 @@ const ArchiveScreen = ({ navigation }) => {
                     contentContainerStyle={styles.masterGameScrollContent}
                     showsVerticalScrollIndicator={false}
                 >
-                    <GameSummary 
+                    <GameSummary
                         pgn={selectedGamePGN}
                         onAnalyze={handleAnalyze}
                     />
@@ -331,7 +315,7 @@ const ArchiveScreen = ({ navigation }) => {
             <FlatList
                 data={games}
                 renderItem={({ item }) => (
-                    <TouchableOpacity onPress={() => handleGamePress(item.id)}>
+                    <TouchableOpacity onPress={() => handleGamePress(item)} disabled={isLoading}>
                         <View style={styles.gameCard}>
                             <View style={styles.gameHeader}>
                                 <Text style={styles.gameEvent} numberOfLines={1}>{item.event}</Text>
@@ -378,53 +362,30 @@ const ArchiveScreen = ({ navigation }) => {
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.modeSelector}>
-                <TouchableOpacity
-                    style={[styles.modeButton, mode === 'filter' && styles.modeButtonActive]}
-                    onPress={() => {
-                        setMode('filter');
-                        setGames([]);
-                        setSelectedGamePGN(null);
-                        setMasterGameError('');
-                        setHasSearched(false);
-                    }}
-                >
-                    <Text style={[styles.modeButtonText, mode === 'filter' && styles.modeButtonTextActive]}>
-                        Filter
-                    </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={[styles.modeButton, mode === 'explore' && styles.modeButtonActive]}
-                    onPress={() => {
-                        setMode('explore');
-                        setGames([]);
-                        setSelectedGamePGN(null);
-                        setMasterGameError('');
-                        setHasSearched(false);
-                    }}
-                >
-                    <Text style={[styles.modeButtonText, mode === 'explore' && styles.modeButtonTextActive]}>
-                        Explore
-                    </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={[styles.modeButton, mode === 'master' && styles.modeButtonActive]}
-                    onPress={() => {
-                        setMode('master');
-                        setGames([]);
-                        setSelectedGamePGN(null);
-                        setMasterGameError('');
-                        setHasSearched(false);
-                    }}
-                >
-                    <Text style={[styles.modeButtonText, mode === 'master' && styles.modeButtonTextActive]}>
-                        Master Game
-                    </Text>
-                </TouchableOpacity>
+                {['filter', 'explore', 'master'].map((modeOption) => (
+                    <TouchableOpacity
+                        key={modeOption}
+                        style={[styles.modeButton, mode === modeOption && styles.modeButtonActive]}
+                        onPress={() => {
+                            setMode(modeOption);
+                            setGames([]);
+                            setSelectedGamePGN(null);
+                            setMasterGameError('');
+                            setHasSearched(false);
+                        }}
+                    >
+                        <Text style={[styles.modeButtonText, mode === modeOption && styles.modeButtonTextActive]}>
+                            {modeOption.charAt(0).toUpperCase() + modeOption.slice(1)}
+                            {modeOption === 'master' ? ' Game' : ''}
+                        </Text>
+                    </TouchableOpacity>
+                ))}
             </View>
 
             {mode === 'filter' && renderFilterInputs()}
             {mode === 'explore' && renderExploreInputs()}
             {mode === 'master' && renderMasterGameInput()}
+
 
             <TouchableOpacity
                 style={styles.searchButton}
