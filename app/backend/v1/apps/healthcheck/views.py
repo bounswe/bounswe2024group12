@@ -41,13 +41,6 @@ def hc_db(request):
         return JsonResponse({"db_status": "unhealthy", "error": str(e)}, status=500)
     
 
-
-@api_view(['GET'])
-@permission_classes([AllowAny])  # No authentication required
-def mock(request):
-    return JsonResponse({"message": "This is a mock endpoint for testing purposes."})
-
-
 @swagger_auto_schema(
     method='get',
     manual_parameters=[auth_header],
