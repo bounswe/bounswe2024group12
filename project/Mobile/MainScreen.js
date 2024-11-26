@@ -26,6 +26,7 @@ import { LikeButton } from '@/components/LikeButton';
 import { likeService } from '@/services/LikeService';
 import { api } from './services/AuthService';
 import Chessboard from 'react-native-chessboard';
+import PostCard from '@/components/PostCard';
 
 const PROFILE_PIC_SIZE = 50;
 const ZOOMED_PIC_SIZE = Dimensions.get('window').width * 0.8;
@@ -402,9 +403,7 @@ const MainScreen = ({ navigation }) => {
       ) : (
         <FlatList
           data={posts}
-          renderItem={({ item }) => (
-            <PostListItem item={item} navigation={navigation} />
-          )}
+          renderItem={({ item }) => <PostCard post={item} />}
           keyExtractor={(item) => item.id.toString()}
           style={styles.list}
           onRefresh={fetchPosts}

@@ -19,20 +19,7 @@ import { LikeButton } from '@/components/LikeButton';
 import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/services/AuthService';
 import { likeService } from '@/services/LikeService';
-
-const Comment = ({ comment }) => {
-    return (
-        <View style={styles.commentContainer}>
-            <View style={styles.commentHeader}>
-                <Text style={styles.commentAuthor}>@{comment.user}</Text>
-                <Text style={styles.commentTime}>
-                    {new Date(comment.created_at).toLocaleDateString()}
-                </Text>
-            </View>
-            <Text style={styles.commentText}>{comment.text}</Text>
-        </View>
-    );
-};
+import PostCommentManagement from '@/components/PostCommentManagement';
 
 const ThreadScreen = ({ route, navigation }) => {
     const { post } = route.params;
@@ -117,6 +104,20 @@ const ThreadScreen = ({ route, navigation }) => {
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleCommentUpdated = (updatedComment) => {
+        setComments(prevComments => 
+            prevComments.map(comment => 
+                comment.id === updatedComment.id ? updatedComment : comment
+            )
+        );
+    };
+
+    const handleCommentDeleted = (commentId) => {
+        setComments(prevComments => 
+            prevComments.filter(comment => comment.id !== commentId)
+        );
     };
 
     useEffect(() => {
@@ -227,7 +228,14 @@ const ThreadScreen = ({ route, navigation }) => {
                             <ActivityIndicator size="large" color="#007AFF" style={styles.loadingIndicator} />
                         ) : comments.length > 0 ? (
                             comments.map((comment) => (
-                                <Comment key={comment.id} comment={comment} />
+                                <PostCommentManagement
+                                    key={comment.id}
+                                    comment={comment}
+                                    postId={post.id}
+                                    currentUser={user}
+                                    onCommentUpdated={handleCommentUpdated}
+                                    onCommentDeleted={handleCommentDeleted}
+                                />
                             ))
                         ) : (
                             <Text style={styles.noCommentsText}>No comments yet. Be the first to comment!</Text>
