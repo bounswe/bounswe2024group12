@@ -15,7 +15,8 @@ import {
   ChevronRight,
   Play,
   Pause,
-  RotateCcw
+  RotateCcw,
+  Cloud
 } from 'lucide-react-native';
 import Chessboard from 'react-native-chessboard';
 import { Chess } from 'chess.js';
@@ -47,6 +48,51 @@ export const PgnViewer = ({
   const [isAutoPlaying, setIsAutoPlaying] = useState(false);
   const [currentFen, setCurrentFen] = useState(INITIAL_FEN);
   const [boardKey, setBoardKey] = useState(0);
+  const [evalData, setEvalData] = useState(null);
+  const [isEvaluating, setIsEvaluating] = useState(false);
+  const [evalError, setEvalError] = useState(null);
+
+  const renderMoveList = () => {
+    const moves = [];
+
+    for (let i = 0; i < moveHistory.length; i += 2) {
+      const moveNumber = Math.floor(i / 2) + 1;
+      const whiteMove = moveHistory[i];
+      const blackMove = moveHistory[i + 1];
+
+      moves.push(
+        <View key={i} style={styles.movePair}>
+          <Text style={styles.moveNumber}>{moveNumber}.</Text>
+          <TouchableOpacity
+            style={[styles.move, currentMoveIndex === i && styles.selectedMove]}
+            onPress={() => handleMoveClick(i)}
+          >
+            <Text style={[
+              styles.moveText,
+              currentMoveIndex === i && styles.selectedMoveText
+            ]}>
+              {whiteMove}
+            </Text>
+          </TouchableOpacity>
+          {blackMove && (
+            <TouchableOpacity
+              style={[styles.move, currentMoveIndex === i + 1 && styles.selectedMove]}
+              onPress={() => handleMoveClick(i + 1)}
+            >
+              <Text style={[
+                styles.moveText,
+                currentMoveIndex === i + 1 && styles.selectedMoveText
+              ]}>
+                {blackMove}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      );
+    }
+
+    return moves;
+  };
 
   useEffect(() => {
     const initializeGame = () => {
@@ -138,6 +184,67 @@ export const PgnViewer = ({
     }
   }, [moveHistory, onMovesUpdate]);
 
+  const handleEvaluate = async () => {
+    if (!currentFen) return;
+
+    setIsEvaluating(true);
+    setEvalError(null);
+
+    try {
+      const response = await fetch(`https://lichess.org/api/cloud-eval?fen=${encodeURIComponent(currentFen)}`);
+
+      if (!response.ok) {
+        throw new Error('Evaluation not available');
+      }
+
+      const data = await response.json();
+      setEvalData(data);
+    } catch (err) {
+      setEvalError(err.message);
+    } finally {
+      setIsEvaluating(false);
+    }
+  };
+
+  const getPieceType = (from, fen) => {
+    const position = fen.split(' ')[0];
+    const rows = position.split('/');
+    const file = from.charCodeAt(0) - 'a'.charCodeAt(0);
+    const rank = 8 - parseInt(from[1]);
+    let currentRow = rows[rank];
+    let currentFile = 0;
+
+    for (let i = 0; i < currentRow.length; i++) {
+      if (isNaN(currentRow[i])) {
+        if (currentFile === file) {
+          const pieceMap = {
+            'R': 'R', 'N': 'N', 'B': 'B', 'Q': 'Q', 'K': 'K',
+            'r': 'R', 'n': 'N', 'b': 'B', 'q': 'Q', 'k': 'K'
+          };
+          return pieceMap[currentRow[i]] || '';
+        }
+        currentFile++;
+      } else {
+        currentFile += parseInt(currentRow[i]);
+      }
+    }
+    return '';
+  };
+
+  const convertToSAN = (move, fen) => {
+    const from = move.substring(0, 2);
+    const to = move.substring(2, 4);
+    const pieceType = getPieceType(from, fen);
+    return pieceType + to;
+  };
+
+  const getSuggestedMove = (eval_data, fen) => {
+    if (!eval_data?.pvs?.[0]?.moves) return '';
+    const moves = eval_data.pvs[0].moves.split(' ');
+    const firstMove = moves[0];
+    return convertToSAN(firstMove, fen);
+  };
+
   const handleMoveClick = useCallback((index) => {
     setCurrentMoveIndex(index);
     setIsAutoPlaying(false);
@@ -165,48 +272,6 @@ export const PgnViewer = ({
         break;
     }
   }, [moveHistory.length]);
-
-  const renderMoveList = () => {
-    const moves = [];
-
-    for (let i = 0; i < moveHistory.length; i += 2) {
-      const moveNumber = Math.floor(i / 2) + 1;
-      const whiteMove = moveHistory[i];
-      const blackMove = moveHistory[i + 1];
-
-      moves.push(
-        <View key={i} style={styles.movePair}>
-          <Text style={styles.moveNumber}>{moveNumber}.</Text>
-          <TouchableOpacity
-            style={[styles.move, currentMoveIndex === i && styles.selectedMove]}
-            onPress={() => handleMoveClick(i)}
-          >
-            <Text style={[
-              styles.moveText,
-              currentMoveIndex === i && styles.selectedMoveText
-            ]}>
-              {whiteMove}
-            </Text>
-          </TouchableOpacity>
-          {blackMove && (
-            <TouchableOpacity
-              style={[styles.move, currentMoveIndex === i + 1 && styles.selectedMove]}
-              onPress={() => handleMoveClick(i + 1)}
-            >
-              <Text style={[
-                styles.moveText,
-                currentMoveIndex === i + 1 && styles.selectedMoveText
-              ]}>
-                {blackMove}
-              </Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      );
-    }
-
-    return moves;
-  };
 
   if (isLoading) {
     return (
@@ -239,84 +304,89 @@ export const PgnViewer = ({
         </View>
       </View>
 
-      <View style={styles.positionInfoContainer}>
-        <Text style={styles.positionInfoText}>
-          Move: {currentMoveIndex + 1} / {moveHistory.length}
-        </Text>
-        <Text style={styles.positionInfoText}>
-          Turn: {currentFen.split(' ')[1] === 'w' ? 'White' : 'Black'}
-        </Text>
-        {game.inCheck() && (
-          <Text style={styles.checkText}>CHECK!</Text>
-        )}
-      </View>
-
       <View style={styles.controlsContainer}>
         <TouchableOpacity
           onPress={() => handleControlClick('start')}
           style={[styles.button, currentMoveIndex === -1 && styles.buttonDisabled]}
-          accessible={true}
-          accessibilityLabel="Go to start of the game"
         >
           <RotateCcw size={24} color={currentMoveIndex === -1 ? '#ccc' : '#333'} />
         </TouchableOpacity>
-
         <TouchableOpacity
           onPress={() => handleControlClick('prev')}
-          disabled={currentMoveIndex === -1}
           style={[styles.button, currentMoveIndex === -1 && styles.buttonDisabled]}
-          accessible={true}
-          accessibilityLabel="Go to previous move"
         >
           <ChevronLeft size={24} color={currentMoveIndex === -1 ? '#ccc' : '#333'} />
         </TouchableOpacity>
-
         <TouchableOpacity
           onPress={() => handleControlClick('play')}
           style={[styles.button, isAutoPlaying && styles.buttonActive]}
-          accessible={true}
-          accessibilityLabel={isAutoPlaying ? "Pause autoplay" : "Start autoplay"}
         >
           {isAutoPlaying ?
             <Pause size={24} color="#fff" /> :
             <Play size={24} color="#333" />
           }
         </TouchableOpacity>
-
         <TouchableOpacity
           onPress={() => handleControlClick('next')}
-          disabled={currentMoveIndex === moveHistory.length - 1}
-          style={[styles.button,
-          currentMoveIndex === moveHistory.length - 1 && styles.buttonDisabled]}
-          accessible={true}
-          accessibilityLabel="Go to next move"
+          style={[styles.button, currentMoveIndex === moveHistory.length - 1 && styles.buttonDisabled]}
         >
-          <ChevronRight
-            size={24}
-            color={currentMoveIndex === moveHistory.length - 1 ? '#ccc' : '#333'}
-          />
+          <ChevronRight size={24} color={currentMoveIndex === moveHistory.length - 1 ? '#ccc' : '#333'} />
         </TouchableOpacity>
-
         <TouchableOpacity
           onPress={() => handleControlClick('end')}
-          disabled={currentMoveIndex === moveHistory.length - 1}
-          style={[styles.button,
-          currentMoveIndex === moveHistory.length - 1 && styles.buttonDisabled]}
-          accessible={true}
-          accessibilityLabel="Skip to end of the game"
+          style={[styles.button, currentMoveIndex === moveHistory.length - 1 && styles.buttonDisabled]}
         >
-          <SkipForward
-            size={24}
-            color={currentMoveIndex === moveHistory.length - 1 ? '#ccc' : '#333'}
-          />
+          <SkipForward size={24} color={currentMoveIndex === moveHistory.length - 1 ? '#ccc' : '#333'} />
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.moveListContainer}>
-        <View style={styles.moveListContent}>
-          {renderMoveList()}
+      <View style={styles.infoContainer}>
+        <View style={styles.infoRow}>
+          <Text style={styles.infoText}>
+            Move: {currentMoveIndex + 1} / {moveHistory.length}
+          </Text>
+          <Text style={styles.infoText}>
+            Turn: {currentFen.split(' ')[1] === 'w' ? 'White' : 'Black'}
+          </Text>
+          <TouchableOpacity
+            style={[styles.evalIconButton, isEvaluating && styles.evalButtonDisabled]}
+            onPress={handleEvaluate}
+            disabled={isEvaluating}
+          >
+            {isEvaluating ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Cloud size={20} color="#fff" />
+            )}
+          </TouchableOpacity>
         </View>
-      </ScrollView>
+      </View>
+
+      <View style={styles.contentContainer}>
+        <ScrollView style={styles.moveListContainer}>
+          <View style={styles.moveListContent}>
+            {renderMoveList()}
+          </View>
+        </ScrollView>
+
+        <View style={styles.evaluationContainer}>
+          {evalData && (
+            <View style={styles.evaluationResult}>
+              <Text style={styles.evaluationText}>
+                Suggested: {getSuggestedMove(evalData, currentFen)}
+              </Text>
+              {evalData.pvs?.[0]?.cp !== undefined && (
+                <Text style={styles.evaluationText}>
+                  Score: {(evalData.pvs[0].cp / 100).toFixed(2)}
+                </Text>
+              )}
+            </View>
+          )}
+          {evalError && (
+            <Text style={styles.errorText}>{evalError}</Text>
+          )}
+        </View>
+      </View>
     </View>
   );
 };
@@ -343,13 +413,45 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-evenly',
     alignItems: 'center',
-    padding: 16,
-    marginVertical: 8,
+    paddingVertical: 8,
     backgroundColor: '#fff',
-    borderRadius: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  contentContainer: {
+    flexDirection: 'row',
+    flex: 1,
+  },
+  moveListContainer: {
+    maxHeight: 150,
+    flex: 2,
+    borderRightWidth: 1,
+    borderRightColor: '#e0e0e0',
+  },
+  moveListContent: {
+    padding: 8,
+  },
+  evaluationContainer: {
+    flex: 1,
+    padding: 8,
+  },
+  infoContainer: {
+    padding: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 4,
+  },
+  infoText: {
+    fontSize: 14,
+    color: '#333',
   },
   button: {
-    padding: 12,
+    padding: 8,
     borderRadius: 8,
     backgroundColor: '#f0f0f0',
   },
@@ -359,31 +461,38 @@ const styles = StyleSheet.create({
   buttonActive: {
     backgroundColor: '#007AFF',
   },
-  moveListContainer: {
-    maxHeight: 150,
-    backgroundColor: '#f8f8f8',
-    borderRadius: 8,
-    margin: 16,
+  evalIconButton: {
+    backgroundColor: '#007AFF',
+    padding: 8,
+    borderRadius: 6,
+    width: 36,
+    height: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  moveListContent: {
-    padding: 12,
+  evalButtonDisabled: {
+    backgroundColor: '#999',
+  },
+  buttonIcon: {
+    marginRight: 6,
   },
   movePair: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 8,
+    paddingHorizontal: 4,
   },
   moveNumber: {
-    width: 32,
+    width: 30,
     fontSize: 14,
     color: '#666',
   },
   move: {
     flex: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
     borderRadius: 4,
-    marginRight: 8,
+    marginRight: 4,
   },
   moveText: {
     fontSize: 14,
@@ -396,24 +505,28 @@ const styles = StyleSheet.create({
     color: '#007AFF',
     fontWeight: 'bold',
   },
-  positionInfoContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    padding: 8,
+  evaluationResult: {
     backgroundColor: '#f8f8f8',
-    borderRadius: 8,
-    marginHorizontal: 16,
-    marginBottom: 8,
+    borderRadius: 6,
+    padding: 8,
   },
-  positionInfoText: {
+  evaluationText: {
     fontSize: 14,
     color: '#333',
+    marginBottom: 4,
   },
-  checkText: {
-    fontSize: 14,
+  errorText: {
     color: '#ff3b30',
-    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorContainer: {
+    padding: 16,
+    alignItems: 'center',
   }
 });
 

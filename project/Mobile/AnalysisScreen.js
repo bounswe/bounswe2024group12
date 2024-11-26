@@ -37,9 +37,6 @@ const AnalysisScreen = ({ route, navigation }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [keyboardHeight, setKeyboardHeight] = useState(0);
-  const [evalData, setEvalData] = useState(null);
-  const [isEvaluating, setIsEvaluating] = useState(false);
-  const [evalError, setEvalError] = useState(null);
   const scrollViewRef = useRef(null);
 
   const pgn = route?.params?.pgn || DEFAULT_PGN;
@@ -135,74 +132,6 @@ const AnalysisScreen = ({ route, navigation }) => {
     setCurrentFen(fen);
   };
 
-  const handleEvaluate = async () => {
-    if (!currentFen) return;
-
-    setIsEvaluating(true);
-    setEvalError(null);
-
-    try {
-      const response = await fetch(`https://lichess.org/api/cloud-eval?fen=${encodeURIComponent(currentFen)}`);
-
-      if (!response.ok) {
-        throw new Error('Evaluation not available');
-      }
-
-      const data = await response.json();
-      setEvalData(data);
-    } catch (err) {
-      setEvalError(err.message);
-    } finally {
-      setIsEvaluating(false);
-    }
-  };
-
-  const getPieceType = (from, fen) => {
-    // Parse FEN to get piece positions
-    const position = fen.split(' ')[0];
-    const rows = position.split('/');
-
-    // Convert file and rank to array indices
-    const file = from.charCodeAt(0) - 'a'.charCodeAt(0);
-    const rank = 8 - parseInt(from[1]);
-
-    // Find the piece at the given square
-    let currentRow = rows[rank];
-    let currentFile = 0;
-
-    for (let i = 0; i < currentRow.length; i++) {
-      if (isNaN(currentRow[i])) {
-        if (currentFile === file) {
-          // Map piece to notation
-          const pieceMap = {
-            'R': 'R', 'N': 'N', 'B': 'B', 'Q': 'Q', 'K': 'K',
-            'r': 'R', 'n': 'N', 'b': 'B', 'q': 'Q', 'k': 'K'
-          };
-          return pieceMap[currentRow[i]] || '';
-        }
-        currentFile++;
-      } else {
-        currentFile += parseInt(currentRow[i]);
-      }
-    }
-    return ''; // Return empty for pawns
-  };
-
-  const convertToSAN = (move, fen) => {
-    const from = move.substring(0, 2);
-    const to = move.substring(2, 4);
-    const pieceType = getPieceType(from, fen);
-
-    return pieceType + to;
-  };
-
-  const getSuggestedMove = (eval_data, fen) => {
-    if (!eval_data?.pvs?.[0]?.moves) return '';
-    const moves = eval_data.pvs[0].moves.split(' ');
-    const firstMove = moves[0];
-    return convertToSAN(firstMove, fen);
-  };
-
   const positionComments = comments.filter(
     comment => comment.position_fen === currentFen
   );
@@ -226,41 +155,6 @@ const AnalysisScreen = ({ route, navigation }) => {
             </View>
 
             <GameInfo pgn={pgn} />
-
-            <View style={styles.evaluationSection}>
-              <View style={styles.evaluationHeader}>
-                <Text style={styles.sectionTitle}>Position Evaluation</Text>
-                <TouchableOpacity
-                  style={[
-                    styles.evaluateButton,
-                    isEvaluating && styles.evaluateButtonDisabled
-                  ]}
-                  onPress={handleEvaluate}
-                  disabled={isEvaluating}
-                >
-                  {isEvaluating ? (
-                    <ActivityIndicator size="small" color="#fff" />
-                  ) : (
-                    <>
-                      <Feather name="cloud" size={16} style={styles.buttonIcon} />
-                      <Text style={styles.buttonText}>Evaluate</Text>
-                    </>
-                  )}
-                </TouchableOpacity>
-              </View>
-
-              {evalData && (
-                <View style={styles.evaluationResult}>
-                  <Text style={styles.evaluationLine}>
-                    Suggested move: {getSuggestedMove(evalData, currentFen)}
-                  </Text>
-                </View>
-              )}
-
-              {evalError && (
-                <Text style={styles.errorText}>{evalError}</Text>
-              )}
-            </View>
 
             <View style={styles.commentsSection}>
               <Text style={styles.commentsHeader}>
@@ -415,78 +309,7 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.5,
-  },
-  gameInfoSection: {
-    margin: 8,
-    marginTop: 16,
-  },
-  evaluationSection: {
-    padding: 16,
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
-  },
-  evaluationHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000',
-  },
-  evaluateButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#007AFF',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-  },
-  evaluateButtonDisabled: {
-    backgroundColor: '#999',
-  },
-  buttonIcon: {
-    marginRight: 6,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  evaluationResult: {
-    marginTop: 8,
-    padding: 8,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-  },
-  evaluationText: {
-    fontSize: 14,
-    color: '#333',
-  },
-  errorText: {
-    marginTop: 8,
-    fontSize: 14,
-    color: '#ff3b30',
-  },
-  evaluationResult: {
-    marginTop: 8,
-    padding: 12,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-    gap: 8,
-  },
-  evaluationStats: {
-    fontSize: 14,
-    color: '#333',
-    fontWeight: '500',
-  },
-  evaluationLine: {
-    fontSize: 14,
-    color: '#666',
-    lineHeight: 20,
-  },
+  }
 });
 
 export default AnalysisScreen;
