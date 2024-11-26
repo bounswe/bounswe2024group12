@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  View, 
+import {
+  View,
   StyleSheet,
   TouchableOpacity,
   SafeAreaView,
@@ -17,6 +17,7 @@ import {
 import { Feather } from '@expo/vector-icons';
 import { PgnViewer } from './components/PgnViewer';
 import { api } from './services/AuthService';
+import { GameInfo } from './components/GameInfo';
 
 const DEFAULT_PGN = `[Event "London"]
 [Site "London ENG"]
@@ -40,7 +41,7 @@ const MoveList = ({ moves }) => (
     {moves.map((move, index) => (
       <View key={index} style={styles.moveItem}>
         <Text style={styles.moveText}>
-          {index % 2 === 0 ? `${Math.floor(index/2 + 1)}.` : ''} {move}
+          {index % 2 === 0 ? `${Math.floor(index / 2 + 1)}.` : ''} {move}
         </Text>
       </View>
     ))}
@@ -68,7 +69,7 @@ const AnalysisScreen = ({ route, navigation }) => {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [moves, setMoves] = useState([]);
   const scrollViewRef = useRef(null);
-  
+
   const pgn = route?.params?.pgn || DEFAULT_PGN;
   const gameId = route?.params?.gameId;
 
@@ -189,15 +190,15 @@ const AnalysisScreen = ({ route, navigation }) => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView 
-        style={styles.container} 
+      <KeyboardAvoidingView
+        style={styles.container}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
       >
         <ScrollView style={styles.mainScroll} bounces={false}>
           <View style={styles.mainContent}>
             <View style={styles.boardSection}>
-              <PgnViewer 
+              <PgnViewer
                 pgn={pgn}
                 darkSquareColor="#769656"
                 lightSquareColor="#eeeed2"
@@ -205,12 +206,13 @@ const AnalysisScreen = ({ route, navigation }) => {
                 onMovesUpdate={handleMovesUpdate}
               />
             </View>
+            <GameInfo pgn={pgn} />
 
             <View style={styles.commentsSection}>
               <Text style={styles.commentsHeader}>
                 Position Comments ({positionComments?.length || 0})
               </Text>
-              
+
               {isLoading ? (
                 <ActivityIndicator size="large" color="#007AFF" style={styles.loader} />
               ) : (
@@ -359,6 +361,10 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.5,
+  },
+  gameInfoSection: {
+    margin: 8,
+    marginTop: 16,
   },
 });
 

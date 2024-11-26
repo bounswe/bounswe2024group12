@@ -85,12 +85,6 @@ const ArchiveScreen = ({ navigation }) => {
         event: '',
         result: '',
     });
-    const [exploreParams, setExploreParams] = useState({
-        fen: '',
-        play: '',
-        since: '',
-        until: '',
-    });
     const [masterGameId, setMasterGameId] = useState('');
 
     useEffect(() => {
@@ -150,16 +144,6 @@ const ArchiveScreen = ({ navigation }) => {
                 } catch (error) {
                     setMasterGameError(error.response?.status === 404 ? 'Game not found' : 'Failed to load game. Please try again.');
                     return;
-                }
-            } else if (mode === 'explore') {
-                const params = new URLSearchParams();
-                Object.entries(exploreParams).forEach(([key, value]) => {
-                    if (value) params.append(key, value);
-                });
-                response = await api.get(`/games/explore/?${params.toString()}`);
-                if (response.data?.data) {
-                    setSelectedGamePGN(null);
-                    setGames(response.data.data);
                 }
             } else if (mode === 'filter') {
                 const params = new URLSearchParams();
@@ -226,47 +210,6 @@ const ArchiveScreen = ({ navigation }) => {
                     title="½-½"
                     isActive={filters.result === '1/2-1/2'}
                     onPress={() => setFilters(prev => ({ ...prev, result: '1/2-1/2' }))}
-                />
-            </View>
-        </View>
-    );
-
-    const renderExploreInputs = () => (
-        <View style={styles.filterInputsContainer}>
-            <TextInput
-                style={styles.input}
-                placeholder="FEN (optional)"
-                value={exploreParams.fen}
-                onChangeText={(text) => setExploreParams(prev => ({ ...prev, fen: text }))}
-            />
-            <TextInput
-                style={styles.input}
-                placeholder="Moves in UCI notation (optional)"
-                value={exploreParams.play}
-                onChangeText={(text) => setExploreParams(prev => ({ ...prev, play: text }))}
-            />
-            <View style={styles.yearRange}>
-                <TextInput
-                    style={[styles.input, styles.halfInput]}
-                    placeholder="Since year"
-                    value={exploreParams.since}
-                    onChangeText={(text) => {
-                        const numericText = text.replace(/[^0-9]/g, '');
-                        setExploreParams(prev => ({ ...prev, since: numericText }));
-                    }}
-                    keyboardType="numeric"
-                    maxLength={4}
-                />
-                <TextInput
-                    style={[styles.input, styles.halfInput]}
-                    placeholder="Until year"
-                    value={exploreParams.until}
-                    onChangeText={(text) => {
-                        const numericText = text.replace(/[^0-9]/g, '');
-                        setExploreParams(prev => ({ ...prev, until: numericText }));
-                    }}
-                    keyboardType="numeric"
-                    maxLength={4}
                 />
             </View>
         </View>
@@ -362,7 +305,7 @@ const ArchiveScreen = ({ navigation }) => {
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.modeSelector}>
-                {['filter', 'explore', 'master'].map((modeOption) => (
+                {['filter', 'master'].map((modeOption) => (
                     <TouchableOpacity
                         key={modeOption}
                         style={[styles.modeButton, mode === modeOption && styles.modeButtonActive]}
@@ -383,9 +326,7 @@ const ArchiveScreen = ({ navigation }) => {
             </View>
 
             {mode === 'filter' && renderFilterInputs()}
-            {mode === 'explore' && renderExploreInputs()}
             {mode === 'master' && renderMasterGameInput()}
-
 
             <TouchableOpacity
                 style={styles.searchButton}
@@ -482,14 +423,6 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         borderBottomWidth: 1,
         borderBottomColor: '#e0e0e0',
-    },
-    yearRange: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        gap: 12,
-    },
-    halfInput: {
-        flex: 1,
     },
     searchButton: {
         backgroundColor: '#007AFF',
