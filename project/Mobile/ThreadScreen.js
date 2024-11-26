@@ -12,6 +12,8 @@ import {
     Image,
     SafeAreaView,
     Alert,
+    Modal,
+    Clipboard,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import Chessboard from 'react-native-chessboard';
@@ -20,6 +22,12 @@ import { useAuth } from '@/contexts/AuthContext';
 import { api } from '@/services/AuthService';
 import { likeService } from '@/services/LikeService';
 import PostCommentManagement from '@/components/PostCommentManagement';
+
+const normalizeFen = (fen) => {
+    if (!fen) return null;
+    const isPositionOnly = fen.split(' ').length === 1;
+    return isPositionOnly ? `${fen} w KQkq - 0 1` : fen;
+};
 
 const ThreadScreen = ({ route, navigation }) => {
     const { post } = route.params;
@@ -30,6 +38,8 @@ const ThreadScreen = ({ route, navigation }) => {
     const [isLiked, setIsLiked] = useState(false);
     const [likeCount, setLikeCount] = useState(0);
     const [isLikeLoading, setIsLikeLoading] = useState(false);
+    const [showFenModal, setShowFenModal] = useState(false);
+    const [showToast, setShowToast] = useState(false);
     const { user } = useAuth();
 
     const loadLikeSummary = async () => {
@@ -63,7 +73,7 @@ const ThreadScreen = ({ route, navigation }) => {
         try {
             setIsLoadingComments(true);
             const response = await api.get(`/posts/comments/${post.id}/`);
-            
+
             if (Array.isArray(response.data)) {
                 setComments(response.data);
             } else {
@@ -107,17 +117,31 @@ const ThreadScreen = ({ route, navigation }) => {
     };
 
     const handleCommentUpdated = (updatedComment) => {
-        setComments(prevComments => 
-            prevComments.map(comment => 
+        setComments(prevComments =>
+            prevComments.map(comment =>
                 comment.id === updatedComment.id ? updatedComment : comment
             )
         );
     };
 
     const handleCommentDeleted = (commentId) => {
-        setComments(prevComments => 
+        setComments(prevComments =>
             prevComments.filter(comment => comment.id !== commentId)
         );
+    };
+
+    const handleCopyFen = async () => {
+        try {
+            await Clipboard.setString(post.fen);
+            setShowFenModal(false);
+            setShowToast(true);
+            setTimeout(() => {
+                setShowToast(false);
+            }, 2000);
+        } catch (error) {
+            console.error('Failed to copy FEN:', error);
+            Alert.alert('Error', 'Failed to copy FEN notation');
+        }
     };
 
     useEffect(() => {
@@ -164,14 +188,73 @@ const ThreadScreen = ({ route, navigation }) => {
         }
     };
 
+    const Toast = () => (
+        showToast && (
+            <View style={styles.toastContainer}>
+                <View style={styles.toast}>
+                    <Feather name="check" size={16} color="white" />
+                    <Text style={styles.toastText}>Copied!</Text>
+                </View>
+            </View>
+        )
+    );
+
+    const FenModal = () => (
+        <Modal
+            visible={showFenModal}
+            transparent={true}
+            animationType="fade"
+            onRequestClose={() => setShowFenModal(false)}
+        >
+            <TouchableOpacity
+                style={styles.modalOverlay}
+                activeOpacity={1}
+                onPress={() => setShowFenModal(false)}
+            >
+                <View style={styles.modalContent}>
+                    <View style={styles.modalHeader}>
+                        <Text style={styles.modalTitle}>FEN Notation</Text>
+                        <TouchableOpacity
+                            onPress={() => setShowFenModal(false)}
+                            style={styles.closeButton}
+                        >
+                            <Feather name="x" size={24} color="#666" />
+                        </TouchableOpacity>
+                    </View>
+
+                    <TouchableOpacity
+                        style={styles.fenContainer}
+                        onPress={handleCopyFen}
+                    >
+                        <Text style={styles.fenText}>{post.fen}</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        style={styles.copyButton}
+                        onPress={handleCopyFen}
+                    >
+                        <Feather name="copy" size={20} color="white" />
+                        <Text style={styles.copyButtonText}>
+                            Copy FEN
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+            </TouchableOpacity>
+        </Modal>
+    );
+
     return (
         <SafeAreaView style={styles.container}>
             <KeyboardAvoidingView
-                style={styles.container}
+                style={styles.keyboardAvoidingView}
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
             >
-                <ScrollView style={styles.content}>
+                <ScrollView
+                    style={styles.content}
+                    keyboardShouldPersistTaps="handled"
+                    contentContainerStyle={styles.scrollContent}
+                >
                     <View style={styles.postContainer}>
                         <View style={styles.postHeader}>
                             <Text style={styles.postAuthor}>{post.user}</Text>
@@ -193,13 +276,19 @@ const ThreadScreen = ({ route, navigation }) => {
                         <Text style={styles.postContent}>{post.post_text}</Text>
 
                         {post.fen && (
-                            <View style={styles.chessboardContainer}>
-                                <Chessboard
-                                    fen={post.fen}
-                                    boardSize={250}
-                                    gestureEnabled={false}
-                                />
-                            </View>
+                            <TouchableOpacity
+                                style={styles.chessSection}
+                                onPress={() => setShowFenModal(true)}
+                                activeOpacity={0.8}
+                            >
+                                <View style={styles.chessboardContainer}>
+                                    <Chessboard
+                                        fen={normalizeFen(post.fen)}
+                                        boardSize={250}
+                                        gestureEnabled={false}
+                                    />
+                                </View>
+                            </TouchableOpacity>
                         )}
 
                         {post.tags && post.tags.length > 0 && (
@@ -251,6 +340,7 @@ const ThreadScreen = ({ route, navigation }) => {
                         placeholder="Add a comment..."
                         multiline
                         maxLength={500}
+                        blurOnSubmit={false}
                     />
                     <TouchableOpacity
                         style={[
@@ -268,6 +358,9 @@ const ThreadScreen = ({ route, navigation }) => {
                     </TouchableOpacity>
                 </View>
             </KeyboardAvoidingView>
+
+            <FenModal />
+            <Toast />
         </SafeAreaView>
     );
 };
@@ -277,18 +370,8 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#f0f0f0',
     },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: 16,
-        backgroundColor: 'white',
-        borderBottomWidth: 1,
-        borderBottomColor: '#e0e0e0',
-    },
-    headerTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
+    headerButton: {
+        padding: 12,
     },
     content: {
         flex: 1,
@@ -330,9 +413,22 @@ const styles = StyleSheet.create({
         height: 200,
         backgroundColor: '#f0f0f0',
     },
+    chessSection: {
+        marginVertical: 16,
+        backgroundColor: '#f8f8f8',
+        borderRadius: 8,
+        padding: 8,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        elevation: 2,
+    },
     chessboardContainer: {
         alignItems: 'center',
-        marginVertical: 8,
     },
     tagsContainer: {
         flexDirection: 'row',
@@ -359,27 +455,13 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginBottom: 16,
     },
-    commentContainer: {
-        marginBottom: 16,
-        borderLeftWidth: 2,
-        borderLeftColor: '#007AFF',
-        paddingLeft: 12,
+    loadingIndicator: {
+        padding: 20,
     },
-    commentHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 4,
-    },
-    commentAuthor: {
-        fontWeight: '600',
-    },
-    commentTime: {
+    noCommentsText: {
+        textAlign: 'center',
         color: '#666',
-        fontSize: 12,
-    },
-    commentText: {
-        fontSize: 14,
-        lineHeight: 20,
+        padding: 20,
     },
     commentInputContainer: {
         flexDirection: 'row',
@@ -410,13 +492,136 @@ const styles = StyleSheet.create({
     disabledButton: {
         opacity: 0.5,
     },
-    loadingIndicator: {
-        padding: 20,
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
-    noCommentsText: {
-        textAlign: 'center',
-        color: '#666',
+    modalContent: {
+        backgroundColor: 'white',
+        borderRadius: 12,
         padding: 20,
+        width: '85%',
+        maxWidth: 400,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#333',
+    },
+    closeButton: {
+        padding: 4,
+        borderRadius: 12,
+        backgroundColor: '#f5f5f5',
+    },
+    fenContainer: {
+        backgroundColor: '#f5f5f5',
+        padding: 16,
+        borderRadius: 8,
+        marginBottom: 16,
+        borderWidth: 1,
+        borderColor: '#e0e0e0',
+    },
+    fenText: {
+        fontFamily: Platform.select({
+            ios: 'Menlo',
+            android: 'monospace'
+        }),
+        fontSize: 14,
+        color: '#333',
+        lineHeight: 20,
+    },
+    copyButton: {
+        backgroundColor: '#007AFF',
+        borderRadius: 8,
+        padding: 12,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 8,
+    },
+    copyButtonText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: '500',
+    },
+    toastContainer: {
+        position: 'absolute',
+        bottom: Platform.OS === 'ios' ? 100 : 70,
+        left: 0,
+        right: 0,
+        alignItems: 'center',
+        zIndex: 9999,
+        pointerEvents: 'none',
+    },
+    toast: {
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        borderRadius: 25,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
+    },
+    toastText: {
+        color: 'white',
+        fontSize: 14,
+        fontWeight: '500',
+    },
+    container: {
+        flex: 1,
+        backgroundColor: '#f0f0f0',
+    },
+    keyboardAvoidingView: {
+        flex: 1,
+    },
+    content: {
+        flex: 1,
+    },
+    scrollContent: {
+        flexGrow: 1,
+    },
+    commentInputContainer: {
+        flexDirection: 'row',
+        padding: 16,
+        backgroundColor: 'white',
+        borderTopWidth: 1,
+        borderTopColor: '#e0e0e0',
+        alignItems: 'flex-end',
+    },
+    commentInput: {
+        flex: 1,
+        backgroundColor: '#f0f0f0',
+        borderRadius: 20,
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        paddingRight: 40,
+        maxHeight: 100,
+        marginRight: 8,
+        minHeight: 36,
     },
 });
 
