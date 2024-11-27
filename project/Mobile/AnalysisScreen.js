@@ -30,13 +30,57 @@ const CommentView = ({ comment }) => (
   </View>
 );
 
+const PositionStats = ({ data }) => {
+  if (!data) return null;
+
+  const total = data.white + data.draws + data.black;
+  const whitePercentage = ((data.white / total) * 100).toFixed(1);
+  const drawsPercentage = ((data.draws / total) * 100).toFixed(1);
+  const blackPercentage = ((data.black / total) * 100).toFixed(1);
+  
+  return (
+    <View style={styles.statsSection}>
+      <Text style={styles.statsHeader}>Position Statistics</Text>
+      
+      <View style={styles.resultsContainer}>
+        <View style={styles.resultItem}>
+          <Text style={styles.resultPercentage}>{whitePercentage}%</Text>
+          <Text style={styles.resultLabel}>White</Text>
+        </View>
+        <View style={styles.resultItem}>
+          <Text style={styles.resultPercentage}>{drawsPercentage}%</Text>
+          <Text style={styles.resultLabel}>Draws</Text>
+        </View>
+        <View style={styles.resultItem}>
+          <Text style={styles.resultPercentage}>{blackPercentage}%</Text>
+          <Text style={styles.resultLabel}>Black</Text>
+        </View>
+      </View>
+
+      <Text style={styles.movesHeader}>Popular Moves</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.movesScroll}>
+        {data.moves?.slice(0, 5).map((move, index) => (
+          <View key={move.san} style={styles.moveCard}>
+            <Text style={styles.moveSan}>{move.san}</Text>
+            <Text style={styles.moveGames}>
+              {((move.white + move.draws + move.black) / total * 100).toFixed(1)}% games
+            </Text>
+          </View>
+        ))}
+      </ScrollView>
+    </View>
+  );
+};
+
 const AnalysisScreen = ({ route, navigation }) => {
   const [currentFen, setCurrentFen] = useState('');
   const [comments, setComments] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingSimilar, setIsLoadingSimilar] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [positionStats, setPositionStats] = useState(null);
   const scrollViewRef = useRef(null);
 
   const pgn = route?.params?.pgn || DEFAULT_PGN;
@@ -136,6 +180,32 @@ const AnalysisScreen = ({ route, navigation }) => {
     comment => comment.position_fen === currentFen
   );
 
+  const handleExploreGames = async () => {
+    if (!currentFen) {
+      Alert.alert('Error', 'No position selected');
+      return;
+    }
+
+    try {
+      setIsLoadingSimilar(true);
+      const response = await api.get('/games/explore/', {
+        params: {
+          fen: currentFen,
+          since: 2000
+        }
+      });
+
+      if (response.data) {
+        setPositionStats(response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching position data:', error);
+      Alert.alert('Error', error.response?.data?.message || 'Failed to load position data');
+    } finally {
+      setIsLoadingSimilar(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
@@ -145,22 +215,22 @@ const AnalysisScreen = ({ route, navigation }) => {
       >
         <ScrollView style={styles.mainScroll} bounces={false} ref={scrollViewRef}>
           <View style={styles.mainContent}>
-            <View style={styles.boardSection}>
-              <PgnViewer
-                pgn={pgn}
-                darkSquareColor="#769656"
-                lightSquareColor="#eeeed2"
-                onPositionChange={handlePositionUpdate}
-              />
-            </View>
-
+            <PgnViewer
+              pgn={pgn}
+              darkSquareColor="#769656"
+              lightSquareColor="#eeeed2"
+              onPositionChange={handlePositionUpdate}
+            />
+  
             <GameInfo pgn={pgn} />
-
+  
+            {positionStats && <PositionStats data={positionStats} />}
+  
             <View style={styles.commentsSection}>
               <Text style={styles.commentsHeader}>
                 Position Comments ({positionComments?.length || 0})
               </Text>
-
+  
               {isLoading ? (
                 <ActivityIndicator size="large" color="#007AFF" style={styles.loader} />
               ) : (
@@ -177,9 +247,29 @@ const AnalysisScreen = ({ route, navigation }) => {
                 </View>
               )}
             </View>
+  
+            <TouchableOpacity
+              style={[
+                styles.exploreButton,
+                (!currentFen || isLoadingSimilar) && styles.disabledButton
+              ]}
+              onPress={handleExploreGames}
+              disabled={!currentFen || isLoadingSimilar}
+            >
+              {isLoadingSimilar ? (
+                <ActivityIndicator color="white" size="small" />
+              ) : (
+                <>
+                  <Feather name="compass" size={20} color="white" style={styles.exploreIcon} />
+                  <Text style={styles.exploreButtonText}>
+                    Explore this position
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
           </View>
         </ScrollView>
-
+  
         <View style={styles.inputContainer}>
           <View style={styles.commentInputContainer}>
             <TextInput
@@ -225,12 +315,6 @@ const styles = StyleSheet.create({
   },
   mainContent: {
     flex: 1,
-  },
-  boardSection: {
-    backgroundColor: 'white',
-    borderRadius: 8,
-    margin: 8,
-    padding: 8,
   },
   commentsSection: {
     backgroundColor: 'white',
@@ -309,7 +393,95 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.5,
-  }
+  },
+  exploreButton: {
+    backgroundColor: '#007AFF',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: 8,
+    margin: 8,
+  },
+  exploreButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  exploreIcon: {
+    marginRight: 8,
+  },
+  statsSection: {
+    backgroundColor: 'white',
+    borderRadius: 8,
+    margin: 8,
+    padding: 16,
+  },
+  statsHeader: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 16,
+  },
+  resultsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 20,
+  },
+  resultItem: {
+    alignItems: 'center',
+  },
+  resultPercentage: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#007AFF',
+  },
+  resultLabel: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 4,
+  },
+  movesHeader: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  movesScroll: {
+    flexGrow: 0,
+  },
+  moveCard: {
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+    padding: 12,
+    marginRight: 8,
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  moveSan: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  moveGames: {
+    fontSize: 12,
+    color: '#666',
+  },
+  exploreButton: {
+    backgroundColor: '#007AFF',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: 8,
+    margin: 8,
+  },
+  exploreButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  exploreIcon: {
+    marginRight: 8,
+  },
 });
 
 export default AnalysisScreen;
