@@ -81,6 +81,7 @@ const AnalysisScreen = ({ route, navigation }) => {
   const [newComment, setNewComment] = useState('');
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [positionStats, setPositionStats] = useState(null);
+  const exploredPositions = useRef(new Map());
   const scrollViewRef = useRef(null);
 
   const pgn = route?.params?.pgn || DEFAULT_PGN;
@@ -134,6 +135,15 @@ const AnalysisScreen = ({ route, navigation }) => {
     }
   }, [gameId]);
 
+  useEffect(() => {
+    if (currentFen) {
+      const savedStats = exploredPositions.current.get(currentFen);
+      setPositionStats(savedStats || null);
+    } else {
+      setPositionStats(null);
+    }
+  }, [currentFen]);
+
   const fetchComments = async () => {
     try {
       setIsLoading(true);
@@ -176,10 +186,6 @@ const AnalysisScreen = ({ route, navigation }) => {
     setCurrentFen(fen);
   };
 
-  const positionComments = comments.filter(
-    comment => comment.position_fen === currentFen
-  );
-
   const handleExploreGames = async () => {
     if (!currentFen) {
       Alert.alert('Error', 'No position selected');
@@ -196,6 +202,7 @@ const AnalysisScreen = ({ route, navigation }) => {
       });
 
       if (response.data) {
+        exploredPositions.current.set(currentFen, response.data);
         setPositionStats(response.data);
       }
     } catch (error) {
@@ -205,6 +212,10 @@ const AnalysisScreen = ({ route, navigation }) => {
       setIsLoadingSimilar(false);
     }
   };
+
+  const positionComments = comments.filter(
+    comment => comment.position_fen === currentFen
+  );
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -221,16 +232,16 @@ const AnalysisScreen = ({ route, navigation }) => {
               lightSquareColor="#eeeed2"
               onPositionChange={handlePositionUpdate}
             />
-  
+
             <GameInfo pgn={pgn} />
-  
+
             {positionStats && <PositionStats data={positionStats} />}
-  
+
             <View style={styles.commentsSection}>
               <Text style={styles.commentsHeader}>
                 Position Comments ({positionComments?.length || 0})
               </Text>
-  
+
               {isLoading ? (
                 <ActivityIndicator size="large" color="#007AFF" style={styles.loader} />
               ) : (
@@ -247,14 +258,15 @@ const AnalysisScreen = ({ route, navigation }) => {
                 </View>
               )}
             </View>
-  
+
             <TouchableOpacity
               style={[
                 styles.exploreButton,
-                (!currentFen || isLoadingSimilar) && styles.disabledButton
+                (!currentFen || isLoadingSimilar || exploredPositions.current.has(currentFen)) && 
+                styles.disabledButton
               ]}
               onPress={handleExploreGames}
-              disabled={!currentFen || isLoadingSimilar}
+              disabled={!currentFen || isLoadingSimilar || exploredPositions.current.has(currentFen)}
             >
               {isLoadingSimilar ? (
                 <ActivityIndicator color="white" size="small" />
@@ -262,14 +274,17 @@ const AnalysisScreen = ({ route, navigation }) => {
                 <>
                   <Feather name="compass" size={20} color="white" style={styles.exploreIcon} />
                   <Text style={styles.exploreButtonText}>
-                    Explore this position
+                    {exploredPositions.current.has(currentFen) 
+                      ? 'Position explored'
+                      : 'Explore this position'
+                    }
                   </Text>
                 </>
               )}
             </TouchableOpacity>
           </View>
         </ScrollView>
-  
+
         <View style={styles.inputContainer}>
           <View style={styles.commentInputContainer}>
             <TextInput
