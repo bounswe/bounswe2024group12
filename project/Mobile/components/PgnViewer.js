@@ -8,18 +8,9 @@ import {
   Dimensions,
   ActivityIndicator
 } from 'react-native';
-import {
-  SkipBack,
-  SkipForward,
-  ChevronLeft,
-  ChevronRight,
-  Play,
-  Pause,
-  RotateCcw,
-  Cloud
-} from 'lucide-react-native';
 import Chessboard from 'react-native-chessboard';
 import { Chess } from 'chess.js';
+import { Ionicons } from '@expo/vector-icons';
 
 const CONTAINER_PADDING = 16;
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -309,34 +300,34 @@ export const PgnViewer = ({
           onPress={() => handleControlClick('start')}
           style={[styles.button, currentMoveIndex === -1 && styles.buttonDisabled]}
         >
-          <RotateCcw size={24} color={currentMoveIndex === -1 ? '#ccc' : '#333'} />
+          <Ionicons name="refresh" size={24} color={currentMoveIndex === -1 ? '#ccc' : '#333'} />
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => handleControlClick('prev')}
           style={[styles.button, currentMoveIndex === -1 && styles.buttonDisabled]}
         >
-          <ChevronLeft size={24} color={currentMoveIndex === -1 ? '#ccc' : '#333'} />
+          <Ionicons name="chevron-back" size={24} color={currentMoveIndex === -1 ? '#ccc' : '#333'} />
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => handleControlClick('play')}
           style={[styles.button, isAutoPlaying && styles.buttonActive]}
         >
           {isAutoPlaying ?
-            <Pause size={24} color="#fff" /> :
-            <Play size={24} color="#333" />
+            <Ionicons name="pause" size={24} color="#fff" /> :
+            <Ionicons name="play" size={24} color="#333" />
           }
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => handleControlClick('next')}
           style={[styles.button, currentMoveIndex === moveHistory.length - 1 && styles.buttonDisabled]}
         >
-          <ChevronRight size={24} color={currentMoveIndex === moveHistory.length - 1 ? '#ccc' : '#333'} />
+          <Ionicons name="chevron-forward" size={24} color={currentMoveIndex === moveHistory.length - 1 ? '#ccc' : '#333'} />
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => handleControlClick('end')}
           style={[styles.button, currentMoveIndex === moveHistory.length - 1 && styles.buttonDisabled]}
         >
-          <SkipForward size={24} color={currentMoveIndex === moveHistory.length - 1 ? '#ccc' : '#333'} />
+          <Ionicons name="play-skip-forward" size={24} color={currentMoveIndex === moveHistory.length - 1 ? '#ccc' : '#333'} />
         </TouchableOpacity>
       </View>
 
@@ -356,7 +347,7 @@ export const PgnViewer = ({
             {isEvaluating ? (
               <ActivityIndicator size="small" color="#fff" />
             ) : (
-              <Cloud size={20} color="#fff" />
+              <Ionicons name="cloud" size={20} color="#fff" />
             )}
           </TouchableOpacity>
         </View>

@@ -1,15 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
-import { Feather } from 'lucide-react-native';
 import { api } from '@/services/AuthService';
+import { Ionicons } from '@expo/vector-icons';
 
-const PostCommentManagement = ({ 
-  comment, 
-  postId, 
-  currentUser,
-  onCommentUpdated, 
-  onCommentDeleted 
-}) => {
+const PostCommentManagement = ({ comment, postId, currentUser, onCommentUpdated, onCommentDeleted }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedText, setEditedText] = useState(comment.text);
   const [isLoading, setIsLoading] = useState(false);
@@ -153,7 +147,7 @@ const PostCommentManagement = ({
                         borderRadius: 4
                       }}
                     >
-                      <Feather name="edit-2" size={14} color="#0088cc" />
+                      <Ionicons name="pencil" size={14} color="#0088cc" />
                     </TouchableOpacity>
                     <TouchableOpacity 
                       onPress={handleDeleteComment}
@@ -164,7 +158,7 @@ const PostCommentManagement = ({
                         borderRadius: 4
                       }}
                     >
-                      <Feather name="trash-2" size={14} color="#dc2626" />
+                      <Ionicons name="trash" size={14} color="#dc2626" />
                     </TouchableOpacity>
                   </View>
                 )}
