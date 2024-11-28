@@ -11,6 +11,9 @@ import SignupScreen from './screens/SignupScreen';
 import ThreadScreen from './ThreadScreen';
 import ArchiveScreen from './ArchiveScreen';
 import { ECOCodeScreen } from './screens/ECOCodeScreen';
+import { enableScreens } from 'react-native-screens';
+
+enableScreens();
 
 const Stack = createStackNavigator();
 
