@@ -28,7 +28,8 @@
     "react-native-gesture-handler": "~2.20.2",
     "react-native-popover-view": "^5.1.7",
     "react-native-reanimated": "^3.16.1",
-    "react-native-screens": "4.1.0"
+    "react-native-screens": "4.1.0",
+    "expo-system-ui": "~4.0.4"
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",
