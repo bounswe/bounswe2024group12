@@ -1,0 +1,751 @@
+basePath: /api/v1
+consumes:
+- application/json
+definitions: {}
+host: buchessocial.online
+info:
+  contact:
+    email: contact@yourapi.local
+  description: "API d\xF6k\xFCmantasyon a\xE7\u0131klamas\u0131 burada olacak."
+  license:
+    name: BSD License
+  termsOfService: https://www.google.com/policies/terms/
+  title: Your API Title
+  version: v1
+paths:
+  /accounts/login/:
+    parameters: []
+    post:
+      description: Log in an existing user
+      operationId: accounts_login_create
+      parameters:
+      - in: body
+        name: data
+        required: true
+        schema:
+          properties:
+            mail:
+              description: User's email
+              type: string
+            password:
+              description: User's password
+              type: string
+          required:
+          - mail
+          - password
+          type: object
+      responses:
+        '200':
+          description: Login successful
+          examples:
+            application/json:
+              token: eyJ0eXAiOiJKV1Q...
+              username: user123
+        '400':
+          description: Invalid credentials
+      summary: Login endpoint
+      tags:
+      - accounts
+  /accounts/signup/:
+    parameters: []
+    post:
+      description: Create a new user account
+      operationId: accounts_signup_create
+      parameters:
+      - in: body
+        name: data
+        required: true
+        schema:
+          properties:
+            mail:
+              description: User's email
+              type: string
+            password:
+              description: User's password
+              type: string
+            username:
+              description: User's username
+              type: string
+          required:
+          - mail
+          - username
+          - password
+          type: object
+      responses:
+        '201':
+          description: User created successfully
+        '400':
+          description: Invalid input
+      summary: Sign-up endpoint
+      tags:
+      - accounts
+  /games/explore/:
+    get:
+      description: Explore the Masters database from Lichess API. Fixed parameters
+        `moves=10` and `topGames=10` are included, but additional optional parameters
+        can be passed (e.g., `fen`, `play`, etc.).
+      operationId: games_explore_list
+      parameters:
+      - description: 'JWT Authorization header.You should enter ''token'' that you
+          get from Login. Example: ''Bearer <token>token_string'''
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: FEN of the root position (optional)
+        in: query
+        name: fen
+        type: string
+      - description: Comma-separated sequence of legal moves in UCI notation (optional)
+        in: query
+        name: play
+        type: string
+      - description: Include only games from this year or later (optional)
+        in: query
+        name: since
+        type: integer
+      - description: Include only games from this year or earlier (optional)
+        in: query
+        name: until
+        type: integer
+      responses:
+        '200':
+          description: Data fetched successfully
+          examples:
+            application/json:
+              data: '...'
+        '400':
+          description: Invalid request
+        '500':
+          description: Error fetching data
+      tags:
+      - games
+    parameters: []
+  /games/filter/:
+    get:
+      description: Filter games based on various criteria.
+      operationId: games_filter_list
+      parameters:
+      - description: Filter by year
+        in: query
+        name: year
+        type: integer
+      - description: Filter by player surname (case-insensitive match)
+        in: query
+        name: player
+        type: string
+      - description: Filter by site (case-insensitive match)
+        in: query
+        name: site
+        type: string
+      - description: Filter by event (case-insensitive match)
+        in: query
+        name: event
+        type: string
+      - description: Filter by game result (e.g., '1-0', '1/2-1/2', '0-1')
+        in: query
+        name: result
+        type: string
+      responses:
+        '200':
+          description: Filtered games
+          examples:
+            application/json:
+              games:
+              - black: Karpov, Anatoly
+                day: 10
+                event: Amsterdam
+                id: 1
+                month: 10
+                pgn: PGN content here...
+                result: 0-1
+                site: Amsterdam NED
+                white: Browne, Walter S
+                year: 1976
+        '400':
+          description: Invalid parameters
+          examples:
+            application/json:
+              error: Invalid query parameter
+      summary: Filter Games
+      tags:
+      - games
+    parameters: []
+  /games/master_game/{game_id}:
+    get:
+      description: Fetch the PGN representation of a master game from public API's.
+      operationId: games_master_game_read
+      parameters:
+      - description: 'JWT Authorization header.You should enter ''token'' that you
+          get from Login. Example: ''Bearer <token>token_string'''
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: The 8-char ID of the game to fetch PGN.
+        in: path
+        name: game_id
+        required: true
+        type: string
+      responses:
+        '200':
+          description: The PGN representation of Masters Game.
+          examples:
+            application/json:
+              pgn: 1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 ...
+        '404':
+          description: Game not found.
+          examples:
+            application/json:
+              error: Game not found
+        '500':
+          description: Server error.
+          examples:
+            application/json:
+              error: Internal server error
+      summary: Get PGN for a specific game
+      tags:
+      - games
+    parameters:
+    - in: path
+      name: game_id
+      required: true
+      type: string
+  /games/{game_id}/add_comment/:
+    parameters:
+    - in: path
+      name: game_id
+      required: true
+      type: string
+    post:
+      description: Add a comment to a specific move in a game.
+      operationId: games_add_comment_create
+      parameters:
+      - in: body
+        name: data
+        required: true
+        schema:
+          properties:
+            comment_fens:
+              description: List of FENs related to the comment (optional)
+              items:
+                type: string
+              type: array
+            comment_text:
+              description: Text of the comment
+              type: string
+            position_fen:
+              description: FEN string of the commented position
+              type: string
+          required:
+          - position_fen
+          - comment_text
+          type: object
+      responses:
+        '201':
+          description: Comment added successfully
+          examples:
+            application/json:
+              comment_fens: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR
+              comment_text: Great move!
+              created_at: '2024-11-22T12:00:00Z'
+              fens_list:
+              - rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR
+              game: 5
+              id: 1
+              position_fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR
+              user: example_user
+        '400':
+          description: Invalid data
+        '404':
+          description: Game not found
+      summary: Add Game Comment
+      tags:
+      - games
+  /games/{game_id}/comments/:
+    get:
+      description: List all comments for a specific game.
+      operationId: games_comments_list
+      parameters: []
+      responses:
+        '200':
+          description: Comments retrieved successfully
+          examples:
+            application/json:
+              comments:
+              - comment_fens: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR
+                comment_text: Great move!
+                created_at: '2024-11-22T12:00:00Z'
+                fens_list:
+                - rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR
+                game: 5
+                id: 1
+                position_fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR
+                user: example_user
+        '404':
+          description: Game not found
+      summary: List Game Comments
+      tags:
+      - games
+    parameters:
+    - in: path
+      name: game_id
+      required: true
+      type: string
+  /healthcheck/hc/:
+    get:
+      description: Check API health
+      operationId: healthcheck_hc_list
+      parameters: []
+      responses:
+        '200':
+          description: OK
+          examples:
+            application/json:
+              status: OK
+      summary: Health Check
+      tags:
+      - healthcheck
+    parameters: []
+  /healthcheck/hc_auth/:
+    get:
+      description: Check API health with authentication
+      operationId: healthcheck_hc_auth_list
+      parameters:
+      - description: 'JWT Authorization header.You should enter ''token'' that you
+          get from Login. Example: ''Bearer <token>token_string'''
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      responses:
+        '200':
+          description: OK
+          examples:
+            application/json:
+              status: OK
+      summary: Health Check (with authentication)
+      tags:
+      - healthcheck
+    parameters: []
+  /healthcheck/hc_db/:
+    get:
+      description: ''
+      operationId: healthcheck_hc_db_list
+      parameters: []
+      responses:
+        '200':
+          description: Database is healthy
+          examples:
+            application/json:
+              db_status: healthy
+        '500':
+          description: Database connection error
+          examples:
+            application/json:
+              db_status: unhealthy
+              error: Error message
+      tags:
+      - healthcheck
+    parameters: []
+  /posts/comment/{post_id}/:
+    parameters:
+    - in: path
+      name: post_id
+      required: true
+      type: string
+    post:
+      description: Add a new comment to a specific post. Optionally include FEN notations.
+      operationId: posts_comment_create
+      parameters:
+      - in: body
+        name: data
+        required: true
+        schema:
+          properties:
+            fen_notations:
+              description: Optional FEN notations as a comma-separated string (e.g.,
+                'rnbqkbnr/ppp2ppp/4p3/3p4/3P1B2/8/PPP1PPPP/RN1QKBNR w KQkq - 0 3,rnbqkbnr/ppp2ppp/4p3/3p4/3P1B2/5N2/PPP1PPPP/RN1QKB1R
+                b KQkq - 1 3 ')
+              nullable: true
+              type: string
+            text:
+              description: Comment text
+              type: string
+          required:
+          - text
+          type: object
+      - &id001
+        description: 'JWT Authorization header. Example: ''Bearer <token>'''
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      responses:
+        '201':
+          description: Comment created successfully.
+          examples:
+            application/json:
+              created_at: '2024-11-23T18:10:14.312264Z'
+              fen_notations: rnbqkbnr/ppp2ppp/4p3/3p4/3P1B2/8/PPP1PPPP/RN1QKBNR w
+                KQkq - 0 3,rnbqkbnr/ppp2ppp/4p3/3p4/3P1B2/5N2/PPP1PPPP/RN1QKB1R b
+                KQkq - 1 3
+              id: 7
+              post: 1
+              text: 'I think that this line might be better. '
+              user: soner
+              user_id: 1
+        '400':
+          description: Invalid request
+        '404':
+          description: Post not found
+      summary: Create Comment
+      tags:
+      - posts
+  /posts/comment/{post_id}/{comment_id}/:
+    delete:
+      description: Delete an existing comment on a specific post.
+      operationId: posts_comment_delete
+      parameters:
+      - *id001
+      responses:
+        '204':
+          description: Comment deleted successfully
+        '403':
+          description: Unauthorized
+        '404':
+          description: Comment not found
+      summary: Delete Comment
+      tags:
+      - posts
+    parameters:
+    - in: path
+      name: post_id
+      required: true
+      type: string
+    - in: path
+      name: comment_id
+      required: true
+      type: string
+    put:
+      description: Update an existing comment on a specific post. Optionally include
+        FEN notations.
+      operationId: posts_comment_update
+      parameters:
+      - in: body
+        name: data
+        required: true
+        schema:
+          properties:
+            fen_notations:
+              description: Optional FEN notations as a comma-separated string (e.g.,
+                'rnbqkbnr/ppp2ppp/4p3/3p4/3P1B2/8/PPP1PPPP/RN1QKBNR w KQkq - 0 3,rnbqkbnr/ppp2ppp/4p3/3p4/3P1B2/5N2/PPP1PPPP/RN1QKB1R
+                b KQkq - 1 3 ')
+              nullable: true
+              type: string
+            text:
+              description: Updated comment text
+              type: string
+          type: object
+      - *id001
+      responses:
+        '200':
+          description: Comment updated successfully.
+          examples:
+            application/json:
+              created_at: '2024-11-23T18:10:14.312264Z'
+              fen_notations: rnbqkbnr/ppp2ppp/4p3/3p4/3P1B2/8/PPP1PPPP/RN1QKBNR w
+                KQkq - 0 3,rnbqkbnr/ppp2ppp/4p3/3p4/3P1B2/5N2/PPP1PPPP/RN1QKB1R b
+                KQkq - 1 3
+              id: 7
+              post: 1
+              text: Updated FEN Comment
+              user: soner
+              user_id: 1
+        '400':
+          description: Invalid request
+        '403':
+          description: Unauthorized
+        '404':
+          description: Comment not found
+      summary: Update Comment
+      tags:
+      - posts
+  /posts/comments/{post_id}/:
+    get:
+      description: List all comments for a specific post.
+      operationId: posts_comments_read
+      parameters: []
+      responses:
+        '200':
+          description: Comments retrieved successfully.
+          examples:
+            application/json:
+            - created_at: '2024-11-23T18:10:14.312264Z'
+              fen_notations: rnbqkbnr/ppp2ppp/4p3/3p4/3P1B2/8/PPP1PPPP/RN1QKBNR w
+                KQkq - 0 3,rnbqkbnr/ppp2ppp/4p3/3p4/3P1B2/5N2/PPP1PPPP/RN1QKB1R b
+                KQkq - 1 3
+              id: 7
+              post: 1
+              text: FEN Comment
+              user: soner
+              user_id: 1
+            - created_at: '2024-11-23T19:15:22.123456Z'
+              fen_notations: 'null'
+              id: 8
+              post: 1
+              text: Another comment
+              user: jane
+              user_id: 2
+        '404':
+          description: Post not found
+      summary: List Comments
+      tags:
+      - posts
+    parameters:
+    - in: path
+      name: post_id
+      required: true
+      type: string
+  /posts/create/:
+    parameters: []
+    post:
+      description: Create a post with an optional base64-encoded image, FEN notation,
+        text content and a list of tags. Requires authentication.
+      operationId: posts_create_create
+      parameters:
+      - in: body
+        name: data
+        required: true
+        schema:
+          example:
+            fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR
+            post_image: data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...
+            post_text: This is an example post about a chess position.
+            tags:
+            - a
+            - b
+            - c
+            title: My Chess Post
+          properties:
+            fen:
+              description: FEN notation string
+              type: string
+            post_image:
+              description: Base64 encoded image string
+              type: string
+            post_text:
+              description: Text content for the post
+              type: string
+            tags:
+              description: List of tags as strings
+              items:
+                type: string
+              type: array
+            title:
+              description: Post title
+              type: string
+          required:
+          - title
+          type: object
+      - *id001
+      responses:
+        '201':
+          description: Post created successfully
+          examples:
+            application/json:
+              created_at: '2024-10-16T12:00:00Z'
+              fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR
+              id: 1
+              post_image: /media/post_images/example.jpg
+              post_text: This is an example post about a chess position.
+              tags:
+              - a
+              - b
+              - c
+              title: My Chess Post
+              username: example_user
+        '400':
+          description: Invalid input
+          examples:
+            application/json:
+              fen:
+              - This field is required.
+              post_image:
+              - Invalid image format.
+      summary: Create a new post
+      tags:
+      - posts
+  /posts/like/{post_id}/:
+    parameters:
+    - in: path
+      name: post_id
+      required: true
+      type: string
+    post:
+      description: Toggle like/unlike for a specific post.
+      operationId: posts_like_create
+      parameters:
+      - *id001
+      responses:
+        '200':
+          description: Post unliked
+          examples:
+            application/json:
+              message: Post unliked
+        '201':
+          description: Post liked
+          examples:
+            application/json:
+              message: Post liked
+        '404':
+          description: Post not found
+      summary: Like/Unlike a Post
+      tags:
+      - posts
+  /posts/likes_summary/:
+    parameters: []
+    post:
+      description: Get like count and like status for multiple posts.
+      operationId: posts_likes_summary_create
+      parameters:
+      - in: body
+        name: data
+        required: true
+        schema:
+          properties:
+            post_ids:
+              items:
+                type: integer
+              type: array
+          required:
+          - post_ids
+          type: object
+      - *id001
+      responses:
+        '200':
+          description: Like summary retrieved
+          examples:
+            application/json:
+            - like_count: 10
+              liked_by_requester: true
+              post_id: 1
+            - like_count: 5
+              liked_by_requester: false
+              post_id: 2
+            - error: Post not found
+              post_id: 3
+        '400':
+          description: Invalid request
+      summary: Like Summary for Multiple Posts
+      tags:
+      - posts
+  /posts/list_posts/:
+    get:
+      description: Retrieve all posts with pagination.
+      operationId: posts_list_posts_list
+      parameters: []
+      responses:
+        '200':
+          description: List of posts retrieved successfully with pagination
+          examples:
+            application/json:
+              count: 100
+              next: http://api.example.com/posts/?page=2
+              previous: null
+              results:
+              - created_at: '2024-10-16T12:00:00Z'
+                fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR
+                id: 1
+                post_image: data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...
+                post_text: This is an example post about a chess position.
+                tags:
+                - a
+                - b
+                - c
+                title: My Chess Post 1
+                user: example_user
+              - created_at: '2024-10-17T10:00:00Z'
+                fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR
+                id: 2
+                post_image: data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...
+                post_text: Another example post.
+                tags:
+                - c
+                - d
+                title: My Chess Post 2
+                user: another_user
+        '400':
+          description: Invalid request
+      summary: List all posts with pagination
+      tags:
+      - posts
+    parameters: []
+  /posts/{post_id}/:
+    get:
+      description: Retrieve a specific post by its ID.
+      operationId: posts_read
+      parameters:
+      - description: ID of the post to retrieve
+        in: path
+        name: post_id
+        required: true
+        type: integer
+      responses:
+        '200':
+          description: Post retrieved successfully
+          examples:
+            application/json:
+              created_at: '2024-10-16T12:00:00Z'
+              fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR
+              id: 1
+              post_image: data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...
+              post_text: This is an example post about a chess position.
+              tags:
+              - a
+              - b
+              - c
+              title: My Chess Post
+              user: 1
+        '404':
+          description: Post not found
+          examples:
+            application/json:
+              error: Post not found
+      summary: Get post by ID
+      tags:
+      - posts
+    parameters:
+    - in: path
+      name: post_id
+      required: true
+      type: string
+  /test_endpoint/test_endpoint/:
+    get:
+      description: "Hen\xFCz i\u015Flevselli\u011Fi kodlanmam\u0131\u015F, parametre\
+        \ alan bir endpoint."
+      operationId: test_endpoint_test_endpoint_list
+      parameters:
+      - description: "Kullan\u0131c\u0131 ID'si"
+        in: query
+        name: id
+        type: integer
+      responses:
+        '200':
+          description: "Ba\u015Far\u0131l\u0131 yan\u0131t"
+          examples:
+            application/json:
+              message: "Hen\xFCz kodlanmad\u0131"
+      tags:
+      - test_endpoint
+    parameters: []
+produces:
+- application/json
+schemes:
+- http
+security:
+- Basic: []
+securityDefinitions:
+  Basic:
+    type: basic
+swagger: '2.0'
