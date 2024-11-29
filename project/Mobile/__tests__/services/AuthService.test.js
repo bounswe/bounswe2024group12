@@ -19,6 +19,7 @@ describe('AuthService', () => {
         }
       };
       axios.post.mockResolvedValueOnce(mockResponse);
+      AsyncStorage.setItem.mockResolvedValueOnce();
 
       const result = await authService.login('test@email.com', 'password123');
 
@@ -41,9 +42,10 @@ describe('AuthService', () => {
 
   describe('logout', () => {
     it('successfully logs out user and removes token', async () => {
+      AsyncStorage.multiRemove.mockResolvedValueOnce();
+
       await authService.logout();
       expect(AsyncStorage.multiRemove).toHaveBeenCalledWith(['userToken', 'userData']);
     });
   });
 });
-
