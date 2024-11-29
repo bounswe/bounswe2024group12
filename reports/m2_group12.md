@@ -1,8 +1,3 @@
----
-title: Milestone 2 Report Group12
-
----
-
 
 # Milestone 2 Report Group12
 
@@ -437,7 +432,7 @@ I wrote each commits explanation with detail what I've done item by item.
 ---
 
 ### Işıl Su Karakuzu
-1. **Responsibilities**: I was responsible for creating the advanced search functionality, integrating backend systems for archiving games, and implementing comment-related systems in the frontend. Additionally, I provided feedback on various aspects of the project.
+1. **Responsibilities**: I was responsible for creating the advanced search functionality in frontend, integrating backend systems for archiving games to frontend, and implementing comment-related systems in the frontend. Additionally, I provided feedback on various aspects of the project.
 2. **Main contributions**:
 - Advanced Search: Developed the advanced search feature for the archive page and displayed games returned from the backend.
 - Game Interaction: Enabled games to be clickable, displaying Ahmet's step-by-step game logic when selected. This included backend integration.
@@ -446,32 +441,27 @@ I wrote each commits explanation with detail what I've done item by item.
 - Return to Search: Added a "Return to Search" functionality to improve navigation for users.
 - Pagination and Loading Logic: Developed the pagination system and implemented loading/waiting logic for the feed page to enhance user experience.
 - Mock Data Creation: Created mock data for testing and development purposes.
+- Backend Team Connection: I adressed issues related to API calls and we worked together with backend team to solve them.
 3. **API Contributions**:
-- As the mobile app developer I implemented many API calls and evaluation of their responses. Please refer to Soner's section for details since he already explained everything in detail.
+- As a frontend developer, I implemented various API integrations and handled the processing and display of their responses within the user interface. Please refer to Soner's section for detailed explanations of the backend functionalities, as he has already outlined them comprehensively. I used this API's:
     - /posts/{post_id}/
     - /games/filter/
     - /games/{game_id}/add_comment/
     - /games/{game_id}/comments/
     - /posts/list_posts/
 3. **Code-related significant issues**:
-- [Enable Step-by-Step Game Navigation (With Backend Integration)](https://github.com/bounswe/bounswe2024group12/issues/258)
-- [Add Login Page](https://github.com/bounswe/bounswe2024group12/issues/268)
-- [Add Signup Page](https://github.com/bounswe/bounswe2024group12/issues/269)
+- [Enable Step-by-Step Game Navigation (With Backend Integration)](https://github.com/bounswe/bounswe2024group12/issues/328)
+- [Convert PGN to FEN Notation](https://github.com/bounswe/bounswe2024group12/issues/268)
+- [Implement Advanced Game Search (With Backend Integration)](https://github.com/bounswe/bounswe2024group12/issues/327)
+- [Implement Commenting System Per Move Per Game (With Backend Integration)](https://github.com/bounswe/bounswe2024group12/issues/326)
+- [Enhance Archive Page](https://github.com/bounswe/bounswe2024group12/issues/310)
 4. **Non-code-related Significant Issues**:
-- [Create Mockups for the Project](https://github.com/bounswe/bounswe2024group12/issues/263)
-- [Develop Project Scenarios](https://github.com/bounswe/bounswe2024group12/issues/264) I reviewed this issue.
-- [Implement Feed Functionality](https://github.com/bounswe/bounswe2024group12/issues/287) I reviewed and fixed problems with this code. [Related Commit](https://github.com/bounswe/bounswe2024group12/pull/296/commits/cf75581519a67ccde08d6c92b2c62a18acb0fdb0)
-- [Implement Post Functionality](https://github.com/bounswe/bounswe2024group12/issues/286) I reviewed and fixed problems with this code. [Related Commit](https://github.com/bounswe/bounswe2024group12/pull/296/commits/a5af68035aaf7b08b27a775599ecb2fffafa04fb)
-- [Backend Deployment](https://github.com/bounswe/bounswe2024group12/issues/282) I suggested deploying backend for ease the development process, I reviewed it.
-- [Create Sequence Diagrams](https://github.com/bounswe/bounswe2024group12/issues/279) I reviewed and talked with Ozan.
-- [Create Communication Plan](https://github.com/bounswe/bounswe2024group12/issues/253)
-- [Document Meeting 1 Report (Lab)](https://github.com/bounswe/bounswe2024group12/issues/251)
+- [Write Milestone 2 Report](https://github.com/bounswe/bounswe2024group12/issues/349)
 5. **Pull Requests**:
-- [Init Frontend](https://github.com/bounswe/bounswe2024group12/pull/267)
-- [Login Page](https://github.com/bounswe/bounswe2024group12/pull/294)
-- [Sign Up Page](https://github.com/bounswe/bounswe2024group12/pull/295)
-- [Add Frontend to Main](https://github.com/bounswe/bounswe2024group12/pull/296) This had merge conflicts. I solved them.
-6. **Additional information**: I attended all lab and online meetings, organized task distribution, and was actively involved in initial discussions about frontend design and implementation.
+- [LAB 6 PR](https://github.com/bounswe/bounswe2024group12/pull/302) I contributed to this PR.
+- [milestone 2 deliverables](https://github.com/bounswe/bounswe2024group12/pull/324)
+- Ahmet and I coded the front-end asynchronous all the time so we didn't have conflict problems.
+6. **Additional information**: I attended all labs except the last one, so I don't have any unit tests. Contributed to selection of W3C standard.
 
 ---
 
