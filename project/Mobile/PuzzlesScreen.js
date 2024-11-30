@@ -17,12 +17,12 @@ import { Feather } from '@expo/vector-icons';
 import Chessboard from 'react-native-chessboard';
 import { Dimensions } from 'react-native';
 import { Chess } from 'chess.js';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const screenWidth = Dimensions.get('window').width;
 const boardSize = screenWidth - 40;
 
 const PuzzlesScreen = ({ navigation }) => {
-
     const [puzzle, setPuzzle] = useState(null);
     const [loading, setLoading] = useState(true);
     const [puzzlePosition, setPuzzlePosition] = useState(null);
@@ -56,48 +56,6 @@ const PuzzlesScreen = ({ navigation }) => {
         }
     };
 
-    const FenModal = () => (
-        <Modal
-            visible={showFenModal}
-            transparent={true}
-            animationType="fade"
-            onRequestClose={() => setShowFenModal(false)}
-        >
-            <TouchableOpacity
-                style={styles.modalOverlay}
-                activeOpacity={1}
-                onPress={() => setShowFenModal(false)}
-            >
-                <View style={styles.modalContent}>
-                    <View style={styles.modalHeader}>
-                        <Text style={styles.modalTitle}>Position (FEN)</Text>
-                        <TouchableOpacity
-                            onPress={() => setShowFenModal(false)}
-                            style={styles.closeButton}
-                        >
-                            <Feather name="x" size={24} color="#666" />
-                        </TouchableOpacity>
-                    </View>
-
-                    <TouchableOpacity
-                        style={styles.fenContainer}
-                        onPress={handleCopyFen}
-                    >
-                        <Text style={styles.fenText}>{puzzlePosition}</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        style={styles.copyButton}
-                        onPress={handleCopyFen}
-                    >
-                        <Feather name="copy" size={20} color="white" />
-                        <Text style={styles.copyButtonText}>Copy Position</Text>
-                    </TouchableOpacity>
-                </View>
-            </TouchableOpacity>
-        </Modal>
-    );
-
     const getPuzzlePosition = (pgn, plyCount) => {
         const chess = new Chess();
         chess.loadPgn(pgn);
@@ -109,6 +67,34 @@ const PuzzlesScreen = ({ navigation }) => {
         return chess.fen();
     };
 
+    const savePuzzle = async (puzzleData, position) => {
+        try {
+            await AsyncStorage.setItem('lastPuzzle', JSON.stringify({
+                puzzle: puzzleData,
+                position: position
+            }));
+        } catch (error) {
+            console.error('Failed to save puzzle:', error);
+        }
+    };
+
+    const loadSavedPuzzle = async () => {
+        try {
+            const savedData = await AsyncStorage.getItem('lastPuzzle');
+            if (savedData) {
+                const { puzzle: savedPuzzle, position } = JSON.parse(savedData);
+                setPuzzle(savedPuzzle);
+                setPuzzlePosition(position);
+                setLoading(false);
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error('Failed to load saved puzzle:', error);
+            return false;
+        }
+    };
+
     const fetchPuzzle = async (endpoint) => {
         setLoading(true);
         try {
@@ -117,6 +103,7 @@ const PuzzlesScreen = ({ navigation }) => {
             setPuzzle(data.puzzle);
             const position = getPuzzlePosition(data.game.pgn, data.puzzle.initialPly);
             setPuzzlePosition(position);
+            savePuzzle(data.puzzle, position);
         } catch (error) {
             console.error('Failed to fetch puzzle:', error);
         } finally {
@@ -125,7 +112,13 @@ const PuzzlesScreen = ({ navigation }) => {
     };
 
     useEffect(() => {
-        fetchPuzzle('https://lichess.org/api/puzzle/daily');
+        const initializePuzzle = async () => {
+            const hasSavedPuzzle = await loadSavedPuzzle();
+            if (!hasSavedPuzzle) {
+                fetchPuzzle('https://lichess.org/api/puzzle/daily');
+            }
+        };
+        initializePuzzle();
     }, []);
 
     const getNextPuzzle = () => {
