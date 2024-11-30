@@ -5,6 +5,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import MainScreen from './MainScreen';
 import AnalysisScreen from './AnalysisScreen';
+import PuzzlesScreen from './PuzzlesScreen';
 import CreatePostScreen from './CreatePostScreen';
 import LoginScreen from './screens/LoginScreen';
 import SignupScreen from './screens/SignupScreen';
@@ -40,6 +41,7 @@ function AppNavigator() {
           <>
             <Stack.Screen name="Home" component={MainScreen} />
             <Stack.Screen name="Analysis" component={AnalysisScreen} />
+            <Stack.Screen name="Puzzles" component={PuzzlesScreen} />
             <Stack.Screen name="CreatePost" component={CreatePostScreen} />
             <Stack.Screen name="Thread" component={ThreadScreen} />
             <Stack.Screen name="Archive" component={ArchiveScreen} />

@@ -218,36 +218,55 @@ const MainScreen = ({ navigation }) => {
   const [isProfileZoomed, setIsProfileZoomed] = useState(false);
   const sidebarPosition = useRef(new Animated.Value(-250)).current;
   const zoomAnimation = useRef(new Animated.Value(0)).current;
+  const [nextPage, setNextPage] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   const handleSearchResult = (searchResult) => {
     if (searchResult) {
       setPosts([searchResult]);
+      setNextPage(null);
     }
   };
 
-  const fetchPosts = async () => {
+  const fetchPosts = async (refresh = false) => {
     try {
-      setIsLoading(true);
+      setIsLoading(!refresh);
+      setRefreshing(refresh);
+
       const response = await api.get('/posts/list_posts/');
-      console.log('Posts response:', response.data?.results);
       if (response.data?.results) {
         setPosts(response.data.results);
-      } else {
-        console.error('No results found in the response');
+        setNextPage(response.data.next);
       }
     } catch (error) {
       console.error('Failed to fetch posts:', error);
       Alert.alert('Error', 'Failed to load posts. Please try again.');
     } finally {
       setIsLoading(false);
+      setRefreshing(false);
     }
   };
+
+  const loadMorePosts = async () => {
+    if (!nextPage || isLoading) return;
+
+    try {
+      const response = await api.get(nextPage);
+      if (response.data?.results) {
+        setPosts(prevPosts => [...prevPosts, ...response.data.results]);
+        setNextPage(response.data.next);
+      }
+    } catch (error) {
+      console.error('Failed to load more posts:', error);
+    }
+  };
+
+  const handleRefresh = () => fetchPosts(true);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       fetchPosts();
     });
-
     return unsubscribe;
   }, [navigation]);
 
@@ -255,9 +274,7 @@ const MainScreen = ({ navigation }) => {
     fetchPosts();
   }, []);
 
-  if (loading) {
-    return <LoadingScreen />;
-  }
+  if (loading) return <LoadingScreen />;
 
   const handleLogout = async () => {
     try {
@@ -271,7 +288,7 @@ const MainScreen = ({ navigation }) => {
   const toggleSidebar = () => {
     const toValue = isSidebarOpen ? -250 : 0;
     Animated.timing(sidebarPosition, {
-      toValue: toValue,
+      toValue,
       duration: 300,
       useNativeDriver: false,
     }).start();
@@ -306,10 +323,7 @@ const MainScreen = ({ navigation }) => {
         <View style={styles.sidebarContent}>
           <View style={styles.userProfileContainer}>
             <TouchableOpacity onPress={toggleProfileZoom}>
-              <Image
-                source={profilePicPlaceholder}
-                style={styles.profilePicture}
-              />
+              <Image source={profilePicPlaceholder} style={styles.profilePicture} />
             </TouchableOpacity>
             <Text style={styles.username}>{user?.username || 'Guest'}</Text>
           </View>
@@ -317,21 +331,18 @@ const MainScreen = ({ navigation }) => {
             style={styles.sidebarItem}
             onPress={() => {
               toggleSidebar();
-              navigation.navigate('Analysis');
+              navigation.navigate('Analysis', { pgn: null });
             }}
           >
             <Text style={styles.sidebarText}>Analysis</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.sidebarItem}
-            onPress={() => console.log('Puzzles')}
-          >
+          <TouchableOpacity style={styles.sidebarItem} onPress={() => {
+            toggleSidebar();
+            navigation.navigate('Puzzles');
+          }}>
             <Text style={styles.sidebarText}>Puzzles</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.sidebarItem}
-            onPress={() => console.log('Community')}
-          >
+          <TouchableOpacity style={styles.sidebarItem} onPress={() => console.log('Community')}>
             <Text style={styles.sidebarText}>Community</Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -343,46 +354,12 @@ const MainScreen = ({ navigation }) => {
           >
             <Text style={styles.sidebarText}>Archive</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.sidebarItem, styles.logoutButton]}
-            onPress={handleLogout}
-          >
+          <TouchableOpacity style={[styles.sidebarItem, styles.logoutButton]} onPress={handleLogout}>
             <Text style={styles.logoutText}>Log Out</Text>
           </TouchableOpacity>
         </View>
       </Animated.View>
     </>
-  );
-
-  const renderZoomedProfile = () => (
-    <Modal
-      transparent={true}
-      visible={isProfileZoomed}
-      onRequestClose={toggleProfileZoom}
-    >
-      <BlurView intensity={100} style={StyleSheet.absoluteFill}>
-        <TouchableWithoutFeedback onPress={toggleProfileZoom}>
-          <View style={styles.zoomedProfileContainer}>
-            <Animated.Image
-              source={profilePicPlaceholder}
-              style={[
-                styles.zoomedProfilePicture,
-                {
-                  width: zoomAnimation.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [PROFILE_PIC_SIZE, ZOOMED_PIC_SIZE],
-                  }),
-                  height: zoomAnimation.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [PROFILE_PIC_SIZE, ZOOMED_PIC_SIZE],
-                  }),
-                },
-              ]}
-            />
-          </View>
-        </TouchableWithoutFeedback>
-      </BlurView>
-    </Modal>
   );
 
   return (
@@ -396,7 +373,35 @@ const MainScreen = ({ navigation }) => {
       </View>
 
       {isSidebarOpen && renderSidebar()}
-      {renderZoomedProfile()}
+
+      <Modal
+        transparent={true}
+        visible={isProfileZoomed}
+        onRequestClose={toggleProfileZoom}
+      >
+        <BlurView intensity={100} style={StyleSheet.absoluteFill}>
+          <TouchableWithoutFeedback onPress={toggleProfileZoom}>
+            <View style={styles.zoomedProfileContainer}>
+              <Animated.Image
+                source={profilePicPlaceholder}
+                style={[
+                  styles.zoomedProfilePicture,
+                  {
+                    width: zoomAnimation.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [PROFILE_PIC_SIZE, ZOOMED_PIC_SIZE],
+                    }),
+                    height: zoomAnimation.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [PROFILE_PIC_SIZE, ZOOMED_PIC_SIZE],
+                    }),
+                  },
+                ]}
+              />
+            </View>
+          </TouchableWithoutFeedback>
+        </BlurView>
+      </Modal>
 
       {isLoading ? (
         <LoadingScreen />
@@ -406,8 +411,13 @@ const MainScreen = ({ navigation }) => {
           renderItem={({ item }) => <PostCard post={item} />}
           keyExtractor={(item) => item.id.toString()}
           style={styles.list}
-          onRefresh={fetchPosts}
-          refreshing={isLoading}
+          onRefresh={handleRefresh}
+          refreshing={refreshing}
+          onEndReached={loadMorePosts}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={() =>
+            nextPage && <ActivityIndicator style={{ padding: 16 }} />
+          }
         />
       )}
 

@@ -11,12 +11,16 @@ import {
   KeyboardAvoidingView,
   Keyboard,
   TextInput,
+  Modal,
   StyleSheet,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 import { PgnViewer } from './components/PgnViewer';
 import { api } from './services/AuthService';
-import { GameInfo } from './components/GameInfo';
+import LoadPgnModal from './components/LoadPgnModal';
+
+const INITIAL_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
 const CommentView = ({ comment }) => (
   <View style={styles.commentContainer}>
@@ -41,7 +45,6 @@ const PositionStats = ({ data }) => {
   return (
     <View style={styles.statsSection}>
       <Text style={styles.statsHeader}>Position Statistics</Text>
-      
       <View style={styles.resultsContainer}>
         <View style={styles.resultItem}>
           <Text style={styles.resultPercentage}>{whitePercentage}%</Text>
@@ -73,7 +76,7 @@ const PositionStats = ({ data }) => {
 };
 
 const AnalysisScreen = ({ route, navigation }) => {
-  const [currentFen, setCurrentFen] = useState('');
+  const [currentFen, setCurrentFen] = useState(INITIAL_FEN);
   const [comments, setComments] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -81,32 +84,23 @@ const AnalysisScreen = ({ route, navigation }) => {
   const [newComment, setNewComment] = useState('');
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [positionStats, setPositionStats] = useState(null);
+  const [isLoadPgnModalVisible, setIsLoadPgnModalVisible] = useState(false);
   const exploredPositions = useRef(new Map());
   const scrollViewRef = useRef(null);
 
-  const pgn = route?.params?.pgn || DEFAULT_PGN;
+  const pgn = route?.params?.pgn;
   const gameId = route?.params?.gameId;
 
   useEffect(() => {
     const keyboardWillShow = (event) => {
       setKeyboardHeight(event.endCoordinates.height);
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
-      }, 100);
+      setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 100);
     };
 
-    const keyboardWillHide = () => {
-      setKeyboardHeight(0);
-    };
+    const keyboardWillHide = () => setKeyboardHeight(0);
 
-    const keyboardDidShowListener = Keyboard.addListener(
-      'keyboardWillShow',
-      keyboardWillShow
-    );
-    const keyboardDidHideListener = Keyboard.addListener(
-      'keyboardWillHide',
-      keyboardWillHide
-    );
+    const keyboardDidShowListener = Keyboard.addListener('keyboardWillShow', keyboardWillShow);
+    const keyboardDidHideListener = Keyboard.addListener('keyboardWillHide', keyboardWillHide);
 
     return () => {
       keyboardDidShowListener.remove();
@@ -117,22 +111,22 @@ const AnalysisScreen = ({ route, navigation }) => {
   useEffect(() => {
     navigation.setOptions({
       headerShown: true,
-      headerTitle: 'Game Analysis',
+      headerTitle: pgn ? 'Game Analysis' : 'Analysis Board',
       headerLeft: () => (
-        <TouchableOpacity
-          style={styles.headerButton}
-          onPress={() => navigation.goBack()}
-        >
+        <TouchableOpacity style={styles.headerButton} onPress={() => navigation.goBack()}>
           <Feather name="arrow-left" size={24} color="#000" />
         </TouchableOpacity>
       ),
+      headerRight: () => (
+        <TouchableOpacity style={styles.headerButton} onPress={() => setIsLoadPgnModalVisible(true)}>
+          <Feather name="upload" size={24} color="#000" />
+        </TouchableOpacity>
+      ),
     });
-  }, [navigation]);
+  }, [navigation, pgn]);
 
   useEffect(() => {
-    if (gameId) {
-      fetchComments();
-    }
+    if (gameId) fetchComments();
   }, [gameId]);
 
   useEffect(() => {
@@ -227,37 +221,14 @@ const AnalysisScreen = ({ route, navigation }) => {
         <ScrollView style={styles.mainScroll} bounces={false} ref={scrollViewRef}>
           <View style={styles.mainContent}>
             <PgnViewer
-              pgn={pgn}
+              pgn={pgn || '1. '}
               darkSquareColor="#769656"
               lightSquareColor="#eeeed2"
               onPositionChange={handlePositionUpdate}
+              initialFen={INITIAL_FEN}
             />
 
-            <GameInfo pgn={pgn} />
-
             {positionStats && <PositionStats data={positionStats} />}
-
-            <View style={styles.commentsSection}>
-              <Text style={styles.commentsHeader}>
-                Position Comments ({positionComments?.length || 0})
-              </Text>
-
-              {isLoading ? (
-                <ActivityIndicator size="large" color="#007AFF" style={styles.loader} />
-              ) : (
-                <View style={styles.commentsList}>
-                  {positionComments?.length > 0 ? (
-                    positionComments.map((comment) => (
-                      <CommentView key={comment.id} comment={comment} />
-                    ))
-                  ) : (
-                    <Text style={styles.noCommentsText}>
-                      No comments for this position
-                    </Text>
-                  )}
-                </View>
-              )}
-            </View>
 
             <TouchableOpacity
               style={[
@@ -282,35 +253,81 @@ const AnalysisScreen = ({ route, navigation }) => {
                 </>
               )}
             </TouchableOpacity>
+
+            {gameId && (
+              <View style={styles.commentsSection}>
+                <Text style={styles.commentsHeader}>
+                  Position Comments ({positionComments?.length || 0})
+                </Text>
+
+                {isLoading ? (
+                  <ActivityIndicator size="large" color="#007AFF" style={styles.loader} />
+                ) : (
+                  <View style={styles.commentsList}>
+                    {positionComments?.length > 0 ? (
+                      positionComments.map((comment) => (
+                        <CommentView key={comment.id} comment={comment} />
+                      ))
+                    ) : (
+                      <Text style={styles.noCommentsText}>
+                        No comments for this position
+                      </Text>
+                    )}
+                  </View>
+                )}
+              </View>
+            )}
           </View>
         </ScrollView>
 
-        <View style={styles.inputContainer}>
-          <View style={styles.commentInputContainer}>
-            <TextInput
-              style={styles.commentInput}
-              value={newComment}
-              onChangeText={setNewComment}
-              placeholder="Add your analysis..."
-              multiline
-              maxLength={500}
-            />
-            <TouchableOpacity
-              style={[
-                styles.submitButton,
-                (!newComment.trim() || isSubmitting) && styles.disabledButton
-              ]}
-              onPress={handleSubmitComment}
-              disabled={!newComment.trim() || isSubmitting}
-            >
-              {isSubmitting ? (
-                <ActivityIndicator color="white" size="small" />
-              ) : (
-                <Feather name="send" size={20} color="white" />
-              )}
-            </TouchableOpacity>
+        {gameId && (
+          <View style={styles.inputContainer}>
+            <View style={styles.commentInputContainer}>
+              <TextInput
+                style={styles.commentInput}
+                value={newComment}
+                onChangeText={setNewComment}
+                placeholder="Add your analysis..."
+                multiline
+                maxLength={500}
+              />
+              <TouchableOpacity
+                style={[
+                  styles.submitButton,
+                  (!newComment.trim() || isSubmitting) && styles.disabledButton
+                ]}
+                onPress={handleSubmitComment}
+                disabled={!newComment.trim() || isSubmitting}
+              >
+                {isSubmitting ? (
+                  <ActivityIndicator color="white" size="small" />
+                ) : (
+                  <Feather name="send" size={20} color="white" />
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
+        )}
+
+        {isLoadPgnModalVisible && (
+          <Modal
+            transparent={true}
+            animationType="fade"
+            visible={isLoadPgnModalVisible}
+            onRequestClose={() => setIsLoadPgnModalVisible(false)}
+          >
+            <BlurView intensity={100} style={StyleSheet.absoluteFill}>
+              <View style={styles.modalContainer}>
+                <LoadPgnModal
+                  onLoadPgn={(newPgn) => {
+                    navigation.setParams({ pgn: newPgn });
+                    setIsLoadPgnModalVisible(false);
+                  }}
+                />
+              </View>
+            </BlurView>
+          </Modal>
+        )}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -496,6 +513,12 @@ const styles = StyleSheet.create({
   },
   exploreIcon: {
     marginRight: 8,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
   },
 });
 
