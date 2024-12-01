@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -13,14 +13,26 @@ import {
   TextInput,
   Modal,
   StyleSheet,
+  Dimensions,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { PgnViewer } from './components/PgnViewer';
 import { api } from './services/AuthService';
 import LoadPgnModal from './components/LoadPgnModal';
+import { useFocusEffect } from '@react-navigation/native';
 
 const INITIAL_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+const windowDimensions = Dimensions.get('window');
+
+const screenState = {
+  pgn: null,
+  currentFen: INITIAL_FEN,
+  comments: [],
+  positionStats: null,
+  exploredPositions: new Map(),
+  evaluationsCache: new Map(),
+};
 
 const CommentView = ({ comment }) => (
   <View style={styles.commentContainer}>
@@ -76,20 +88,34 @@ const PositionStats = ({ data }) => {
 };
 
 const AnalysisScreen = ({ route, navigation }) => {
-  const [currentFen, setCurrentFen] = useState(INITIAL_FEN);
-  const [comments, setComments] = useState([]);
+  const [currentFen, setCurrentFen] = useState(screenState.currentFen);
+  const [comments, setComments] = useState(screenState.comments);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingSimilar, setIsLoadingSimilar] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [keyboardHeight, setKeyboardHeight] = useState(0);
-  const [positionStats, setPositionStats] = useState(null);
+  const [positionStats, setPositionStats] = useState(screenState.positionStats);
   const [isLoadPgnModalVisible, setIsLoadPgnModalVisible] = useState(false);
-  const exploredPositions = useRef(new Map());
+  const exploredPositions = useRef(screenState.exploredPositions);
   const scrollViewRef = useRef(null);
-
-  const pgn = route?.params?.pgn;
+  const [pgn, setPgn] = useState(screenState.pgn || route?.params?.pgn);
+  const [evaluationData, setEvaluationData] = useState(null);
+  const evaluationsCache = useRef(screenState.evaluationsCache);
   const gameId = route?.params?.gameId;
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        screenState.currentFen = currentFen;
+        screenState.comments = comments;
+        screenState.positionStats = positionStats;
+        screenState.exploredPositions = exploredPositions.current;
+        screenState.pgn = pgn;
+        screenState.evaluationsCache = evaluationsCache.current;
+      };
+    }, [currentFen, comments, positionStats, pgn])
+  );
 
   useEffect(() => {
     const keyboardWillShow = (event) => {
@@ -153,6 +179,27 @@ const AnalysisScreen = ({ route, navigation }) => {
     }
   };
 
+  const handleCloudEvaluation = async (fen) => {
+    if (!fen) return;
+    
+    try {
+      setIsLoading(true);
+      const response = await api.get('/analyze/cloud-eval', {
+        params: { fen }
+      });
+      
+      if (response.data) {
+        evaluationsCache.current.set(fen, response.data);
+        setEvaluationData(response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching evaluation:', error);
+      Alert.alert('Error', 'Failed to get position evaluation');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSubmitComment = async () => {
     if (!newComment.trim() || !currentFen) return;
 
@@ -211,6 +258,17 @@ const AnalysisScreen = ({ route, navigation }) => {
     comment => comment.position_fen === currentFen
   );
 
+  const handleLoadPgn = (newPgn) => {
+    if (newPgn) {
+      setPgn(newPgn);
+    }
+    setIsLoadPgnModalVisible(false);
+  };
+
+  const handleCloseModal = () => {
+    setIsLoadPgnModalVisible(false);
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
@@ -218,18 +276,25 @@ const AnalysisScreen = ({ route, navigation }) => {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
       >
-        <ScrollView style={styles.mainScroll} bounces={false} ref={scrollViewRef}>
+        <ScrollView 
+          style={styles.mainScroll} 
+          bounces={true}
+          ref={scrollViewRef}
+          contentContainerStyle={styles.scrollContent}
+        >
           <View style={styles.mainContent}>
             <PgnViewer
               pgn={pgn || '1. '}
               darkSquareColor="#769656"
               lightSquareColor="#eeeed2"
               onPositionChange={handlePositionUpdate}
-              initialFen={INITIAL_FEN}
+              initialFen={currentFen}
+              evaluationData={evaluationData}
+              onRequestEvaluation={handleCloudEvaluation}
             />
-
+  
             {positionStats && <PositionStats data={positionStats} />}
-
+  
             <TouchableOpacity
               style={[
                 styles.exploreButton,
@@ -253,13 +318,13 @@ const AnalysisScreen = ({ route, navigation }) => {
                 </>
               )}
             </TouchableOpacity>
-
+  
             {gameId && (
               <View style={styles.commentsSection}>
                 <Text style={styles.commentsHeader}>
                   Position Comments ({positionComments?.length || 0})
                 </Text>
-
+  
                 {isLoading ? (
                   <ActivityIndicator size="large" color="#007AFF" style={styles.loader} />
                 ) : (
@@ -279,7 +344,7 @@ const AnalysisScreen = ({ route, navigation }) => {
             )}
           </View>
         </ScrollView>
-
+  
         {gameId && (
           <View style={styles.inputContainer}>
             <View style={styles.commentInputContainer}>
@@ -308,21 +373,19 @@ const AnalysisScreen = ({ route, navigation }) => {
             </View>
           </View>
         )}
-
+  
         {isLoadPgnModalVisible && (
           <Modal
             transparent={true}
             animationType="fade"
             visible={isLoadPgnModalVisible}
-            onRequestClose={() => setIsLoadPgnModalVisible(false)}
+            onRequestClose={handleCloseModal}
           >
             <BlurView intensity={100} style={StyleSheet.absoluteFill}>
               <View style={styles.modalContainer}>
                 <LoadPgnModal
-                  onLoadPgn={(newPgn) => {
-                    navigation.setParams({ pgn: newPgn });
-                    setIsLoadPgnModalVisible(false);
-                  }}
+                  onLoadPgn={handleLoadPgn}
+                  onClose={handleCloseModal}
                 />
               </View>
             </BlurView>
@@ -519,6 +582,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
+  },
+  scrollContent: {
+    flexGrow: 1,
+  },
+  mainContent: {
+    flex: 1,
+    minHeight: windowDimensions.height - 100,
   },
 });
 

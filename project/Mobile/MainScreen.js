@@ -211,70 +211,92 @@ const SearchBar = ({ onSearch }) => {
 };
 
 const MainScreen = ({ navigation }) => {
-  const { user, loading, logout } = useAuth();
+  const { user, loading: authLoading, logout } = useAuth();
   const [posts, setPosts] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileZoomed, setIsProfileZoomed] = useState(false);
   const sidebarPosition = useRef(new Animated.Value(-250)).current;
   const zoomAnimation = useRef(new Animated.Value(0)).current;
-  const [nextPage, setNextPage] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [pagination, setPagination] = useState({
+    next: null,
+    count: 0,
+    previous: null,
+  });
+  const initialLoadRef = useRef(true);
 
   const handleSearchResult = (searchResult) => {
     if (searchResult) {
       setPosts([searchResult]);
-      setNextPage(null);
+      setPagination({
+        next: null,
+        count: 1,
+        previous: null,
+      });
     }
   };
 
   const fetchPosts = async (refresh = false) => {
+    if (authLoading || !user) return;
+
     try {
+      if (!refresh && !initialLoadRef.current) return;
+      
       setIsLoading(!refresh);
       setRefreshing(refresh);
 
       const response = await api.get('/posts/list_posts/');
-      if (response.data?.results) {
+      if (response.data) {
         setPosts(response.data.results);
-        setNextPage(response.data.next);
+        setPagination({
+          next: response.data.next,
+          count: response.data.count,
+          previous: response.data.previous,
+        });
       }
     } catch (error) {
       console.error('Failed to fetch posts:', error);
-      Alert.alert('Error', 'Failed to load posts. Please try again.');
+      if (error?.response?.status === 401) {
+        console.log('Authentication required. Please ensure you are logged in.');
+      } else {
+        Alert.alert('Error', 'Failed to load posts. Please try again.');
+      }
     } finally {
       setIsLoading(false);
       setRefreshing(false);
+      initialLoadRef.current = false;
     }
   };
 
   const loadMorePosts = async () => {
-    if (!nextPage || isLoading) return;
+    if (!pagination.next || isLoading || refreshing || authLoading || !user) return;
 
     try {
-      const response = await api.get(nextPage);
-      if (response.data?.results) {
+      setIsLoading(true);
+      const response = await api.get(pagination.next);
+      if (response.data) {
         setPosts(prevPosts => [...prevPosts, ...response.data.results]);
-        setNextPage(response.data.next);
+        setPagination({
+          next: response.data.next,
+          count: response.data.count,
+          previous: response.data.previous,
+        });
       }
     } catch (error) {
       console.error('Failed to load more posts:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleRefresh = () => fetchPosts(true);
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
+    if (!authLoading && user && initialLoadRef.current) {
       fetchPosts();
-    });
-    return unsubscribe;
-  }, [navigation]);
-
-  useEffect(() => {
-    fetchPosts();
-  }, []);
-
-  if (loading) return <LoadingScreen />;
+    }
+  }, [authLoading, user]);
 
   const handleLogout = async () => {
     try {
@@ -336,10 +358,13 @@ const MainScreen = ({ navigation }) => {
           >
             <Text style={styles.sidebarText}>Analysis</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.sidebarItem} onPress={() => {
-            toggleSidebar();
-            navigation.navigate('Puzzles');
-          }}>
+          <TouchableOpacity 
+            style={styles.sidebarItem} 
+            onPress={() => {
+              toggleSidebar();
+              navigation.navigate('Puzzles');
+            }}
+          >
             <Text style={styles.sidebarText}>Puzzles</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.sidebarItem} onPress={() => console.log('Community')}>
@@ -361,6 +386,8 @@ const MainScreen = ({ navigation }) => {
       </Animated.View>
     </>
   );
+
+  if (authLoading) return <LoadingScreen />;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -403,7 +430,7 @@ const MainScreen = ({ navigation }) => {
         </BlurView>
       </Modal>
 
-      {isLoading ? (
+      {isLoading && posts.length === 0 ? (
         <LoadingScreen />
       ) : (
         <FlatList
@@ -416,7 +443,9 @@ const MainScreen = ({ navigation }) => {
           onEndReached={loadMorePosts}
           onEndReachedThreshold={0.5}
           ListFooterComponent={() =>
-            nextPage && <ActivityIndicator style={{ padding: 16 }} />
+            pagination.next && !refreshing && (
+              <ActivityIndicator style={{ padding: 16 }} />
+            )
           }
         />
       )}

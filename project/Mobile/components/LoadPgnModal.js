@@ -1,100 +1,96 @@
 import React, { useState } from 'react';
 import {
   View,
-  Text,
   TextInput,
   TouchableOpacity,
+  Text,
   StyleSheet,
-  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 
-const LoadPgnModal = ({ onLoadPgn }) => {
+const LoadPgnModal = ({ onLoadPgn, onClose }) => {
   const [pgnText, setPgnText] = useState('');
-  const [error, setError] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = () => {
-    if (!pgnText.trim()) {
-      setError('Please enter a PGN');
-      return;
-    }
-
-    try {
-      if (!pgnText.includes('1.')) {
-        throw new Error('Invalid PGN format');
-      }
-      
-      setIsSubmitting(true);
+    if (pgnText.trim()) {
       onLoadPgn(pgnText.trim());
-      setPgnText('');
-      setError('');
-    } catch (err) {
-      setError('Invalid PGN format. Please check your input.');
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Load Game PGN</Text>
-      
-      <TextInput
-        value={pgnText}
-        onChangeText={setPgnText}
-        placeholder="Paste your PGN here..."
-        style={styles.input}
-        multiline
-        numberOfLines={6}
-      />
-      
-      {error ? (
-        <View style={styles.errorContainer}>
-          <Feather name="alert-circle" size={16} color="#FF3B30" />
-          <Text style={styles.errorText}>{error}</Text>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.keyboardAvoidingView}
+    >
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Load PGN</Text>
+          <TouchableOpacity 
+            onPress={onClose} 
+            style={styles.closeButton}
+            hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
+          >
+            <Feather name="x" size={24} color="#666" />
+          </TouchableOpacity>
         </View>
-      ) : null}
-      
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          onPress={() => {
-            setPgnText('');
-            setError('');
-          }}
-          style={[styles.button, styles.clearButton]}
-        >
-          <Text style={styles.clearButtonText}>Clear</Text>
-        </TouchableOpacity>
         
-        <TouchableOpacity
-          onPress={handleSubmit}
-          style={[styles.button, styles.submitButton]}
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? (
-            <ActivityIndicator color="white" size="small" />
-          ) : (
-            <Text style={styles.submitButtonText}>Load</Text>
-          )}
-        </TouchableOpacity>
+        <TextInput
+          style={styles.input}
+          multiline
+          numberOfLines={6}
+          value={pgnText}
+          onChangeText={setPgnText}
+          placeholder="Paste PGN here..."
+        />
+
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity 
+            style={[styles.button, styles.cancelButton]} 
+            onPress={onClose}
+          >
+            <Text style={styles.cancelButtonText}>Cancel</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.button, styles.loadButton, !pgnText.trim() && styles.disabledButton]}
+            onPress={handleSubmit}
+            disabled={!pgnText.trim()}
+          >
+            <Text style={styles.loadButtonText}>Load</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
+  keyboardAvoidingView: {
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   container: {
     backgroundColor: 'white',
     padding: 20,
     borderRadius: 12,
     width: '90%',
     maxWidth: 400,
+    marginBottom: Platform.OS === 'ios' ? 100 : 20,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   title: {
     fontSize: 20,
     fontWeight: '600',
-    marginBottom: 16,
+  },
+  closeButton: {
+    padding: 4,
   },
   input: {
     backgroundColor: '#f0f0f0',
@@ -102,19 +98,6 @@ const styles = StyleSheet.create({
     padding: 12,
     height: 120,
     textAlignVertical: 'top',
-  },
-  errorContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 8,
-    padding: 8,
-    backgroundColor: '#FFE5E5',
-    borderRadius: 6,
-  },
-  errorText: {
-    color: '#FF3B30',
-    marginLeft: 8,
-    fontSize: 14,
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -129,20 +112,23 @@ const styles = StyleSheet.create({
     minWidth: 80,
     alignItems: 'center',
   },
-  clearButton: {
+  cancelButton: {
     backgroundColor: '#f0f0f0',
   },
-  submitButton: {
-    backgroundColor: '#007AFF',
-  },
-  clearButtonText: {
+  cancelButtonText: {
     color: '#666',
     fontSize: 16,
   },
-  submitButtonText: {
+  loadButton: {
+    backgroundColor: '#007AFF',
+  },
+  loadButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: '500',
+  },
+  disabledButton: {
+    opacity: 0.5,
   },
 });
 

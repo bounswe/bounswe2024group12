@@ -4,9 +4,9 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
+  ActivityIndicator,
   StyleSheet,
   Dimensions,
-  ActivityIndicator
 } from 'react-native';
 import Chessboard from 'react-native-chessboard';
 import { Chess } from 'chess.js';
@@ -42,6 +42,90 @@ export const PgnViewer = ({
   const [evalData, setEvalData] = useState(null);
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [evalError, setEvalError] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [evaluationCache, setEvaluationCache] = useState({});
+
+  const parseComments = (pgn) => {
+    if (!pgn) return [];
+    
+    const comments = [];
+    let moveIndex = -1;
+    let insideComment = false;
+    let currentComment = '';
+    
+    const tokens = pgn.split(/\s+/);
+    
+    for (let i = 0; i < tokens.length; i++) {
+      const token = tokens[i];
+      
+      if (token.startsWith('{') && token.endsWith('}')) {
+        comments.push({
+          moveIndex,
+          comment: token.slice(1, -1).trim()
+        });
+        continue;
+      }
+      
+      if (token.startsWith('{')) {
+        insideComment = true;
+        currentComment = token.slice(1);
+        continue;
+      }
+      
+      if (token.endsWith('}')) {
+        insideComment = false;
+        currentComment += ' ' + token.slice(0, -1);
+        comments.push({
+          moveIndex,
+          comment: currentComment.trim()
+        });
+        currentComment = '';
+        continue;
+      }
+      
+      if (insideComment) {
+        currentComment += ' ' + token;
+        continue;
+      }
+      
+      if (token.match(/^\d+\.$/)) continue;
+      
+      if (token.match(/^[RNBQK]?[a-h]?[1-8]?x?[a-h][1-8](?:=[RNBQ])?[+#]?$/) || 
+          token === 'O-O' || token === 'O-O-O') {
+        moveIndex++;
+      }
+    }
+    
+    return comments;
+  };
+  
+  const renderCurrentComments = () => {
+    if (!pgn || comments.length === 0) return null;
+  
+    const currentComments = comments.filter(
+      comment => comment.moveIndex === currentMoveIndex
+    );
+  
+    if (currentComments.length === 0) return null;
+  
+    return (
+      <View style={styles.commentsSection}>
+        <Text style={styles.sectionTitle}>PGN Comments</Text>
+        <View style={styles.commentsList}>
+          {currentComments.map((comment, index) => (
+            <View key={index} style={styles.commentContainer}>
+              <Text style={styles.commentText}>{comment.comment}</Text>
+            </View>
+          ))}
+        </View>
+      </View>
+    );
+  };
+
+  useEffect(() => {
+    const parsedComments = parseComments(pgn);
+    setComments(parsedComments);
+  }, [pgn]);
 
   const renderMoveList = () => {
     const moves = [];
@@ -175,8 +259,23 @@ export const PgnViewer = ({
     }
   }, [moveHistory, onMovesUpdate]);
 
+  useEffect(() => {
+    if (currentFen) {
+      if (evaluationCache[currentFen]) {
+        setEvalData(evaluationCache[currentFen]);
+      } else {
+        setEvalData(null);
+      }
+    }
+  }, [currentFen, evaluationCache]);
+
   const handleEvaluate = async () => {
     if (!currentFen) return;
+
+    if (evaluationCache[currentFen]) {
+      setEvalData(evaluationCache[currentFen]);
+      return;
+    }
 
     setIsEvaluating(true);
     setEvalError(null);
@@ -189,6 +288,10 @@ export const PgnViewer = ({
       }
 
       const data = await response.json();
+      setEvaluationCache(prev => ({
+        ...prev,
+        [currentFen]: data
+      }));
       setEvalData(data);
     } catch (err) {
       setEvalError(err.message);
@@ -337,7 +440,7 @@ export const PgnViewer = ({
             Move: {currentMoveIndex + 1} / {moveHistory.length}
           </Text>
           <Text style={styles.infoText}>
-            Turn: {currentFen.split(' ')[1] === 'w' ? 'White' : 'Black'}
+Turn: {currentFen.split(' ')[1] === 'w' ? 'White' : 'Black'}
           </Text>
           <TouchableOpacity
             style={[styles.evalIconButton, isEvaluating && styles.evalButtonDisabled]}
@@ -378,6 +481,7 @@ export const PgnViewer = ({
           )}
         </View>
       </View>
+      {renderCurrentComments()}
     </View>
   );
 };
@@ -387,6 +491,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     borderRadius: 8,
+    padding: 16,
   },
   boardWrapper: {
     width: '100%',
@@ -415,7 +520,7 @@ const styles = StyleSheet.create({
   },
   moveListContainer: {
     maxHeight: 150,
-    flex: 2,
+    flex: 4,
     borderRightWidth: 1,
     borderRightColor: '#e0e0e0',
   },
@@ -473,17 +578,24 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     paddingHorizontal: 4,
   },
+  moveNumberContainer: {
+    width: 40,
+    marginRight: 8,
+  },
   moveNumber: {
-    width: 30,
     fontSize: 14,
+    fontWeight: '500',
     color: '#666',
+    textAlign: 'right',
+  },
+  moveContainer: {
+    width: 60,
+    marginRight: 8,
   },
   move: {
-    flex: 1,
-    paddingHorizontal: 8,
+    paddingHorizontal: 4,
     paddingVertical: 4,
     borderRadius: 4,
-    marginRight: 4,
   },
   moveText: {
     fontSize: 14,
@@ -518,6 +630,34 @@ const styles = StyleSheet.create({
   errorContainer: {
     padding: 16,
     alignItems: 'center',
+  },
+  commentsSection: {
+    backgroundColor: 'white',
+    borderRadius: 8,
+    padding: 16,
+    marginTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 8,
+    color: '#333',
+  },
+  commentsList: {
+    maxHeight: 120,
+  },
+  commentContainer: {
+    backgroundColor: '#f8f8f8',
+    borderRadius: 6,
+    padding: 12,
+    marginBottom: 8,
+  },
+  commentText: {
+    fontSize: 14,
+    color: '#333',
+    lineHeight: 20,
   }
 });
 
