@@ -21,10 +21,12 @@ import { PgnViewer } from './components/PgnViewer';
 import { api } from './services/AuthService';
 import LoadPgnModal from './components/LoadPgnModal';
 import { useFocusEffect } from '@react-navigation/native';
+import { GameInfo } from './components/GameInfo';
 
 const INITIAL_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 const windowDimensions = Dimensions.get('window');
 
+// Static state storage outside component
 const screenState = {
   pgn: null,
   currentFen: INITIAL_FEN,
@@ -32,6 +34,7 @@ const screenState = {
   positionStats: null,
   exploredPositions: new Map(),
   evaluationsCache: new Map(),
+  entryMode: null, // 'direct' or 'archive'
 };
 
 const CommentView = ({ comment }) => (
@@ -97,6 +100,7 @@ const AnalysisScreen = ({ route, navigation }) => {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [positionStats, setPositionStats] = useState(screenState.positionStats);
   const [isLoadPgnModalVisible, setIsLoadPgnModalVisible] = useState(false);
+  const [entryMode, setEntryMode] = useState(null);
   const exploredPositions = useRef(screenState.exploredPositions);
   const scrollViewRef = useRef(null);
   const [pgn, setPgn] = useState(screenState.pgn || route?.params?.pgn);
@@ -104,18 +108,29 @@ const AnalysisScreen = ({ route, navigation }) => {
   const evaluationsCache = useRef(screenState.evaluationsCache);
   const gameId = route?.params?.gameId;
 
-  useFocusEffect(
-    useCallback(() => {
-      return () => {
-        screenState.currentFen = currentFen;
-        screenState.comments = comments;
-        screenState.positionStats = positionStats;
-        screenState.exploredPositions = exploredPositions.current;
-        screenState.pgn = pgn;
-        screenState.evaluationsCache = evaluationsCache.current;
-      };
-    }, [currentFen, comments, positionStats, pgn])
-  );
+  // Determine entry mode and handle navigation state
+  useEffect(() => {
+    const mode = route?.params?.gameId ? 'archive' : 'direct';
+    setEntryMode(mode);
+    screenState.entryMode = mode;
+
+    // Reset direct analysis state when entering from archive
+    if (mode === 'archive') {
+      screenState.pgn = null;
+    }
+
+    // Reset screenState when leaving archive mode
+    return () => {
+      if (mode === 'archive') {
+        screenState.pgn = null;
+        screenState.currentFen = INITIAL_FEN;
+        screenState.comments = [];
+        screenState.positionStats = null;
+        screenState.exploredPositions = new Map();
+        screenState.evaluationsCache = new Map();
+      }
+    };
+  }, [route?.params?.gameId]);
 
   useEffect(() => {
     const keyboardWillShow = (event) => {
@@ -144,12 +159,22 @@ const AnalysisScreen = ({ route, navigation }) => {
         </TouchableOpacity>
       ),
       headerRight: () => (
-        <TouchableOpacity style={styles.headerButton} onPress={() => setIsLoadPgnModalVisible(true)}>
-          <Feather name="upload" size={24} color="#000" />
-        </TouchableOpacity>
+        entryMode === 'direct' ? (
+          <TouchableOpacity style={styles.headerButton} onPress={() => setIsLoadPgnModalVisible(true)}>
+            <Feather name="upload" size={24} color="#000" />
+          </TouchableOpacity>
+        ) : null
       ),
     });
-  }, [navigation, pgn]);
+  }, [navigation, pgn, entryMode]);
+
+  useEffect(() => {
+    if (route?.params?.pgn) {
+      setPgn(route.params.pgn);
+    } else if (entryMode === 'direct' && screenState.pgn) {
+      setPgn(screenState.pgn);
+    }
+  }, [route?.params?.pgn, entryMode]);
 
   useEffect(() => {
     if (gameId) fetchComments();
@@ -163,6 +188,22 @@ const AnalysisScreen = ({ route, navigation }) => {
       setPositionStats(null);
     }
   }, [currentFen]);
+
+  // Save state when screen loses focus
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        if (entryMode === 'direct') {
+          screenState.currentFen = currentFen;
+          screenState.comments = comments;
+          screenState.positionStats = positionStats;
+          screenState.exploredPositions = exploredPositions.current;
+          screenState.pgn = pgn;
+          screenState.evaluationsCache = evaluationsCache.current;
+        }
+      };
+    }, [currentFen, comments, positionStats, pgn, entryMode])
+  );
 
   const fetchComments = async () => {
     try {
@@ -254,19 +295,28 @@ const AnalysisScreen = ({ route, navigation }) => {
     }
   };
 
-  const positionComments = comments.filter(
-    comment => comment.position_fen === currentFen
-  );
-
   const handleLoadPgn = (newPgn) => {
-    if (newPgn) {
+    if (newPgn && entryMode === 'direct') {
       setPgn(newPgn);
+      screenState.pgn = newPgn;
     }
     setIsLoadPgnModalVisible(false);
   };
 
   const handleCloseModal = () => {
     setIsLoadPgnModalVisible(false);
+  };
+
+  const positionComments = comments.filter(
+    comment => comment.position_fen === currentFen
+  );
+
+  const hasPgnDetails = (pgn) => {
+    if (!pgn) return false;
+    // Check if PGN has at least some basic header information
+    return pgn.includes('[Event "') || 
+           pgn.includes('[White "') || 
+           pgn.includes('[Black "');
   };
 
   return (
@@ -292,6 +342,10 @@ const AnalysisScreen = ({ route, navigation }) => {
               evaluationData={evaluationData}
               onRequestEvaluation={handleCloudEvaluation}
             />
+  
+            {pgn && hasPgnDetails(pgn) && (
+              <GameInfo pgn={pgn} />
+            )}
   
             {positionStats && <PositionStats data={positionStats} />}
   
