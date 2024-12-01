@@ -26,7 +26,6 @@ import { GameInfo } from './components/GameInfo';
 const INITIAL_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 const windowDimensions = Dimensions.get('window');
 
-// Static state storage outside component
 const screenState = {
   pgn: null,
   currentFen: INITIAL_FEN,
@@ -34,7 +33,7 @@ const screenState = {
   positionStats: null,
   exploredPositions: new Map(),
   evaluationsCache: new Map(),
-  entryMode: null, // 'direct' or 'archive'
+  entryMode: null,
 };
 
 const CommentView = ({ comment }) => (
@@ -108,18 +107,15 @@ const AnalysisScreen = ({ route, navigation }) => {
   const evaluationsCache = useRef(screenState.evaluationsCache);
   const gameId = route?.params?.gameId;
 
-  // Determine entry mode and handle navigation state
   useEffect(() => {
     const mode = route?.params?.gameId ? 'archive' : 'direct';
     setEntryMode(mode);
     screenState.entryMode = mode;
 
-    // Reset direct analysis state when entering from archive
     if (mode === 'archive') {
       screenState.pgn = null;
     }
 
-    // Reset screenState when leaving archive mode
     return () => {
       if (mode === 'archive') {
         screenState.pgn = null;
@@ -189,7 +185,6 @@ const AnalysisScreen = ({ route, navigation }) => {
     }
   }, [currentFen]);
 
-  // Save state when screen loses focus
   useFocusEffect(
     useCallback(() => {
       return () => {
@@ -313,7 +308,6 @@ const AnalysisScreen = ({ route, navigation }) => {
 
   const hasPgnDetails = (pgn) => {
     if (!pgn) return false;
-    // Check if PGN has at least some basic header information
     return pgn.includes('[Event "') || 
            pgn.includes('[White "') || 
            pgn.includes('[Black "');

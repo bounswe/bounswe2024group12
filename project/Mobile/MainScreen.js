@@ -242,7 +242,7 @@ const MainScreen = ({ navigation }) => {
 
     try {
       if (!refresh && !initialLoadRef.current) return;
-      
+
       setIsLoading(!refresh);
       setRefreshing(refresh);
 
@@ -353,13 +353,22 @@ const MainScreen = ({ navigation }) => {
             style={styles.sidebarItem}
             onPress={() => {
               toggleSidebar();
+              navigation.navigate('Playground');
+            }}
+          >
+            <Text style={styles.sidebarText}>Playground</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.sidebarItem}
+            onPress={() => {
+              toggleSidebar();
               navigation.navigate('Analysis', { pgn: null });
             }}
           >
             <Text style={styles.sidebarText}>Analysis</Text>
           </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.sidebarItem} 
+          <TouchableOpacity
+            style={styles.sidebarItem}
             onPress={() => {
               toggleSidebar();
               navigation.navigate('Puzzles');
@@ -395,7 +404,7 @@ const MainScreen = ({ navigation }) => {
         <TouchableOpacity onPress={toggleSidebar} style={styles.menuButton}>
           <Feather name="menu" size={24} color="black" />
         </TouchableOpacity>
-        <Text style={styles.headerText}>Chess Forum</Text>
+        <Text style={styles.headerText}>Chess Social</Text>
         <SearchBar onSearch={handleSearchResult} />
       </View>
 

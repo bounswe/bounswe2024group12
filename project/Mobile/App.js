@@ -13,6 +13,7 @@ import ThreadScreen from './ThreadScreen';
 import ArchiveScreen from './ArchiveScreen';
 import { ECOCodeScreen } from './screens/ECOCodeScreen';
 import { enableScreens } from 'react-native-screens';
+import PlaygroundScreen from './PlaygroundScreen';
 
 enableScreens();
 
@@ -40,6 +41,7 @@ function AppNavigator() {
         ) : (
           <>
             <Stack.Screen name="Home" component={MainScreen} />
+            <Stack.Screen name="Playground" component={PlaygroundScreen} />
             <Stack.Screen name="Analysis" component={AnalysisScreen} />
             <Stack.Screen name="Puzzles" component={PuzzlesScreen} />
             <Stack.Screen name="CreatePost" component={CreatePostScreen} />
