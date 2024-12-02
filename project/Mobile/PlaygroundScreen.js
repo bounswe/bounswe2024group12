@@ -51,12 +51,7 @@ const PlaygroundScreen = ({ navigation }) => {
 
   const handleMove = useCallback(({ state }) => {
     if (state.game_over) {
-      let message = state.in_checkmate ? 
-        `Checkmate! ${state.turn === 'w' ? 'Black' : 'White'} wins!` :
-        state.in_stalemate ? 'Stalemate!' : 'Draw!';
-      Alert.alert('Game Over', message);
-    } else if (state.in_check) {
-      Alert.alert('Check!', `${state.turn === 'w' ? 'White' : 'Black'} is in check!`);
+      Alert.alert('Game Over');
     }
     return true;
   }, []);
