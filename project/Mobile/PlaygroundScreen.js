@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useRef } from 'react';
 import {
   View,
+  Clipboard,
   Text,
   TouchableOpacity,
   SafeAreaView,
@@ -35,6 +36,18 @@ const PlaygroundScreen = ({ navigation }) => {
   const [screen, setScreen] = useState('selection');
   const [customFen, setCustomFen] = useState('');
   const boardRef = useRef(null);
+
+  const handleCopyPosition = useCallback(() => {
+    if (boardRef.current) {
+      const currentFen = boardRef.current.getState().fen;
+      Clipboard.setString(currentFen);
+      if (Platform.OS === 'android') {
+        ToastAndroid.show('Position copied to clipboard', ToastAndroid.SHORT);
+      } else {
+        Alert.alert('Success', 'Position copied to clipboard');
+      }
+    }
+  }, []);
 
   const handleMove = useCallback(({ state }) => {
     if (state.game_over) {
@@ -138,6 +151,12 @@ const PlaygroundScreen = ({ navigation }) => {
               onMove={handleMove}
               fen={customFen || INITIAL_FEN}
             />
+            <TouchableOpacity 
+              style={[styles.button, styles.copyButton]} 
+              onPress={handleCopyPosition}
+            >
+              <Text style={styles.buttonText}>Copy Position</Text>
+            </TouchableOpacity>
           </View>
           <View style={styles.controls}>
             <TouchableOpacity style={styles.button} onPress={handleUndo}>
@@ -247,6 +266,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderTopWidth: 1,
     borderTopColor: '#e0e0e0',
+  },
+  copyButton: {
+    marginTop: 16,
   },
 });
 
