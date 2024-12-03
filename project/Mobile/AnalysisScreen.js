@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { 
-  View, 
-  StyleSheet,
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import {
+  View,
   TouchableOpacity,
   SafeAreaView,
   Platform,
@@ -11,41 +10,31 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Keyboard,
-  Dimensions,
   TextInput,
+  Modal,
+  StyleSheet,
+  Dimensions,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
 import { PgnViewer } from './components/PgnViewer';
 import { api } from './services/AuthService';
+import LoadPgnModal from './components/LoadPgnModal';
+import { useFocusEffect } from '@react-navigation/native';
+import { GameInfo } from './components/GameInfo';
 
-const DEFAULT_PGN = `[Event "London"]
-[Site "London ENG"]
-[Date "1851.06.21"]
-[Round "?"]
-[White "Anderssen, Adolf"]
-[Black "Kieseritzky, Lionel"]
-[Result "1-0"]
-[ECO "C33"]
-[WhiteElo "?"]
-[BlackElo "?"]
-[PlyCount "45"]
+const INITIAL_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+const windowDimensions = Dimensions.get('window');
 
-1.e4 e5 2.f4 exf4 3.Bc4 Qh4+ 4.Kf1 b5 5.Bxb5 Nf6 6.Nf3 Qh6 7.d3 Nh5 8.Nh4 Qg5
-9.Nf5 c6 10.g4 Nf6 11.Rg1 cxb5 12.h4 Qg6 13.h5 Qg5 14.Qf3 Ng8 15.Bxf4 Qf6
-16.Nc3 Bc5 17.Nd5 Qxb2 18.Bd6 Bxg1 19.e5 Qxa1+ 20.Ke2 Na6 21.Nxg7+ Kd8
-22.Qf6+ Nxf6 23.Be7# 1-0`;
-
-const MoveList = ({ moves }) => (
-  <View style={styles.moveListContainer}>
-    {moves.map((move, index) => (
-      <View key={index} style={styles.moveItem}>
-        <Text style={styles.moveText}>
-          {index % 2 === 0 ? `${Math.floor(index/2 + 1)}.` : ''} {move}
-        </Text>
-      </View>
-    ))}
-  </View>
-);
+const screenState = {
+  pgn: null,
+  currentFen: INITIAL_FEN,
+  comments: [],
+  positionStats: null,
+  exploredPositions: new Map(),
+  evaluationsCache: new Map(),
+  entryMode: null,
+};
 
 const CommentView = ({ comment }) => (
   <View style={styles.commentContainer}>
@@ -59,39 +48,96 @@ const CommentView = ({ comment }) => (
   </View>
 );
 
+const PositionStats = ({ data }) => {
+  if (!data) return null;
+
+  const total = data.white + data.draws + data.black;
+  const whitePercentage = ((data.white / total) * 100).toFixed(1);
+  const drawsPercentage = ((data.draws / total) * 100).toFixed(1);
+  const blackPercentage = ((data.black / total) * 100).toFixed(1);
+  
+  return (
+    <View style={styles.statsSection}>
+      <Text style={styles.statsHeader}>Position Statistics</Text>
+      <View style={styles.resultsContainer}>
+        <View style={styles.resultItem}>
+          <Text style={styles.resultPercentage}>{whitePercentage}%</Text>
+          <Text style={styles.resultLabel}>White</Text>
+        </View>
+        <View style={styles.resultItem}>
+          <Text style={styles.resultPercentage}>{drawsPercentage}%</Text>
+          <Text style={styles.resultLabel}>Draws</Text>
+        </View>
+        <View style={styles.resultItem}>
+          <Text style={styles.resultPercentage}>{blackPercentage}%</Text>
+          <Text style={styles.resultLabel}>Black</Text>
+        </View>
+      </View>
+
+      <Text style={styles.movesHeader}>Popular Moves</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.movesScroll}>
+        {data.moves?.slice(0, 5).map((move, index) => (
+          <View key={move.san} style={styles.moveCard}>
+            <Text style={styles.moveSan}>{move.san}</Text>
+            <Text style={styles.moveGames}>
+              {((move.white + move.draws + move.black) / total * 100).toFixed(1)}% games
+            </Text>
+          </View>
+        ))}
+      </ScrollView>
+    </View>
+  );
+};
+
 const AnalysisScreen = ({ route, navigation }) => {
-  const [currentFen, setCurrentFen] = useState('');
-  const [comments, setComments] = useState([]);
+  const [currentFen, setCurrentFen] = useState(screenState.currentFen);
+  const [comments, setComments] = useState(screenState.comments);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingSimilar, setIsLoadingSimilar] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [keyboardHeight, setKeyboardHeight] = useState(0);
-  const [moves, setMoves] = useState([]);
+  const [positionStats, setPositionStats] = useState(screenState.positionStats);
+  const [isLoadPgnModalVisible, setIsLoadPgnModalVisible] = useState(false);
+  const [entryMode, setEntryMode] = useState(null);
+  const exploredPositions = useRef(screenState.exploredPositions);
   const scrollViewRef = useRef(null);
-  
-  const pgn = route?.params?.pgn || DEFAULT_PGN;
+  const [pgn, setPgn] = useState(screenState.pgn || route?.params?.pgn);
+  const [evaluationData, setEvaluationData] = useState(null);
+  const evaluationsCache = useRef(screenState.evaluationsCache);
   const gameId = route?.params?.gameId;
+
+  useEffect(() => {
+    const mode = route?.params?.gameId ? 'archive' : 'direct';
+    setEntryMode(mode);
+    screenState.entryMode = mode;
+
+    if (mode === 'archive') {
+      screenState.pgn = null;
+    }
+
+    return () => {
+      if (mode === 'archive') {
+        screenState.pgn = null;
+        screenState.currentFen = INITIAL_FEN;
+        screenState.comments = [];
+        screenState.positionStats = null;
+        screenState.exploredPositions = new Map();
+        screenState.evaluationsCache = new Map();
+      }
+    };
+  }, [route?.params?.gameId]);
 
   useEffect(() => {
     const keyboardWillShow = (event) => {
       setKeyboardHeight(event.endCoordinates.height);
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
-      }, 100);
+      setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 100);
     };
 
-    const keyboardWillHide = () => {
-      setKeyboardHeight(0);
-    };
+    const keyboardWillHide = () => setKeyboardHeight(0);
 
-    const keyboardDidShowListener = Keyboard.addListener(
-      'keyboardWillShow',
-      keyboardWillShow
-    );
-    const keyboardDidHideListener = Keyboard.addListener(
-      'keyboardWillHide',
-      keyboardWillHide
-    );
+    const keyboardDidShowListener = Keyboard.addListener('keyboardWillShow', keyboardWillShow);
+    const keyboardDidHideListener = Keyboard.addListener('keyboardWillHide', keyboardWillHide);
 
     return () => {
       keyboardDidShowListener.remove();
@@ -102,37 +148,57 @@ const AnalysisScreen = ({ route, navigation }) => {
   useEffect(() => {
     navigation.setOptions({
       headerShown: true,
-      headerTitle: 'Game Analysis',
+      headerTitle: pgn ? 'Game Analysis' : 'Analysis Board',
       headerLeft: () => (
-        <TouchableOpacity
-          style={styles.headerButton}
-          onPress={() => navigation.goBack()}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
+        <TouchableOpacity style={styles.headerButton} onPress={() => navigation.goBack()}>
           <Feather name="arrow-left" size={24} color="#000" />
         </TouchableOpacity>
       ),
-      headerStyle: {
-        backgroundColor: 'white',
-        borderBottomWidth: 1,
-        borderBottomColor: '#e0e0e0',
-        elevation: 0,
-        shadowOpacity: 0,
-      },
-      headerTitleStyle: {
-        fontSize: 18,
-        fontWeight: '600',
-        color: '#000',
-      },
-      headerTitleAlign: 'center',
+      headerRight: () => (
+        entryMode === 'direct' ? (
+          <TouchableOpacity style={styles.headerButton} onPress={() => setIsLoadPgnModalVisible(true)}>
+            <Feather name="upload" size={24} color="#000" />
+          </TouchableOpacity>
+        ) : null
+      ),
     });
-  }, [navigation]);
+  }, [navigation, pgn, entryMode]);
 
   useEffect(() => {
-    if (gameId) {
-      fetchComments();
+    if (route?.params?.pgn) {
+      setPgn(route.params.pgn);
+    } else if (entryMode === 'direct' && screenState.pgn) {
+      setPgn(screenState.pgn);
     }
+  }, [route?.params?.pgn, entryMode]);
+
+  useEffect(() => {
+    if (gameId) fetchComments();
   }, [gameId]);
+
+  useEffect(() => {
+    if (currentFen) {
+      const savedStats = exploredPositions.current.get(currentFen);
+      setPositionStats(savedStats || null);
+    } else {
+      setPositionStats(null);
+    }
+  }, [currentFen]);
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        if (entryMode === 'direct') {
+          screenState.currentFen = currentFen;
+          screenState.comments = comments;
+          screenState.positionStats = positionStats;
+          screenState.exploredPositions = exploredPositions.current;
+          screenState.pgn = pgn;
+          screenState.evaluationsCache = evaluationsCache.current;
+        }
+      };
+    }, [currentFen, comments, positionStats, pgn, entryMode])
+  );
 
   const fetchComments = async () => {
     try {
@@ -144,6 +210,27 @@ const AnalysisScreen = ({ route, navigation }) => {
     } catch (error) {
       console.error('Error fetching comments:', error);
       Alert.alert('Error', 'Failed to load comments');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCloudEvaluation = async (fen) => {
+    if (!fen) return;
+    
+    try {
+      setIsLoading(true);
+      const response = await api.get('/analyze/cloud-eval', {
+        params: { fen }
+      });
+      
+      if (response.data) {
+        evaluationsCache.current.set(fen, response.data);
+        setEvaluationData(response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching evaluation:', error);
+      Alert.alert('Error', 'Failed to get position evaluation');
     } finally {
       setIsLoading(false);
     }
@@ -166,10 +253,7 @@ const AnalysisScreen = ({ route, navigation }) => {
       }
     } catch (error) {
       console.error('Error posting comment:', error);
-      Alert.alert(
-        'Error',
-        error.response?.data?.message || 'Failed to post comment. Please try again.'
-      );
+      Alert.alert('Error', error.response?.data?.message || 'Failed to post comment');
     } finally {
       setIsSubmitting(false);
     }
@@ -179,83 +263,182 @@ const AnalysisScreen = ({ route, navigation }) => {
     setCurrentFen(fen);
   };
 
-  const handleMovesUpdate = (moveList) => {
-    setMoves(moveList);
+  const handleExploreGames = async () => {
+    if (!currentFen) {
+      Alert.alert('Error', 'No position selected');
+      return;
+    }
+
+    try {
+      setIsLoadingSimilar(true);
+      const response = await api.get('/games/explore/', {
+        params: {
+          fen: currentFen,
+          since: 2000
+        }
+      });
+
+      if (response.data) {
+        exploredPositions.current.set(currentFen, response.data);
+        setPositionStats(response.data);
+      }
+    } catch (error) {
+      console.error('Error fetching position data:', error);
+      Alert.alert('Error', error.response?.data?.message || 'Failed to load position data');
+    } finally {
+      setIsLoadingSimilar(false);
+    }
+  };
+
+  const handleLoadPgn = (newPgn) => {
+    if (newPgn && entryMode === 'direct') {
+      setPgn(newPgn);
+      screenState.pgn = newPgn;
+    }
+    setIsLoadPgnModalVisible(false);
+  };
+
+  const handleCloseModal = () => {
+    setIsLoadPgnModalVisible(false);
   };
 
   const positionComments = comments.filter(
     comment => comment.position_fen === currentFen
   );
 
+  const hasPgnDetails = (pgn) => {
+    if (!pgn) return false;
+    return pgn.includes('[Event "') || 
+           pgn.includes('[White "') || 
+           pgn.includes('[Black "');
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView 
-        style={styles.container} 
+      <KeyboardAvoidingView
+        style={styles.container}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
       >
-        <ScrollView style={styles.mainScroll} bounces={false}>
+        <ScrollView 
+          style={styles.mainScroll} 
+          bounces={true}
+          ref={scrollViewRef}
+          contentContainerStyle={styles.scrollContent}
+        >
           <View style={styles.mainContent}>
-            <View style={styles.boardSection}>
-              <PgnViewer 
-                pgn={pgn}
-                darkSquareColor="#769656"
-                lightSquareColor="#eeeed2"
-                onPositionChange={handlePositionUpdate}
-                onMovesUpdate={handleMovesUpdate}
-              />
-            </View>
-
-            <View style={styles.commentsSection}>
-              <Text style={styles.commentsHeader}>
-                Position Comments ({positionComments?.length || 0})
-              </Text>
-              
-              {isLoading ? (
-                <ActivityIndicator size="large" color="#007AFF" style={styles.loader} />
-              ) : (
-                <View style={styles.commentsList}>
-                  {positionComments?.length > 0 ? (
-                    positionComments.map((comment) => (
-                      <CommentView key={comment.id} comment={comment} />
-                    ))
-                  ) : (
-                    <Text style={styles.noCommentsText}>
-                      No comments for this position
-                    </Text>
-                  )}
-                </View>
-              )}
-            </View>
-          </View>
-        </ScrollView>
-
-        <View style={styles.inputContainer}>
-          <View style={styles.commentInputContainer}>
-            <TextInput
-              style={styles.commentInput}
-              value={newComment}
-              onChangeText={setNewComment}
-              placeholder="Add your analysis..."
-              multiline
-              maxLength={500}
+            <PgnViewer
+              pgn={pgn || '1. '}
+              darkSquareColor="#769656"
+              lightSquareColor="#eeeed2"
+              onPositionChange={handlePositionUpdate}
+              initialFen={currentFen}
+              evaluationData={evaluationData}
+              onRequestEvaluation={handleCloudEvaluation}
             />
+  
+            {pgn && hasPgnDetails(pgn) && (
+              <GameInfo pgn={pgn} />
+            )}
+  
+            {positionStats && <PositionStats data={positionStats} />}
+  
             <TouchableOpacity
               style={[
-                styles.submitButton,
-                (!newComment.trim() || isSubmitting) && styles.disabledButton
+                styles.exploreButton,
+                (!currentFen || isLoadingSimilar || exploredPositions.current.has(currentFen)) && 
+                styles.disabledButton
               ]}
-              onPress={handleSubmitComment}
-              disabled={!newComment.trim() || isSubmitting}
+              onPress={handleExploreGames}
+              disabled={!currentFen || isLoadingSimilar || exploredPositions.current.has(currentFen)}
             >
-              {isSubmitting ? (
+              {isLoadingSimilar ? (
                 <ActivityIndicator color="white" size="small" />
               ) : (
-                <Feather name="send" size={20} color="white" />
+                <>
+                  <Feather name="compass" size={20} color="white" style={styles.exploreIcon} />
+                  <Text style={styles.exploreButtonText}>
+                    {exploredPositions.current.has(currentFen) 
+                      ? 'Position explored'
+                      : 'Explore this position'
+                    }
+                  </Text>
+                </>
               )}
             </TouchableOpacity>
+  
+            {gameId && (
+              <View style={styles.commentsSection}>
+                <Text style={styles.commentsHeader}>
+                  Position Comments ({positionComments?.length || 0})
+                </Text>
+  
+                {isLoading ? (
+                  <ActivityIndicator size="large" color="#007AFF" style={styles.loader} />
+                ) : (
+                  <View style={styles.commentsList}>
+                    {positionComments?.length > 0 ? (
+                      positionComments.map((comment) => (
+                        <CommentView key={comment.id} comment={comment} />
+                      ))
+                    ) : (
+                      <Text style={styles.noCommentsText}>
+                        No comments for this position
+                      </Text>
+                    )}
+                  </View>
+                )}
+              </View>
+            )}
           </View>
-        </View>
+        </ScrollView>
+  
+        {gameId && (
+          <View style={styles.inputContainer}>
+            <View style={styles.commentInputContainer}>
+              <TextInput
+                style={styles.commentInput}
+                value={newComment}
+                onChangeText={setNewComment}
+                placeholder="Add your analysis..."
+                multiline
+                maxLength={500}
+              />
+              <TouchableOpacity
+                style={[
+                  styles.submitButton,
+                  (!newComment.trim() || isSubmitting) && styles.disabledButton
+                ]}
+                onPress={handleSubmitComment}
+                disabled={!newComment.trim() || isSubmitting}
+              >
+                {isSubmitting ? (
+                  <ActivityIndicator color="white" size="small" />
+                ) : (
+                  <Feather name="send" size={20} color="white" />
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+  
+        {isLoadPgnModalVisible && (
+          <Modal
+            transparent={true}
+            animationType="fade"
+            visible={isLoadPgnModalVisible}
+            onRequestClose={handleCloseModal}
+          >
+            <BlurView intensity={100} style={StyleSheet.absoluteFill}>
+              <View style={styles.modalContainer}>
+                <LoadPgnModal
+                  onLoadPgn={handleLoadPgn}
+                  onClose={handleCloseModal}
+                />
+              </View>
+            </BlurView>
+          </Modal>
+        )}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -275,12 +458,6 @@ const styles = StyleSheet.create({
   },
   mainContent: {
     flex: 1,
-  },
-  boardSection: {
-    backgroundColor: 'white',
-    borderRadius: 8,
-    margin: 8,
-    padding: 8,
   },
   commentsSection: {
     backgroundColor: 'white',
@@ -359,6 +536,107 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.5,
+  },
+  exploreButton: {
+    backgroundColor: '#007AFF',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: 8,
+    margin: 8,
+  },
+  exploreButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  exploreIcon: {
+    marginRight: 8,
+  },
+  statsSection: {
+    backgroundColor: 'white',
+    borderRadius: 8,
+    margin: 8,
+    padding: 16,
+  },
+  statsHeader: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 16,
+  },
+  resultsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 20,
+  },
+  resultItem: {
+    alignItems: 'center',
+  },
+  resultPercentage: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#007AFF',
+  },
+  resultLabel: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 4,
+  },
+  movesHeader: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  movesScroll: {
+    flexGrow: 0,
+  },
+  moveCard: {
+    backgroundColor: '#f0f0f0',
+    borderRadius: 8,
+    padding: 12,
+    marginRight: 8,
+    minWidth: 80,
+    alignItems: 'center',
+  },
+  moveSan: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  moveGames: {
+    fontSize: 12,
+    color: '#666',
+  },
+  exploreButton: {
+    backgroundColor: '#007AFF',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: 8,
+    margin: 8,
+  },
+  exploreButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  exploreIcon: {
+    marginRight: 8,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  scrollContent: {
+    flexGrow: 1,
+  },
+  mainContent: {
+    flex: 1,
+    minHeight: windowDimensions.height - 100,
   },
 });
 

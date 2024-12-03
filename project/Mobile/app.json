@@ -1,29 +1,23 @@
 {
   "expo": {
     "name": "ChessForumApp",
-    "slug": "ChessForumApp",
+    "slug": "ChessForumApp", 
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/images/splash.png",
-      "resizeMode": "contain",
+      "resizeMode": "contain", 
       "backgroundColor": "#ffffff"
     },
     "assetBundlePatterns": [
       "**/*"
     ],
-    "ios": {
-      "supportsTablet": true
-    },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      },
-      "config": {
-        "networkSecurityConfig": "./network_security_config.xml"
       },
       "package": "com.bounswe2024group12.ChessForumApp"
     },
@@ -32,8 +26,9 @@
     },
     "extra": {
       "eas": {
-        "projectId": "5ca95435-5b84-4768-a058-88da5d7acdb2"
+        "projectId": "93842648-accb-4221-8540-f686c50e082f"
       }
-    }
+    },
+    "owner": "ozankaymak"
   }
 }

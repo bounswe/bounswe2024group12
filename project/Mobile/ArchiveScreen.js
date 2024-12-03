@@ -85,12 +85,6 @@ const ArchiveScreen = ({ navigation }) => {
         event: '',
         result: '',
     });
-    const [exploreParams, setExploreParams] = useState({
-        fen: '',
-        play: '',
-        since: '',
-        until: '',
-    });
     const [masterGameId, setMasterGameId] = useState('');
 
     useEffect(() => {
@@ -150,16 +144,6 @@ const ArchiveScreen = ({ navigation }) => {
                 } catch (error) {
                     setMasterGameError(error.response?.status === 404 ? 'Game not found' : 'Failed to load game. Please try again.');
                     return;
-                }
-            } else if (mode === 'explore') {
-                const params = new URLSearchParams();
-                Object.entries(exploreParams).forEach(([key, value]) => {
-                    if (value) params.append(key, value);
-                });
-                response = await api.get(`/games/explore/?${params.toString()}`);
-                if (response.data?.data) {
-                    setSelectedGamePGN(null);
-                    setGames(response.data.data);
                 }
             } else if (mode === 'filter') {
                 const params = new URLSearchParams();
@@ -231,47 +215,6 @@ const ArchiveScreen = ({ navigation }) => {
         </View>
     );
 
-    const renderExploreInputs = () => (
-        <View style={styles.filterInputsContainer}>
-            <TextInput
-                style={styles.input}
-                placeholder="FEN (optional)"
-                value={exploreParams.fen}
-                onChangeText={(text) => setExploreParams(prev => ({ ...prev, fen: text }))}
-            />
-            <TextInput
-                style={styles.input}
-                placeholder="Moves in UCI notation (optional)"
-                value={exploreParams.play}
-                onChangeText={(text) => setExploreParams(prev => ({ ...prev, play: text }))}
-            />
-            <View style={styles.yearRange}>
-                <TextInput
-                    style={[styles.input, styles.halfInput]}
-                    placeholder="Since year"
-                    value={exploreParams.since}
-                    onChangeText={(text) => {
-                        const numericText = text.replace(/[^0-9]/g, '');
-                        setExploreParams(prev => ({ ...prev, since: numericText }));
-                    }}
-                    keyboardType="numeric"
-                    maxLength={4}
-                />
-                <TextInput
-                    style={[styles.input, styles.halfInput]}
-                    placeholder="Until year"
-                    value={exploreParams.until}
-                    onChangeText={(text) => {
-                        const numericText = text.replace(/[^0-9]/g, '');
-                        setExploreParams(prev => ({ ...prev, until: numericText }));
-                    }}
-                    keyboardType="numeric"
-                    maxLength={4}
-                />
-            </View>
-        </View>
-    );
-
     const renderMasterGameInput = () => (
         <View style={styles.masterGameContainer}>
             <TextInput
@@ -298,24 +241,23 @@ const ArchiveScreen = ({ navigation }) => {
     const renderGameContent = () => {
         if (mode === 'master' && selectedGamePGN) {
             return (
-                <ScrollView
-                    style={styles.masterGameScroll}
-                    contentContainerStyle={styles.masterGameScrollContent}
-                    showsVerticalScrollIndicator={false}
-                >
+                <View style={styles.masterGameContent}>
                     <GameSummary
                         pgn={selectedGamePGN}
                         onAnalyze={handleAnalyze}
                     />
-                </ScrollView>
+                </View>
             );
         }
 
         return (
-            <FlatList
-                data={games}
-                renderItem={({ item }) => (
-                    <TouchableOpacity onPress={() => handleGamePress(item)} disabled={isLoading}>
+            <View style={styles.gamesListContainer}>
+                {games.map((item, index) => (
+                    <TouchableOpacity 
+                        key={`${item.event}-${item.white}-${item.black}-${index}`}
+                        onPress={() => handleGamePress(item)} 
+                        disabled={isLoading}
+                    >
                         <View style={styles.gameCard}>
                             <View style={styles.gameHeader}>
                                 <Text style={styles.gameEvent} numberOfLines={1}>{item.event}</Text>
@@ -345,69 +287,69 @@ const ArchiveScreen = ({ navigation }) => {
                             </View>
                         </View>
                     </TouchableOpacity>
+                ))}
+                {hasSearched && games.length === 0 && (
+                    <View style={styles.emptyContainer}>
+                        <Text style={styles.emptyText}>No games found</Text>
+                    </View>
                 )}
-                keyExtractor={(item, index) => `${item.event}-${item.white}-${item.black}-${index}`}
-                contentContainerStyle={styles.listContent}
-                ListEmptyComponent={
-                    hasSearched ? (
-                        <View style={styles.emptyContainer}>
-                            <Text style={styles.emptyText}>No games found</Text>
-                        </View>
-                    ) : null
-                }
-            />
+            </View>
         );
     };
 
     return (
         <SafeAreaView style={styles.container}>
-            <View style={styles.modeSelector}>
-                {['filter', 'explore', 'master'].map((modeOption) => (
-                    <TouchableOpacity
-                        key={modeOption}
-                        style={[styles.modeButton, mode === modeOption && styles.modeButtonActive]}
-                        onPress={() => {
-                            setMode(modeOption);
-                            setGames([]);
-                            setSelectedGamePGN(null);
-                            setMasterGameError('');
-                            setHasSearched(false);
-                        }}
-                    >
-                        <Text style={[styles.modeButtonText, mode === modeOption && styles.modeButtonTextActive]}>
-                            {modeOption.charAt(0).toUpperCase() + modeOption.slice(1)}
-                            {modeOption === 'master' ? ' Game' : ''}
-                        </Text>
-                    </TouchableOpacity>
-                ))}
-            </View>
-
-            {mode === 'filter' && renderFilterInputs()}
-            {mode === 'explore' && renderExploreInputs()}
-            {mode === 'master' && renderMasterGameInput()}
-
-
-            <TouchableOpacity
-                style={styles.searchButton}
-                onPress={fetchGames}
-                disabled={isLoading}
+            <ScrollView 
+                style={styles.scrollContainer}
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
             >
-                {isLoading ? (
-                    <ActivityIndicator color="white" />
-                ) : (
-                    <Text style={styles.searchButtonText}>
-                        {mode === 'master' ? 'Load Game' : 'Search Games'}
-                    </Text>
-                )}
-            </TouchableOpacity>
-
-            {isLoading ? (
-                <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color="#007AFF" />
+                <View style={styles.modeSelector}>
+                    {['filter', 'master'].map((modeOption) => (
+                        <TouchableOpacity
+                            key={modeOption}
+                            style={[styles.modeButton, mode === modeOption && styles.modeButtonActive]}
+                            onPress={() => {
+                                setMode(modeOption);
+                                setGames([]);
+                                setSelectedGamePGN(null);
+                                setMasterGameError('');
+                                setHasSearched(false);
+                            }}
+                        >
+                            <Text style={[styles.modeButtonText, mode === modeOption && styles.modeButtonTextActive]}>
+                                {modeOption.charAt(0).toUpperCase() + modeOption.slice(1)}
+                                {modeOption === 'master' ? ' Game' : ''}
+                            </Text>
+                        </TouchableOpacity>
+                    ))}
                 </View>
-            ) : (
-                renderGameContent()
-            )}
+
+                {mode === 'filter' && renderFilterInputs()}
+                {mode === 'master' && renderMasterGameInput()}
+
+                <TouchableOpacity
+                    style={styles.searchButton}
+                    onPress={fetchGames}
+                    disabled={isLoading}
+                >
+                    {isLoading ? (
+                        <ActivityIndicator color="white" />
+                    ) : (
+                        <Text style={styles.searchButtonText}>
+                            {mode === 'master' ? 'Load Game' : 'Search Games'}
+                        </Text>
+                    )}
+                </TouchableOpacity>
+
+                {isLoading ? (
+                    <View style={styles.loadingContainer}>
+                        <ActivityIndicator size="large" color="#007AFF" />
+                    </View>
+                ) : (
+                    renderGameContent()
+                )}
+            </ScrollView>
         </SafeAreaView>
     );
 };
@@ -482,14 +424,6 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         borderBottomWidth: 1,
         borderBottomColor: '#e0e0e0',
-    },
-    yearRange: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        gap: 12,
-    },
-    halfInput: {
-        flex: 1,
     },
     searchButton: {
         backgroundColor: '#007AFF',
@@ -700,6 +634,19 @@ const styles = StyleSheet.create({
     masterGameScrollContent: {
         padding: 16,
     },
+    scrollContainer: {
+        flex: 1,
+        backgroundColor: '#f5f5f5',
+    },
+    scrollContent: {
+        flexGrow: 1,
+    },
+    gamesListContainer: {
+        paddingBottom: 16,
+    },
+    masterGameContent: {
+        paddingBottom: 16,
+    }
 });
 
 export default ArchiveScreen;
