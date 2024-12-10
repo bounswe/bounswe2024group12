@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { api } from './services/AuthService';
+import { useAuth } from './contexts/AuthContext';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -71,10 +72,11 @@ const GameSummary = ({ pgn, onAnalyze }) => {
     );
 };
 
-const ArchiveScreen = ({ navigation }) => {
+const ArchiveScreen = ({ route, navigation }) => {
+    const { user } = useAuth();
     const [games, setGames] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [mode, setMode] = useState('filter');
+    const [mode, setMode] = useState(route?.params?.initialMode || 'filter');
     const [masterGameError, setMasterGameError] = useState('');
     const [selectedGamePGN, setSelectedGamePGN] = useState(null);
     const [hasSearched, setHasSearched] = useState(false);
@@ -102,6 +104,26 @@ const ArchiveScreen = ({ navigation }) => {
         });
     }, [navigation]);
 
+    useEffect(() => {
+        if (route?.params?.initialFilters) {
+            setMode('filter');
+            setFilters(prevFilters => ({
+                year: '',
+                player: '',
+                site: '',
+                event: '',
+                result: '',
+                ...route.params.initialFilters
+            }));
+        }
+    }, [route?.params?.initialFilters]);
+
+    useEffect(() => {
+        if (mode === 'filter' && hasSearched) {
+            fetchGames();
+        }
+    }, [filters]);
+
     const handleGamePress = (game) => {
         navigation.navigate('Analysis', {
             pgn: game.pgn,
@@ -118,6 +140,11 @@ const ArchiveScreen = ({ navigation }) => {
     };
 
     const fetchGames = async () => {
+        if (!user) {
+            Alert.alert('Error', 'Please log in to search games');
+            return;
+        }
+
         try {
             setIsLoading(true);
             setMasterGameError('');
@@ -157,12 +184,23 @@ const ArchiveScreen = ({ navigation }) => {
                 }
             }
         } catch (error) {
-            console.error('Error fetching games:', error);
-            Alert.alert('Error', 'Failed to load games. Please try again later.');
+            console.error('Failed to fetch games:', error);
+            if (error?.response?.status === 401) {
+                Alert.alert('Error', 'Please login to search games');
+            } else {
+                Alert.alert('Error', 'Failed to load games. Please try again.');
+            }
         } finally {
             setIsLoading(false);
         }
     };
+
+    useEffect(() => {
+        setGames([]);
+        setSelectedGamePGN(null);
+        setMasterGameError('');
+        setHasSearched(false);
+    }, [mode]);
 
     const renderFilterInputs = () => (
         <View style={styles.filterInputsContainer}>
@@ -330,7 +368,10 @@ const ArchiveScreen = ({ navigation }) => {
 
                 <TouchableOpacity
                     style={styles.searchButton}
-                    onPress={fetchGames}
+                    onPress={() => {
+                        setHasSearched(true);
+                        fetchGames();
+                    }}
                     disabled={isLoading}
                 >
                     {isLoading ? (

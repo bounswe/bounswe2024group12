@@ -5,18 +5,15 @@ import { useNavigation } from '@react-navigation/native';
 export const GameInfo = ({ pgn }) => {
   const navigation = useNavigation();
   
-  const getGameDetails = (pgn) => {
-    const details = {
-      event: pgn.match(/\[Event "(.*?)"\]/)?.[1] || 'Unknown Event',
-      site: pgn.match(/\[Site "(.*?)"\]/)?.[1] || 'Unknown Site',
-      date: pgn.match(/\[Date "(.*?)"\]/)?.[1] || 'Unknown Date',
-      white: pgn.match(/\[White "(.*?)"\]/)?.[1] || 'Unknown White',
-      black: pgn.match(/\[Black "(.*?)"\]/)?.[1] || 'Unknown Black',
-      result: pgn.match(/\[Result "(.*?)"\]/)?.[1] || 'Unknown Result',
-      eco: pgn.match(/\[ECO "(.*?)"\]/)?.[1] || '-'
-    };
-    return details;
-  };
+  const getGameDetails = (pgn) => ({
+    event: pgn.match(/\[Event "(.*?)"\]/)?.[1] || 'Unknown Event',
+    site: pgn.match(/\[Site "(.*?)"\]/)?.[1] || 'Unknown Site',
+    date: pgn.match(/\[Date "(.*?)"\]/)?.[1] || 'Unknown Date',
+    white: pgn.match(/\[White "(.*?)"\]/)?.[1] || 'Unknown White',
+    black: pgn.match(/\[Black "(.*?)"\]/)?.[1] || 'Unknown Black',
+    result: pgn.match(/\[Result "(.*?)"\]/)?.[1] || 'Unknown Result',
+    eco: pgn.match(/\[ECO "(.*?)"\]/)?.[1] || '-'
+  });
 
   const details = getGameDetails(pgn);
 
@@ -24,12 +21,60 @@ export const GameInfo = ({ pgn }) => {
     navigation.navigate('ECOCode', { ecoCode: details.eco });
   };
 
+  const handlePlayerPress = (playerName) => {
+    const surname = playerName.split(',')[0].trim();
+    navigation.navigate('Archive', {
+        initialMode: 'filter',
+        initialFilters: {
+            player: surname,
+            year: '',
+            site: '',
+            event: '',
+            result: ''
+        }
+    });
+};
+
+const handleEventPress = () => {
+    navigation.navigate('Archive', {
+        initialMode: 'filter',
+        initialFilters: {
+            event: details.event,
+            year: '',
+            player: '',
+            site: '',
+            result: ''
+        }
+    });
+};
+
+const handleSitePress = () => {
+    navigation.navigate('Archive', {
+        initialMode: 'filter',
+        initialFilters: {
+            site: details.site,
+            year: '',
+            player: '',
+            event: '',
+            result: ''
+        }
+    });
+};
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Text style={styles.eventTitle}>{details.event}</Text>
-          <Text style={styles.siteText}>{details.site}</Text>
+          <TouchableOpacity onPress={handleEventPress}>
+            <Text style={[styles.eventTitle, styles.interactive]}>
+              {details.event}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleSitePress}>
+            <Text style={[styles.siteText, styles.interactive]}>
+              {details.site}
+            </Text>
+          </TouchableOpacity>
         </View>
         <View style={styles.headerRight}>
           <Text style={styles.dateText}>{details.date}</Text>
@@ -43,20 +88,30 @@ export const GameInfo = ({ pgn }) => {
         </View>
       </View>
 
-      {/* Rest of the component remains the same */}
       <View style={styles.playersContainer}>
-        <View style={styles.playerRow}>
+        <TouchableOpacity 
+          style={styles.playerRow}
+          onPress={() => handlePlayerPress(details.white)}
+        >
           <View style={styles.playerInfo}>
             <View style={styles.whiteCircle} />
-            <Text style={styles.playerName}>{details.white}</Text>
+            <Text style={[styles.playerName, styles.interactive]}>
+              {details.white}
+            </Text>
           </View>
-        </View>
-        <View style={styles.playerRow}>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={styles.playerRow}
+          onPress={() => handlePlayerPress(details.black)}
+        >
           <View style={styles.playerInfo}>
             <View style={styles.blackCircle} />
-            <Text style={styles.playerName}>{details.black}</Text>
+            <Text style={[styles.playerName, styles.interactive]}>
+              {details.black}
+            </Text>
           </View>
-        </View>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.resultContainer}>
@@ -158,4 +213,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1976d2',
   },
+  interactive: {
+    textDecorationLine: 'underline',
+    textDecorationColor: '#007AFF',
+    color: '#007AFF',
+  },
 });
+
+export default GameInfo;
