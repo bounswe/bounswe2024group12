@@ -14,6 +14,7 @@ import {
   Modal,
   StyleSheet,
   Dimensions,
+  Clipboard,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
@@ -22,6 +23,7 @@ import { api } from './services/AuthService';
 import LoadPgnModal from './components/LoadPgnModal';
 import { useFocusEffect } from '@react-navigation/native';
 import { GameInfo } from './components/GameInfo';
+import FenCopyModal from './components/FenCopyModal';
 
 const INITIAL_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 const windowDimensions = Dimensions.get('window');
@@ -55,7 +57,7 @@ const PositionStats = ({ data }) => {
   const whitePercentage = ((data.white / total) * 100).toFixed(1);
   const drawsPercentage = ((data.draws / total) * 100).toFixed(1);
   const blackPercentage = ((data.black / total) * 100).toFixed(1);
-  
+
   return (
     <View style={styles.statsSection}>
       <Text style={styles.statsHeader}>Position Statistics</Text>
@@ -106,6 +108,8 @@ const AnalysisScreen = ({ route, navigation }) => {
   const [evaluationData, setEvaluationData] = useState(null);
   const evaluationsCache = useRef(screenState.evaluationsCache);
   const gameId = route?.params?.gameId;
+  const [showFenModal, setShowFenModal] = useState(false);
+  const [showToast, setShowToast] = useState(false);
 
   useEffect(() => {
     const mode = route?.params?.gameId ? 'archive' : 'direct';
@@ -217,13 +221,13 @@ const AnalysisScreen = ({ route, navigation }) => {
 
   const handleCloudEvaluation = async (fen) => {
     if (!fen) return;
-    
+
     try {
       setIsLoading(true);
       const response = await api.get('/analyze/cloud-eval', {
         params: { fen }
       });
-      
+
       if (response.data) {
         evaluationsCache.current.set(fen, response.data);
         setEvaluationData(response.data);
@@ -233,6 +237,20 @@ const AnalysisScreen = ({ route, navigation }) => {
       Alert.alert('Error', 'Failed to get position evaluation');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleCopyFen = async () => {
+    try {
+      await Clipboard.setString(currentFen);
+      setShowFenModal(false);
+      setShowToast(true);
+      setTimeout(() => {
+        setShowToast(false);
+      }, 2000);
+    } catch (error) {
+      console.error('Failed to copy FEN:', error);
+      Alert.alert('Error', 'Failed to copy FEN notation');
     }
   };
 
@@ -308,9 +326,9 @@ const AnalysisScreen = ({ route, navigation }) => {
 
   const hasPgnDetails = (pgn) => {
     if (!pgn) return false;
-    return pgn.includes('[Event "') || 
-           pgn.includes('[White "') || 
-           pgn.includes('[Black "');
+    return pgn.includes('[Event "') ||
+      pgn.includes('[White "') ||
+      pgn.includes('[Black "');
   };
 
   return (
@@ -320,33 +338,38 @@ const AnalysisScreen = ({ route, navigation }) => {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
       >
-        <ScrollView 
-          style={styles.mainScroll} 
+        <ScrollView
+          style={styles.mainScroll}
           bounces={true}
           ref={scrollViewRef}
           contentContainerStyle={styles.scrollContent}
         >
           <View style={styles.mainContent}>
-            <PgnViewer
-              pgn={pgn || '1. '}
-              darkSquareColor="#769656"
-              lightSquareColor="#eeeed2"
-              onPositionChange={handlePositionUpdate}
-              initialFen={currentFen}
-              evaluationData={evaluationData}
-              onRequestEvaluation={handleCloudEvaluation}
-            />
-  
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => setShowFenModal(true)}
+            >
+              <PgnViewer
+                pgn={pgn || '1. '}
+                darkSquareColor="#769656"
+                lightSquareColor="#eeeed2"
+                onPositionChange={handlePositionUpdate}
+                initialFen={currentFen}
+                evaluationData={evaluationData}
+                onRequestEvaluation={handleCloudEvaluation}
+              />
+            </TouchableOpacity>
+
             {pgn && hasPgnDetails(pgn) && (
               <GameInfo pgn={pgn} />
             )}
-  
+
             {positionStats && <PositionStats data={positionStats} />}
-  
+
             <TouchableOpacity
               style={[
                 styles.exploreButton,
-                (!currentFen || isLoadingSimilar || exploredPositions.current.has(currentFen)) && 
+                (!currentFen || isLoadingSimilar || exploredPositions.current.has(currentFen)) &&
                 styles.disabledButton
               ]}
               onPress={handleExploreGames}
@@ -358,7 +381,7 @@ const AnalysisScreen = ({ route, navigation }) => {
                 <>
                   <Feather name="compass" size={20} color="white" style={styles.exploreIcon} />
                   <Text style={styles.exploreButtonText}>
-                    {exploredPositions.current.has(currentFen) 
+                    {exploredPositions.current.has(currentFen)
                       ? 'Position explored'
                       : 'Explore this position'
                     }
@@ -366,13 +389,13 @@ const AnalysisScreen = ({ route, navigation }) => {
                 </>
               )}
             </TouchableOpacity>
-  
+
             {gameId && (
               <View style={styles.commentsSection}>
                 <Text style={styles.commentsHeader}>
                   Position Comments ({positionComments?.length || 0})
                 </Text>
-  
+
                 {isLoading ? (
                   <ActivityIndicator size="large" color="#007AFF" style={styles.loader} />
                 ) : (
@@ -392,7 +415,7 @@ const AnalysisScreen = ({ route, navigation }) => {
             )}
           </View>
         </ScrollView>
-  
+
         {gameId && (
           <View style={styles.inputContainer}>
             <View style={styles.commentInputContainer}>
@@ -421,7 +444,7 @@ const AnalysisScreen = ({ route, navigation }) => {
             </View>
           </View>
         )}
-  
+
         {isLoadPgnModalVisible && (
           <Modal
             transparent={true}
@@ -438,6 +461,22 @@ const AnalysisScreen = ({ route, navigation }) => {
               </View>
             </BlurView>
           </Modal>
+        )}
+
+        <FenCopyModal
+          isVisible={showFenModal}
+          onClose={() => setShowFenModal(false)}
+          fen={currentFen}
+          onCopyFen={handleCopyFen}
+        />
+
+        {showToast && (
+          <View style={styles.toastContainer}>
+            <View style={styles.toast}>
+              <Feather name="check" size={16} color="white" />
+              <Text style={styles.toastText}>Copied!</Text>
+            </View>
+          </View>
         )}
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -500,7 +539,7 @@ const styles = StyleSheet.create({
   },
   loader: {
     marginTop: 20,
-  },
+  },  
   noCommentsText: {
     textAlign: 'center',
     color: '#666',
