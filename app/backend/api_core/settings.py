@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'v1.apps.accounts',
     'v1.apps.posts',
     'v1.apps.games',
+    'v1.apps.puzzle',
     
 ]
 
