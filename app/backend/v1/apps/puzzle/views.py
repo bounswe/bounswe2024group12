@@ -179,3 +179,93 @@ def puzzle_angles_json(request):
     return JsonResponse(angles.angles, safe=False, status=200)
     
     
+
+puzzle_id_param = openapi.Parameter(
+    'id',
+    openapi.IN_PATH,
+    description="The puzzle ID",
+    type=openapi.TYPE_STRING,
+    required=True
+)
+
+@swagger_auto_schema(
+    method='get',
+    manual_parameters=[puzzle_id_param],
+    responses={
+        200: openapi.Response(
+            description="The requested puzzle",
+            examples={
+                'application/json': {
+        "game": {
+            "id": "AHGPPS44",
+            "perf": {
+            "key": "blitz",
+            "name": "Blitz"
+            },
+            "rated": True,
+            "players": [
+            {
+                "name": "EricRosen",
+                "title": "IM",
+                "flair": "travel-places.ambulance",
+                "patron": True,
+                "id": "ericrosen",
+                "color": "white",
+                "rating": 2642
+            },
+            {
+                "name": "Anton_Volovikov",
+                "title": "FM",
+                "id": "anton_volovikov",
+                "color": "black",
+                "rating": 2619
+            }
+            ],
+            "pgn": "d4 d5 Bf4 Bf5 Nf3 e6 c4 Nf6 Nc3 Bd6 Bg3 Nbd7 e3 O-O c5 Bxg3 hxg3 h6 Bd3 Ne4 Qc2 Ndf6 Nd2 Nxc3 Bxf5 exf5 bxc3 Ne4 Nxe4 fxe4 Rb1 b6 Rh5 bxc5 Rb5 cxd4 cxd4 c6 Qxc6 Rc8 Qxd5 Qf6 Qxe4 Rc1+ Ke2 Qa6 Qd5 Rc2+ Kf3 g6 Rxh6 Qf6+ Ke4",
+            "clock": "3+0"
+        },
+        "puzzle": {
+            "id": "PSjmf",
+            "rating": 2735,
+            "plays": 627,
+            "solution": [
+            "g8g7",
+            "d5e5",
+            "f6e5"
+            ],
+            "themes": [
+            "endgame",
+            "master",
+            "short",
+            "masterVsMaster",
+            "crushing"
+            ],
+            "initialPly": 52
+        }
+        }
+            }
+        ),
+        404: openapi.Response(description="Puzzle not found"),
+        500: openapi.Response(description="Internal server error")
+    },
+    operation_description="Get a single Lichess puzzle by its ID.",
+    operation_summary="Get Puzzle by ID"
+)
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_puzzle_by_id(request, id):
+    """
+    Fetches a puzzle by its ID from the Lichess API.
+    """
+    try:
+        url = f"{LICHESS_API_BASE_URL}/puzzle/{id}"
+        response = requests.get(url)
+
+        if response.status_code == 200:
+            return JsonResponse(response.json(), safe=False, status=200)
+        elif response.status_code == 404:
+            return JsonResponse({"error": "Puzzle not found"}, status=404)
+        else:
+            return JsonResponse({"error": "Failed to fetch puzzle"}, status=response.status_code)
+    except requests.exceptions.RequestException as e:
+        return JsonResponse({"error": "Internal server error", "details": str(e)}, status=500)
