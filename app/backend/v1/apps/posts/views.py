@@ -7,7 +7,7 @@ from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
-from v1.apps.posts.models import Post, Like, Comment
+from v1.apps.posts.models import Post, Like, Comment, PostBookmark
 from v1.apps.accounts.models import CustomUser
 from v1.apps.posts.serializers import PostSerializer, LikeSerializer, CommentSerializer
 
@@ -382,6 +382,7 @@ def update_delete_comment(request, post_id, comment_id):
     elif request.method == 'DELETE':
         comment.delete()
         return Response({"message": "Comment deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+
 # List comments for a post
 @swagger_auto_schema(
     method='get',
@@ -432,6 +433,55 @@ def list_comments(request, post_id):
     
     return Response(res, status=status.HTTP_200_OK)
 
+
+@swagger_auto_schema(
+    method='post',
+    operation_description="Toggle bookmark for a specific post. If the post is not bookmarked, it will be bookmarked. If it is already bookmarked, the bookmark will be removed.",
+    operation_summary="Toggle Bookmark on a Post",
+    responses={
+        201: openapi.Response(
+            description="Post bookmarked successfully",
+            examples={
+                'application/json': {
+                    'message': 'Post bookmarked successfully'
+                }
+            }
+        ),
+        200: openapi.Response(
+            description="Post unbookmarked successfully",
+            examples={
+                'application/json': {
+                    'message': 'Post unbookmarked successfully'
+                }
+            }
+        ),
+        404: openapi.Response(
+            description="Post not found",
+            examples={
+                'application/json': {
+                    'error': 'Post not found'
+                }
+            }
+        )
+    }
+)
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def toggle_post_bookmark(request, post_id):
+    #User bookmarks a post or removes a bookmark from a post (toggle system)
+    try:
+        post = Post.objects.get(id=post_id)
+    except Post.DoesNotExist:
+        return Response({"error": "Post not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    user = request.user
+    bookmark_instance, created = Bookmark.objects.get_or_create(user=user, post=post)
+    
+    if not created:  # Remove existing bookmark
+        bookmark_instance.delete()
+        return Response({"message": "Bookmark removed"}, status=status.HTTP_200_OK)
+    
+    return Response({"message": "Bookmark added"}, status=status.HTTP_201_CREATED)
     
         
     

@@ -1,10 +1,11 @@
 from django.test import TestCase
 
 from django.urls import reverse
-from v1.apps.games.models import Game, GameComment
+from v1.apps.games.models import Game, GameComment, GameBookmark, GameMoveBookmark
 from v1.apps.accounts.models import CustomUser
 from rest_framework import status
 
+from rest_framework.test import APIClient
 
 class FilterGamesTest(TestCase):
     def setUp(self):
@@ -43,4 +44,76 @@ class GameCommentModelTest(TestCase):
         self.assertEqual(comment.position_fen, "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR")
         self.assertEqual(len(comment.get_fens_list()), 2)
 
+class BookmarkGameTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = CustomUser.objects.create_user(username="testuser", password="password")
+        self.game = Game.objects.create(
+            event="Test Event",
+            site="Test Site",
+            white="Player1",
+            black="Player2",
+            result="1-0",
+            year=2024,
+            month=12,
+            day=15,
+            pgn="1. e4 e5 2. Nf3 Nc6"
+        )
+        self.url = reverse('toggle-game-bookmark', args=[self.game.id])
 
+    def test_bookmark_game_authenticated(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        bookmark_exists = GameBookmark.objects.filter(user=self.user, game=self.game).exists()
+        self.assertTrue(bookmark_exists)
+
+    def test_unbookmark_game_authenticated(self):
+        self.client.force_authenticate(user=self.user)
+        self.client.post(self.url)
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        bookmark_exists = GameBookmark.objects.filter(user=self.user, game=self.game).exists()
+        self.assertFalse(bookmark_exists)
+
+    def test_bookmark_game_unauthenticated(self):
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class BookmarkGameMoveTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = CustomUser.objects.create_user(username="testuser", password="password")
+        self.game = Game.objects.create(
+            event="Test Event",
+            site="Test Site",
+            white="Player1",
+            black="Player2",
+            result="1-0",
+            year=2024,
+            month=12,
+            day=15,
+            pgn="1. e4 e5 2. Nf3 Nc6"
+        )
+        self.fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
+        self.url = reverse('toggle-game-move-bookmark', args=[self.game.id])
+
+    def test_bookmark_game_move_authenticated(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(self.url, {"fen": self.fen})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        bookmark_exists = GameMoveBookmark.objects.filter(user=self.user, game=self.game, fen=self.fen).exists()
+        self.assertTrue(bookmark_exists)
+
+    def test_unbookmark_game_move_authenticated(self):
+        self.client.force_authenticate(user=self.user)
+        self.client.post(self.url, {"fen": self.fen})
+        response = self.client.post(self.url, {"fen": self.fen})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        bookmark_exists = GameMoveBookmark.objects.filter(user=self.user, game=self.game, fen=self.fen).exists()
+        self.assertFalse(bookmark_exists)
+
+    def test_bookmark_game_move_unauthenticated(self):
+        response = self.client.post(self.url, {"fen": self.fen})
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
