@@ -475,7 +475,7 @@ def toggle_post_bookmark(request, post_id):
         return Response({"error": "Post not found"}, status=status.HTTP_404_NOT_FOUND)
 
     user = request.user
-    bookmark_instance, created = Bookmark.objects.get_or_create(user=user, post=post)
+    bookmark_instance, created = PostBookmark.objects.get_or_create(user=user, post=post)
     
     if not created:  # Remove existing bookmark
         bookmark_instance.delete()
