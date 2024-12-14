@@ -9,7 +9,9 @@ from rest_framework.permissions import AllowAny
 from rest_framework.decorators import permission_classes
 from v1.apps.accounts.models import CustomUser, Follow
 from rest_framework.permissions import IsAuthenticated
-
+from v1.apps.posts.models import PostBookmark, Like, Post
+from v1.apps.games.models import GameBookmark, GameMoveBookmark
+from django.shortcuts import get_object_or_404
 User = get_user_model()
 
 # Sign-up view
@@ -146,3 +148,192 @@ def toggle_follow(request, user_id):
         return Response({"message": "User unfollowed successfully"}, status=status.HTTP_200_OK)
     
     return Response({"message": "User followed successfully"}, status=status.HTTP_201_CREATED)
+
+
+@swagger_auto_schema(
+    method='get',
+    operation_description="Retrieve all user-related information for the authenticated user's profile page. This includes the user's general information (username, email, etc.), bookmarks (post, game, and game move), likes, followers, followings, and user's posts.",
+    operation_summary="Get User Page Data",
+    responses={
+        200: openapi.Response(
+            description="User page data retrieved successfully",
+            examples={
+                'application/json': {
+                    "username": "chessmaster",
+                    "email": "chessmaster@example.com",
+                    "first_name": "Chess",
+                    "last_name": "Master",
+                    "date_joined": "2024-01-12T15:23:45Z",
+                    "post_bookmarks": [
+                        {
+                            "post__id": 1,
+                            "post__title": "The Greatest Chess Game of All Time"
+                        },
+                        {
+                            "post__id": 2,
+                            "post__title": "How to Win in 10 Moves"
+                        }
+                    ],
+                    "game_bookmarks": [
+                        {
+                            "game__id": 7,
+                            "game__white": "Kasparov",
+                            "game__black": "Deep Blue",
+                            "game__year": 1997
+                        }
+                    ],
+                    "game_move_bookmarks": [
+                        {
+                            "game__id": 7,
+                            "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
+                        }
+                    ],
+                    "post_likes": [
+                        {
+                            "post__id": 5,
+                            "post__title": "Top 5 Chess Strategies"
+                        }
+                    ],
+                    "followers": [
+                        {
+                            "follower__id": 2,
+                            "follower__username": "another_user"
+                        }
+                    ],
+                    "following": [
+                        {
+                            "following__id": 5,
+                            "following__username": "grandmaster"
+                        }
+                    ],
+                    "posts": [
+                        {
+                            "id": 1,
+                            "title": "My First Post"
+                        },
+                        {
+                            "id": 2,
+                            "title": "Analyzing Chess Openings"
+                        }
+                    ]
+                }
+            }
+        ),
+        401: openapi.Response(
+            description="Authentication required",
+            examples={
+                'application/json': {
+                    "detail": "Authentication credentials were not provided."
+                }
+            }
+        )
+    }
+)
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_page(request):
+    user = request.user
+
+    # Get Bookmarks
+    post_bookmarks = PostBookmark.objects.filter(user=user).values('post__id', 'post__title')
+    game_bookmarks = GameBookmark.objects.filter(user=user).values('game__id', 'game__white', 'game__black', 'game__year')
+    game_move_bookmarks = GameMoveBookmark.objects.filter(user=user).values('game__id', 'fen')
+
+    # Get Likes
+    post_likes = Like.objects.filter(user=user).values('post__id', 'post__title')
+
+    # Get Followers and Following
+    followers = Follow.objects.filter(following=user).values('follower__id', 'follower__username')
+    following = Follow.objects.filter(follower=user).values('following__id', 'following__username')
+
+    # Get User's Posts
+    posts = Post.objects.filter(user=user).values('id', 'title')
+
+    # Return user data
+    user_data = {
+        'username': user.username,
+        'email': user.email,
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+        'date_joined': user.date_joined,
+        'post_bookmarks': list(post_bookmarks),
+        'game_bookmarks': list(game_bookmarks),
+        'game_move_bookmarks': list(game_move_bookmarks),
+        'post_likes': list(post_likes),
+        'followers': list(followers),
+        'following': list(following),
+        'posts': list(posts)
+    }
+
+    return Response(user_data, status=status.HTTP_200_OK)
+
+
+
+@swagger_auto_schema(
+    method='get',
+    operation_description="Retrieve public profile of a specific user by user_id. Returns user's basic information, post likes, followers, following details, and the user's posts.",
+    operation_summary="Get User Profile by User ID",
+    responses={
+        200: openapi.Response(
+            description="User profile retrieved successfully",
+            examples={
+                'application/json': {
+                    'username': 'chessmaster',
+                    'email': 'chessmaster@example.com',
+                    'first_name': 'Garry',
+                    'last_name': 'Kasparov',
+                    'date_joined': '2023-12-10T18:25:43.511Z',
+                    'post_likes': [
+                        {'post_id': 1, 'post_title': 'How to Win in 10 Moves'}
+                    ],
+                    'followers': [
+                        {'follower_id': 2, 'follower_username': 'john_doe'}
+                    ],
+                    'following': [
+                        {'following_id': 4, 'following_username': 'chess_pro'}
+                    ],
+                    'posts': [
+                        {'id': 1, 'title': 'Kasparov vs Deep Blue'}
+                    ]
+                }
+            }
+        ),
+        404: openapi.Response(
+            description="User not found",
+            examples={
+                'application/json': {
+                    'error': 'User not found'
+                }
+            }
+        )
+    }
+)
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_other_user_page(request, user_id):
+    # Retrieve user
+    user = get_object_or_404(CustomUser, id=user_id)
+    
+    # Get Post Likes
+    post_likes = Like.objects.filter(user=user).values('post__id', 'post__title')
+    
+    # Get Followers and Following
+    followers = Follow.objects.filter(following=user).values('follower__id', 'follower__username')
+    following = Follow.objects.filter(follower=user).values('following__id', 'following__username')
+    
+    # Get User's Posts
+    posts = Post.objects.filter(user=user).values('id', 'title')
+    
+    response_data = {
+        'username': user.username,
+        'email': user.email,
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+        'date_joined': user.date_joined,
+        'post_likes': list(post_likes),  # post id and title
+        'followers': list(followers),  # follower id and username
+        'following': list(following),  # following id and username
+        'posts': list(posts)  # user posts
+    }
+    
+    return Response(response_data, status=status.HTTP_200_OK)
