@@ -193,6 +193,31 @@ def get_post(request, post_id):
 class PostPagination(PageNumberPagination):
     page_size = 10  # 10 post per page
 
+@swagger_auto_schema(
+    method='delete',
+    operation_description="Delete an existing post. Only the owner of the post can delete it.",
+    operation_summary="Delete an existing post",
+    responses={
+        200: openapi.Response(
+            description="Post deleted successfully"
+        ),
+        403: openapi.Response(description="Forbidden: User does not own this post"),
+        404: openapi.Response(description="Post not found"),
+    }
+)
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_post(request, post_id):
+    try:
+        post = Post.objects.get(id=post_id)
+    except Post.DoesNotExist:
+        return Response({"error": "Post not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    if post.user != request.user:
+        return Response({"error": "You do not have permission to delete this post"}, status=status.HTTP_403_FORBIDDEN)
+    
+    post.delete()
+    return Response({"message": "Post deleted successfully"}, status=status.HTTP_200_OK)
 
 @swagger_auto_schema(
     method='get',
