@@ -146,3 +146,119 @@ class UserPageTest(TestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
+
+
+
+
+class UserProfileTest(APITestCase):
+    def setUp(self):
+        self.client = APIClient()
+        
+        # Create users
+        self.user = CustomUser.objects.create_user(username="chessmaster", email="chessmaster@example.com", password="password123")
+        self.other_user = CustomUser.objects.create_user(username="follower", email="follower@example.com", password="password123")
+        
+        # Create Post and Like
+        self.post = Post.objects.create(user=self.user, title="Test Post", post_text="Test Content")
+        Like.objects.create(user=self.user, post=self.post)
+        
+        # Create Follower/Following relationship
+        Follow.objects.create(follower=self.other_user, following=self.user)
+        Follow.objects.create(follower=self.user, following=self.other_user)
+        
+        # URL for the user profile endpoint (replace `user_id` with actual ID in URL)
+        self.url = reverse('get-user-profile', kwargs={'user_id': self.user.id})
+        
+    def test_user_profile_authenticated(self):
+        """Test user profile can be retrieved when authenticated."""
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(self.url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('username', response.data)
+        self.assertIn('email', response.data)
+        self.assertIn('first_name', response.data)
+        self.assertIn('last_name', response.data)
+        self.assertIn('date_joined', response.data)
+        self.assertIn('post_likes', response.data)
+        self.assertIn('followers', response.data)
+        self.assertIn('following', response.data)
+        
+        # Check the structure of returned data
+        self.assertEqual(response.data['username'], self.user.username)
+        self.assertEqual(response.data['email'], self.user.email)
+        self.assertEqual(response.data['first_name'], self.user.first_name)
+        self.assertEqual(response.data['last_name'], self.user.last_name)
+        
+        # Check if post_likes contains the correct like
+        self.assertEqual(len(response.data['post_likes']), 1)
+        self.assertEqual(response.data['post_likes'][0]['post__id'], self.post.id)
+        self.assertEqual(response.data['post_likes'][0]['post__title'], self.post.title)
+        
+        # Check if followers contains the correct follower
+        self.assertEqual(len(response.data['followers']), 1)
+        self.assertEqual(response.data['followers'][0]['follower__id'], self.other_user.id)
+        self.assertEqual(response.data['followers'][0]['follower__username'], self.other_user.username)
+        
+        # Check if following contains the correct following
+        self.assertEqual(len(response.data['following']), 1)
+        self.assertEqual(response.data['following'][0]['following__id'], self.other_user.id)
+        self.assertEqual(response.data['following'][0]['following__username'], self.other_user.username)
+        
+    def test_user_profile_authenticated_other_user(self):
+        """Test if another user's profile can be retrieved by the current user."""
+        self.client.force_authenticate(user=self.other_user)
+        response = self.client.get(self.url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('username', response.data)
+        self.assertIn('email', response.data)
+        self.assertIn('first_name', response.data)
+        self.assertIn('last_name', response.data)
+        self.assertIn('date_joined', response.data)
+        self.assertIn('post_likes', response.data)
+        self.assertIn('followers', response.data)
+        self.assertIn('following', response.data)
+        
+        # Check the structure of returned data
+        self.assertEqual(response.data['username'], self.user.username)
+        self.assertEqual(response.data['email'], self.user.email)
+        self.assertEqual(response.data['first_name'], self.user.first_name)
+        self.assertEqual(response.data['last_name'], self.user.last_name)
+        
+        # Check if post_likes contains the correct like
+        self.assertEqual(len(response.data['post_likes']), 1)
+        self.assertEqual(response.data['post_likes'][0]['post__id'], self.post.id)
+        self.assertEqual(response.data['post_likes'][0]['post__title'], self.post.title)
+        
+        # Check if followers contains the correct follower
+        self.assertEqual(len(response.data['followers']), 1)
+        self.assertEqual(response.data['followers'][0]['follower__id'], self.other_user.id)
+        self.assertEqual(response.data['followers'][0]['follower__username'], self.other_user.username)
+        
+        # Check if following contains the correct following
+        self.assertEqual(len(response.data['following']), 1)
+        self.assertEqual(response.data['following'][0]['following__id'], self.other_user.id)
+        self.assertEqual(response.data['following'][0]['following__username'], self.other_user.username)
+        
+    def test_user_profile_unauthenticated(self):
+        """Test if the profile can be viewed without authentication (should be allowed)."""
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        self.assertIn('username', response.data)
+        self.assertIn('email', response.data)
+        self.assertIn('first_name', response.data)
+        self.assertIn('last_name', response.data)
+        self.assertIn('date_joined', response.data)
+        self.assertIn('post_likes', response.data)
+        self.assertIn('followers', response.data)
+        self.assertIn('following', response.data)
+        
+    def test_user_profile_not_found(self):
+        """Test if a 404 is returned when user does not exist."""
+        url = reverse('get-user-profile', kwargs={'user_id': 999})  # Non-existing user ID
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data, {'detail': 'No CustomUser matches the given query.'})
+

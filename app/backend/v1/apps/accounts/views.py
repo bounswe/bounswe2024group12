@@ -11,7 +11,7 @@ from v1.apps.accounts.models import CustomUser, Follow
 from rest_framework.permissions import IsAuthenticated
 from v1.apps.posts.models import PostBookmark, Like
 from v1.apps.games.models import GameBookmark, GameMoveBookmark
-
+from django.shortcuts import get_object_or_404
 User = get_user_model()
 
 # Sign-up view
@@ -264,3 +264,65 @@ def get_user_page(request):
 
     return Response(user_data, status=status.HTTP_200_OK)
 
+
+
+@swagger_auto_schema(
+    method='get',
+    operation_description="Retrieve public profile of a specific user by user_id. Returns user's basic information, post likes, followers, and following details.",
+    operation_summary="Get User Profile by User ID",
+    responses={
+        200: openapi.Response(
+            description="User profile retrieved successfully",
+            examples={
+                'application/json': {
+                    'username': 'chessmaster',
+                    'email': 'chessmaster@example.com',
+                    'first_name': 'Garry',
+                    'last_name': 'Kasparov',
+                    'date_joined': '2023-12-10T18:25:43.511Z',
+                    'post_likes': [
+                        {'post_id': 1, 'post_title': 'How to Win in 10 Moves'},
+                        {'post_id': 2, 'post_title': 'The Greatest Chess Game of All Time'}
+                    ],
+                    'followers': [
+                        {'follower_id': 2, 'follower_username': 'john_doe'},
+                        {'follower_id': 3, 'follower_username': 'jane_doe'}
+                    ],
+                    'following': [
+                        {'following_id': 4, 'following_username': 'chess_pro'},
+                        {'following_id': 5, 'following_username': 'game_master'}
+                    ]
+                }
+            }
+        ),
+        404: openapi.Response(
+            description="User not found",
+            examples={
+                'application/json': {
+                    'error': 'User not found'
+                }
+            }
+        )
+    }
+)
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_user_profile(request, user_id):
+    # Retrieve user
+    user = get_object_or_404(CustomUser, id=user_id)
+    post_likes = Like.objects.filter(user=user).values('post__id', 'post__title')
+    followers = Follow.objects.filter(following=user).values('follower__id', 'follower__username')
+    following = Follow.objects.filter(follower=user).values('following__id', 'following__username')
+    
+    response_data = {
+        'username': user.username,
+        'email': user.email,
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+        'date_joined': user.date_joined,
+        'post_likes': list(post_likes),  # post id and title
+        'followers': list(followers),  # follower id and username
+        'following': list(following)  # following id and username
+    }
+    
+    return Response(response_data, status=status.HTTP_200_OK)
