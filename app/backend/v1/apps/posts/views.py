@@ -131,10 +131,11 @@ def get_post(request, post_id):
 class PostPagination(PageNumberPagination):
     page_size = 10  # 10 post per page
 
+
 @swagger_auto_schema(
     method='get',
-    operation_description="Retrieve all posts with pagination, optional tag filtering, and ordering. Order options: 'older', 'newer', 'title'.",
-    operation_summary="List all posts with optional tag filtering and ordering",
+    operation_description="Retrieve all posts with pagination, optional tag filtering, optional followed filtering (only posts from followed users), and ordering. Order options: 'older', 'newer', 'title'.",
+    operation_summary="List all posts with optional tag filtering, followed filtering, and ordering",
     manual_parameters=[
         openapi.Parameter(
             'tag', 
@@ -152,6 +153,13 @@ class PostPagination(PageNumberPagination):
             required=False
         ),
         openapi.Parameter(
+            'followed',
+            openapi.IN_QUERY,
+            description="If 'true', return only posts from users followed by the authenticated user. If 'false' or omitted, return all posts.",
+            type=openapi.TYPE_BOOLEAN,
+            required=False
+        ),
+        openapi.Parameter(
             'page',
             openapi.IN_QUERY,
             description="Page number for pagination",
@@ -164,9 +172,9 @@ class PostPagination(PageNumberPagination):
             description="List of posts retrieved successfully with pagination, optional filtering, and ordering",
             examples={
                 'application/json': {
-                    'count': 100,  # Total number of posts
-                    'next': 'http://api.example.com/posts/?page=2',  # Next page URL
-                    'previous': None,  # Previous page URL
+                    'count': 100,
+                    'next': 'http://api.example.com/posts/?page=2',
+                    'previous': None,
                     'results': [
                         {
                             'id': 1,
@@ -194,17 +202,28 @@ class PostPagination(PageNumberPagination):
         ),
         400: openapi.Response(
             description="Invalid request",
+        ),
+        401: openapi.Response(
+            description="Authentication required if 'followed=true'"
         )
     }
 )
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def list_posts(request):
-    tag = request.query_params.get('tag', None)
-    order_by = request.query_params.get('order_by', 'newer')  # Default to 'newer' if not specified
+    tag = request.query_params.get('tag')
+    order_by = request.query_params.get('order_by', 'newer')
+    followed = request.query_params.get('followed', 'false').lower() == 'true'
 
-    # Base query
     posts = Post.objects.all()
+
+    # If followed=true, ensure the user is authenticated and filter to followed users
+    if followed:
+        if not request.user.is_authenticated:
+            return Response({"error": "Authentication required to filter by followed."}, status=status.HTTP_401_UNAUTHORIZED)
+        # Get the IDs of users that the current user follows
+        followed_user_ids = request.user.following.values_list('following_id', flat=True)
+        posts = posts.filter(user_id__in=followed_user_ids)
 
     # Filter by tag if provided
     if tag:
