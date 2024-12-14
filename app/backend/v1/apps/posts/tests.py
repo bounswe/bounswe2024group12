@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
-from v1.apps.posts.models import Post, Like, Comment
+from v1.apps.posts.models import Post, Like, Comment, PostBookmark
 from v1.apps.accounts.models import CustomUser
 
 class CreatePostTest(TestCase):
@@ -132,3 +132,30 @@ class ListCommentsTest(TestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.json()), 5)
+
+class BookmarkPostTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = CustomUser.objects.create_user(username="testuser", password="password")
+        self.post = Post.objects.create(user=self.user, title="Test Post", post_text="Test Content")
+        self.url = reverse('toggle-post-bookmark', args=[self.post.id])
+
+    def test_bookmark_post_authenticated(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)       
+        bookmark_exists = PostBookmark.objects.filter(user=self.user, post=self.post).exists()
+        self.assertTrue(bookmark_exists)
+
+    def test_unbookmark_post_authenticated(self):      
+        self.client.force_authenticate(user=self.user)  
+        self.client.post(self.url)
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        bookmark_exists = PostBookmark.objects.filter(user=self.user, post=self.post).exists()
+        self.assertFalse(bookmark_exists)
+
+
+    def test_bookmark_post_unauthenticated(self):
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

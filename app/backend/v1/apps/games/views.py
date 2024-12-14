@@ -5,9 +5,13 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from v1.apps.headers import auth_header
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from .models import Game, GameComment
+from .models import Game, GameComment, GameBookmark, GameMoveBookmark
 import requests
 import os
+
+from rest_framework.response import Response
+from rest_framework import status
+from django.shortcuts import get_object_or_404
 
 from .serializers import GameCommentSerializer
 
@@ -349,3 +353,112 @@ def list_game_comments(request, game_id):
         for comment in comments
     ]
     return JsonResponse({'comments': response_data}, status=200)
+
+@swagger_auto_schema(
+    method='post',
+    operation_description="Toggle bookmark for a specific game. If the game is not bookmarked, it will be bookmarked. If it is already bookmarked, the bookmark will be removed.",
+    operation_summary="Toggle Bookmark on a Game",
+    responses={
+        201: openapi.Response(
+            description="Game bookmarked successfully",
+            examples={
+                'application/json': {
+                    'message': 'Game bookmarked successfully'
+                }
+            }
+        ),
+        200: openapi.Response(
+            description="Game unbookmarked successfully",
+            examples={
+                'application/json': {
+                    'message': 'Game unbookmarked successfully'
+                }
+            }
+        ),
+        404: openapi.Response(
+            description="Game not found",
+            examples={
+                'application/json': {
+                    'error': 'Game not found'
+                }
+            }
+        )
+    }
+)
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def toggle_game_bookmark(request, game_id):
+    #Bookmark or unbookmark a game.
+    user = request.user
+    game = get_object_or_404(Game, id=game_id)
+
+    bookmark, created = GameBookmark.objects.get_or_create(user=user, game=game)
+
+    if not created:  # If the bookmark already exists, remove it
+        bookmark.delete()
+        return Response({"message": "Game unbookmarked"}, status=status.HTTP_200_OK)
+    
+    return Response({"message": "Game bookmarked"}, status=status.HTTP_201_CREATED)
+
+@swagger_auto_schema(
+    method='post',
+    operation_description="Toggle bookmark for a specific move in a game. If the move is not bookmarked, it will be bookmarked. If it is already bookmarked, the bookmark will be removed.",
+    operation_summary="Toggle Bookmark on a Game Move",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'fen': openapi.Schema(
+                type=openapi.TYPE_STRING,
+                description="FEN string representing the game move to bookmark"
+            )
+        },
+        required=['fen'],
+        example={
+            'fen': 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR'
+        }
+    ),
+    responses={
+        201: openapi.Response(
+            description="Game move bookmarked successfully",
+            examples={
+                'application/json': {
+                    'message': 'Game move bookmarked successfully'
+                }
+            }
+        ),
+        200: openapi.Response(
+            description="Game move unbookmarked successfully",
+            examples={
+                'application/json': {
+                    'message': 'Game move unbookmarked successfully'
+                }
+            }
+        ),
+        404: openapi.Response(
+            description="Game or move not found",
+            examples={
+                'application/json': {
+                    'error': 'Game or move not found'
+                }
+            }
+        )
+    }
+)
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def toggle_game_move_bookmark(request, game_id):
+    #Bookmark or unbookmark a move in a game.
+    user = request.user
+    game = get_object_or_404(Game, id=game_id)
+    fen = request.data.get('fen')
+
+    if not fen:
+        return Response({"error": "FEN is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+    bookmark, created = GameMoveBookmark.objects.get_or_create(user=user, game=game, fen=fen)
+
+    if not created:  # If the bookmark already exists, remove it
+        bookmark.delete()
+        return Response({"message": "Game move unbookmarked"}, status=status.HTTP_200_OK)
+    
+    return Response({"message": "Game move bookmarked"}, status=status.HTTP_201_CREATED)

@@ -11,4 +11,5 @@ urlpatterns = [
     path('comment/<int:post_id>/<int:comment_id>/', views.update_delete_comment, name='comment-modify'),  # PUT/DELETE
     path('comments/<int:post_id>/', views.list_comments, name='list-comments'),
     path('likes_summary/', views.post_likes_summary, name='post-likes-summary'),
+    path('bookmark/<int:post_id>/', views.toggle_post_bookmark, name='toggle-post-bookmark'),  # POST bookmark (toggle)
 ]

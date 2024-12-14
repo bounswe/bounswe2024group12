@@ -29,3 +29,26 @@ class GameComment(models.Model):
     def get_fens_list(self):
         """Helper method to return `fens` as a list."""
         return self.comment_fens.split(',') if self.comment_fens else []
+    
+class GameBookmark(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="game_bookmarks")
+    game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name="bookmarks")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'game')  # Ensure a user can bookmark a game only once
+
+    def __str__(self):
+        return f"{self.user.username} bookmarked game {self.game.id}"
+
+class GameMoveBookmark(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="game_move_bookmarks")
+    game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name="move_bookmarks")
+    fen = models.CharField(max_length=255)  # FEN string to identify the move
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'game', 'fen')  # Ensure a user can bookmark a game move only once
+
+    def __str__(self):
+        return f"{self.user.username} bookmarked move {self.fen} in game {self.game.id}"
