@@ -78,6 +78,68 @@ def create_post(request):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+@swagger_auto_schema(
+    method='put',
+    operation_description="Edit an existing post. Only the owner of the post can edit it.",
+    operation_summary="Edit an existing post",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'post_image': openapi.Schema(type=openapi.TYPE_STRING, description='Base64 encoded image string'),
+            'title': openapi.Schema(type=openapi.TYPE_STRING, description='Post title'),
+            'fen': openapi.Schema(type=openapi.TYPE_STRING, description='FEN notation string'),
+            'post_text': openapi.Schema(type=openapi.TYPE_STRING, description='Text content for the post'),
+            'tags': openapi.Schema(
+                type=openapi.TYPE_ARRAY,
+                items=openapi.Items(type=openapi.TYPE_STRING),
+                description='List of tags as strings'
+            ),
+        },
+        example={
+            'title': 'Updated Chess Post',
+            'post_text': 'Updated content for the post',
+            'tags': ['updated', 'tag']
+        }
+    ),
+    responses={
+        200: openapi.Response(
+            description="Post updated successfully",
+            examples={
+                'application/json': {
+                    'id': 1,
+                    'post_image': '/media/post_images/example.jpg',
+                    'title': 'Updated Chess Post',
+                    'fen': 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR',
+                    'post_text': 'Updated content for the post',
+                    'tags': ['updated', 'tag'],
+                    'created_at': '2024-10-16T12:00:00Z',
+                    'user': 'example_user'
+                }
+            }
+        ),
+        400: openapi.Response(description="Invalid input"),
+        403: openapi.Response(description="Forbidden: User does not own this post"),
+        404: openapi.Response(description="Post not found"),
+    }
+)
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def edit_post(request, post_id):
+    try:
+        post = Post.objects.get(id=post_id)
+    except Post.DoesNotExist:
+        return Response({"error": "Post not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    # Check if the authenticated user is the owner of the post
+    if post.user != request.user:
+        return Response({"error": "You do not have permission to edit this post"}, status=status.HTTP_403_FORBIDDEN)
+    
+    # Perform partial updates (fields omitted won't reset)
+    serializer = PostSerializer(post, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()  # user is not changed; only given fields are updated
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # Swagger documentation for GET /api/v1/posts/{post_id}/
 @swagger_auto_schema(
@@ -131,6 +193,31 @@ def get_post(request, post_id):
 class PostPagination(PageNumberPagination):
     page_size = 10  # 10 post per page
 
+@swagger_auto_schema(
+    method='delete',
+    operation_description="Delete an existing post. Only the owner of the post can delete it.",
+    operation_summary="Delete an existing post",
+    responses={
+        200: openapi.Response(
+            description="Post deleted successfully"
+        ),
+        403: openapi.Response(description="Forbidden: User does not own this post"),
+        404: openapi.Response(description="Post not found"),
+    }
+)
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_post(request, post_id):
+    try:
+        post = Post.objects.get(id=post_id)
+    except Post.DoesNotExist:
+        return Response({"error": "Post not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    if post.user != request.user:
+        return Response({"error": "You do not have permission to delete this post"}, status=status.HTTP_403_FORBIDDEN)
+    
+    post.delete()
+    return Response({"message": "Post deleted successfully"}, status=status.HTTP_200_OK)
 
 @swagger_auto_schema(
     method='get',
