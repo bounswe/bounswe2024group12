@@ -9,7 +9,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.decorators import permission_classes
 from v1.apps.accounts.models import CustomUser, Follow
 from rest_framework.permissions import IsAuthenticated
-from v1.apps.posts.models import PostBookmark, Like
+from v1.apps.posts.models import PostBookmark, Like, Post
 from v1.apps.games.models import GameBookmark, GameMoveBookmark
 from django.shortcuts import get_object_or_404
 User = get_user_model()
@@ -150,10 +150,9 @@ def toggle_follow(request, user_id):
     return Response({"message": "User followed successfully"}, status=status.HTTP_201_CREATED)
 
 
-#Get all user-related data for the user page.
 @swagger_auto_schema(
     method='get',
-    operation_description="Retrieve all user-related information for the authenticated user's profile page. This includes the user's general information (username, email, etc.), bookmarks (post, game, and game move), likes, followers, and followings.",
+    operation_description="Retrieve all user-related information for the authenticated user's profile page. This includes the user's general information (username, email, etc.), bookmarks (post, game, and game move), likes, followers, followings, and user's posts.",
     operation_summary="Get User Page Data",
     responses={
         200: openapi.Response(
@@ -181,12 +180,6 @@ def toggle_follow(request, user_id):
                             "game__white": "Kasparov",
                             "game__black": "Deep Blue",
                             "game__year": 1997
-                        },
-                        {
-                            "game__id": 10,
-                            "game__white": "Fischer",
-                            "game__black": "Spassky",
-                            "game__year": 1972
                         }
                     ],
                     "game_move_bookmarks": [
@@ -199,10 +192,6 @@ def toggle_follow(request, user_id):
                         {
                             "post__id": 5,
                             "post__title": "Top 5 Chess Strategies"
-                        },
-                        {
-                            "post__id": 9,
-                            "post__title": "Chess Openings for Beginners"
                         }
                     ],
                     "followers": [
@@ -215,6 +204,16 @@ def toggle_follow(request, user_id):
                         {
                             "following__id": 5,
                             "following__username": "grandmaster"
+                        }
+                    ],
+                    "posts": [
+                        {
+                            "id": 1,
+                            "title": "My First Post"
+                        },
+                        {
+                            "id": 2,
+                            "title": "Analyzing Chess Openings"
                         }
                     ]
                 }
@@ -247,6 +246,9 @@ def get_user_page(request):
     followers = Follow.objects.filter(following=user).values('follower__id', 'follower__username')
     following = Follow.objects.filter(follower=user).values('following__id', 'following__username')
 
+    # Get User's Posts
+    posts = Post.objects.filter(user=user).values('id', 'title')
+
     # Return user data
     user_data = {
         'username': user.username,
@@ -260,6 +262,7 @@ def get_user_page(request):
         'post_likes': list(post_likes),
         'followers': list(followers),
         'following': list(following),
+        'posts': list(posts)
     }
 
     return Response(user_data, status=status.HTTP_200_OK)
@@ -268,7 +271,7 @@ def get_user_page(request):
 
 @swagger_auto_schema(
     method='get',
-    operation_description="Retrieve public profile of a specific user by user_id. Returns user's basic information, post likes, followers, and following details.",
+    operation_description="Retrieve public profile of a specific user by user_id. Returns user's basic information, post likes, followers, following details, and the user's posts.",
     operation_summary="Get User Profile by User ID",
     responses={
         200: openapi.Response(
@@ -281,16 +284,16 @@ def get_user_page(request):
                     'last_name': 'Kasparov',
                     'date_joined': '2023-12-10T18:25:43.511Z',
                     'post_likes': [
-                        {'post_id': 1, 'post_title': 'How to Win in 10 Moves'},
-                        {'post_id': 2, 'post_title': 'The Greatest Chess Game of All Time'}
+                        {'post_id': 1, 'post_title': 'How to Win in 10 Moves'}
                     ],
                     'followers': [
-                        {'follower_id': 2, 'follower_username': 'john_doe'},
-                        {'follower_id': 3, 'follower_username': 'jane_doe'}
+                        {'follower_id': 2, 'follower_username': 'john_doe'}
                     ],
                     'following': [
-                        {'following_id': 4, 'following_username': 'chess_pro'},
-                        {'following_id': 5, 'following_username': 'game_master'}
+                        {'following_id': 4, 'following_username': 'chess_pro'}
+                    ],
+                    'posts': [
+                        {'id': 1, 'title': 'Kasparov vs Deep Blue'}
                     ]
                 }
             }
@@ -307,12 +310,19 @@ def get_user_page(request):
 )
 @api_view(['GET'])
 @permission_classes([AllowAny])
-def get_user_profile(request, user_id):
+def get_other_user_page(request, user_id):
     # Retrieve user
     user = get_object_or_404(CustomUser, id=user_id)
+    
+    # Get Post Likes
     post_likes = Like.objects.filter(user=user).values('post__id', 'post__title')
+    
+    # Get Followers and Following
     followers = Follow.objects.filter(following=user).values('follower__id', 'follower__username')
     following = Follow.objects.filter(follower=user).values('following__id', 'following__username')
+    
+    # Get User's Posts
+    posts = Post.objects.filter(user=user).values('id', 'title')
     
     response_data = {
         'username': user.username,
@@ -322,7 +332,8 @@ def get_user_profile(request, user_id):
         'date_joined': user.date_joined,
         'post_likes': list(post_likes),  # post id and title
         'followers': list(followers),  # follower id and username
-        'following': list(following)  # following id and username
+        'following': list(following),  # following id and username
+        'posts': list(posts)  # user posts
     }
     
     return Response(response_data, status=status.HTTP_200_OK)
