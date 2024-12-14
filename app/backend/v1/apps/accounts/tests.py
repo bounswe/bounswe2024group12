@@ -1,7 +1,9 @@
 from django.urls import reverse
-from rest_framework.test import APITestCase
+from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
-from v1.apps.accounts.models import CustomUser
+from v1.apps.accounts.models import CustomUser, Follow
+from django.test import TestCase
+
 
 class AccountsTests(APITestCase):
     def setUp(self):
@@ -79,3 +81,30 @@ class AccountsTests(APITestCase):
         response = self.client.post(self.login_url, login_data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("Invalid credentials", response.data['error'])
+
+class FollowUserTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.follower = CustomUser.objects.create_user(username="follower", password="password")
+        self.following = CustomUser.objects.create_user(username="following", password="password")
+        self.url = reverse('toggle-follow', args=[self.following.id])
+
+    def test_follow_user_authenticated(self):
+        self.client.force_authenticate(user=self.follower)
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        follow_exists = Follow.objects.filter(follower=self.follower, following=self.following).exists()
+        self.assertTrue(follow_exists)
+
+    def test_unfollow_user_authenticated(self):
+        self.client.force_authenticate(user=self.follower)
+        self.client.post(self.url)  # Follow first
+        response = self.client.post(self.url)  # Then unfollow
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        follow_exists = Follow.objects.filter(follower=self.follower, following=self.following).exists()
+        self.assertFalse(follow_exists)
+
+    def test_follow_user_unauthenticated(self):
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
