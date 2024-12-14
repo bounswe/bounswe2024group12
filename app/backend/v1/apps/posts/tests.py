@@ -32,6 +32,70 @@ class CreatePostTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
+from django.urls import reverse
+from rest_framework.test import APITestCase, APIClient
+from rest_framework import status
+from v1.apps.accounts.models import CustomUser
+from v1.apps.posts.models import Post
+from v1.apps.posts.serializers import PostSerializer
+
+class EditPostTest(APITestCase):
+    def setUp(self):
+        self.user = CustomUser.objects.create_user(username="testuser", password="password123")
+        self.other_user = CustomUser.objects.create_user(username="otheruser", password="password456")
+        
+        # Create a post by self.user
+        self.post = Post.objects.create(
+            user=self.user,
+            title="Original Title",
+            fen="original_fen",
+            post_text="original text",
+            tags="original"
+        )
+        
+        # Another user's post
+        self.other_post = Post.objects.create(
+            user=self.other_user,
+            title="Another User's Post",
+            fen="another_fen",
+            post_text="another text"
+        )
+        
+        self.client = APIClient()
+        self.edit_url = reverse('edit-post', kwargs={'post_id': self.post.id})
+        self.other_edit_url = reverse('edit-post', kwargs={'post_id': self.other_post.id})
+
+    def test_edit_own_post_success(self):
+        self.client.login(username="testuser", password="password123")
+        data = {
+            "title": "Updated Title",
+            "post_text": "Updated text",
+            "tags": ["updated", "tag"]
+        }
+        response = self.client.put(self.edit_url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        updated_post = Post.objects.get(id=self.post.id)
+        self.assertEqual(updated_post.title, data["title"])
+        self.assertEqual(updated_post.post_text, data["post_text"])
+        self.assertEqual(updated_post.tags, "updated,tag")
+
+    def test_edit_nonexistent_post(self):
+        self.client.login(username="testuser", password="password123")
+        url = reverse('edit-post', kwargs={'post_id': 9999})  # Non-existent post ID
+        response = self.client.put(url, {"title": "New Title"})
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_edit_others_post_forbidden(self):
+        self.client.login(username="testuser", password="password123")
+        response = self.client.put(self.other_edit_url, {"title": "Hacked Title"})
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_edit_invalid_data(self):
+        # For instance, title cannot be empty (if that's a requirement)
+        self.client.login(username="testuser", password="password123")
+        response = self.client.put(self.edit_url, {"title": ""})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
 class GetPostTest(TestCase):
     def setUp(self):
         self.client = APIClient()
