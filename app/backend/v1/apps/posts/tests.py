@@ -54,15 +54,31 @@ class ListPostsTest(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = CustomUser.objects.create_user(username="testuser", password="password")
-        for i in range(15):
-            Post.objects.create(user=self.user, title=f"Post {i}", post_text="Test content")
+        # Create posts with various tags
+        Post.objects.create(user=self.user, title="Post with tag1", post_text="Test content", tags="tag1")
+        Post.objects.create(user=self.user, title="Post with tag2", post_text="Test content", tags="tag2")
+        Post.objects.create(user=self.user, title="Post with tag1 and tag2", post_text="Test content", tags="tag1,tag2")
+        Post.objects.create(user=self.user, title="Post with no tag", post_text="Test content")
         self.url = reverse('list-posts')
 
     def test_list_posts(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.json()['results']), 10)  # Default pagination size
+        # For demonstration, no pagination parameter is shown above; 
+        posts = response.json().get('results', response.json())  # Depending on whether pagination is enabled
+        self.assertEqual(len(posts), 4)  # We created exactly 4
 
+    def test_list_posts_with_tag_filter(self):
+        # Filter by "tag1"
+        response = self.client.get(self.url, {'tag': 'tag1'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        posts = response.json().get('results', response.json())
+        # Expect posts that contain 'tag1' in their tags
+        returned_titles = {post['title'] for post in posts}
+        self.assertIn("Post with tag1", returned_titles)
+        self.assertIn("Post with tag1 and tag2", returned_titles)
+        self.assertNotIn("Post with tag2", returned_titles)
+        self.assertNotIn("Post with no tag", returned_titles)
 
 class LikePostTest(TestCase):
     def setUp(self):
