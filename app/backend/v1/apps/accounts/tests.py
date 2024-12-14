@@ -3,6 +3,9 @@ from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
 from v1.apps.accounts.models import CustomUser, Follow
 from django.test import TestCase
+from v1.apps.posts.models import Post, PostBookmark, Like
+from v1.apps.games.models import Game, GameBookmark, GameMoveBookmark
+
 
 
 class AccountsTests(APITestCase):
@@ -106,5 +109,40 @@ class FollowUserTest(TestCase):
 
     def test_follow_user_unauthenticated(self):
         response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class UserPageTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = CustomUser.objects.create_user(username="chessmaster", password="password123")
+        self.url = reverse('get-user-page')
+        self.client.force_authenticate(user=self.user)
+
+        # Create dummy bookmarks, likes, follows, etc.
+        self.post = Post.objects.create(user=self.user, title="Test Post", post_text="Test Content")
+        PostBookmark.objects.create(user=self.user, post=self.post)
+        Like.objects.create(user=self.user, post=self.post)
+        
+        self.game = Game.objects.create(white="Kasparov", black="Deep Blue", year=1997)
+        GameBookmark.objects.create(user=self.user, game=self.game)
+        GameMoveBookmark.objects.create(user=self.user, game=self.game, fen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR")
+        
+        self.follower = CustomUser.objects.create_user(username="follower", password="password")
+        Follow.objects.create(follower=self.follower, following=self.user)
+
+    def test_user_page_authenticated(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('username', response.data)
+        self.assertIn('post_bookmarks', response.data)
+        self.assertIn('game_bookmarks', response.data)
+        self.assertIn('post_likes', response.data)
+        self.assertIn('followers', response.data)
+        self.assertIn('following', response.data)
+
+    def test_user_page_unauthenticated(self):
+        self.client.logout()
+        response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
