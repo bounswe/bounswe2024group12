@@ -131,14 +131,37 @@ def get_post(request, post_id):
 class PostPagination(PageNumberPagination):
     page_size = 10  # 10 post per page
 
-
 @swagger_auto_schema(
     method='get',
-    operation_description="Retrieve all posts with pagination.",
-    operation_summary="List all posts with pagination",
+    operation_description="Retrieve all posts with pagination, optional tag filtering, and ordering. Order options: 'older', 'newer', 'title'.",
+    operation_summary="List all posts with optional tag filtering and ordering",
+    manual_parameters=[
+        openapi.Parameter(
+            'tag', 
+            openapi.IN_QUERY, 
+            description="Filter posts by a specific tag contained in their 'tags' field",
+            type=openapi.TYPE_STRING,
+            required=False
+        ),
+        openapi.Parameter(
+            'order_by',
+            openapi.IN_QUERY,
+            description="Order posts by a specific criterion: 'older', 'newer', or 'title'.",
+            type=openapi.TYPE_STRING,
+            enum=['older', 'newer', 'title'],
+            required=False
+        ),
+        openapi.Parameter(
+            'page',
+            openapi.IN_QUERY,
+            description="Page number for pagination",
+            type=openapi.TYPE_INTEGER,
+            required=False
+        )
+    ],
     responses={
         200: openapi.Response(
-            description="List of posts retrieved successfully with pagination",
+            description="List of posts retrieved successfully with pagination, optional filtering, and ordering",
             examples={
                 'application/json': {
                     'count': 100,  # Total number of posts
@@ -177,12 +200,29 @@ class PostPagination(PageNumberPagination):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def list_posts(request):
-    posts = Post.objects.all()  # Get all posts
+    tag = request.query_params.get('tag', None)
+    order_by = request.query_params.get('order_by', 'newer')  # Default to 'newer' if not specified
+
+    # Base query
+    posts = Post.objects.all()
+
+    # Filter by tag if provided
+    if tag:
+        posts = posts.filter(tags__icontains=tag)
+    
+    # Order by logic
+    if order_by == 'older':
+        posts = posts.order_by('created_at')
+    elif order_by == 'title':
+        posts = posts.order_by('title')
+    else:
+        # Default or 'newer'
+        posts = posts.order_by('-created_at')
+
     paginator = PostPagination()
     result_page = paginator.paginate_queryset(posts, request)
-    serializer = PostSerializer(result_page, many=True) # Serialize multiple posts
+    serializer = PostSerializer(result_page, many=True)
     return paginator.get_paginated_response(serializer.data)
-
 
 # Like/Unlike a Post
 @swagger_auto_schema(
