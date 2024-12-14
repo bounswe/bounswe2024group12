@@ -7,6 +7,9 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework.permissions import AllowAny
 from rest_framework.decorators import permission_classes
+from v1.apps.accounts.models import CustomUser, Follow
+from rest_framework.permissions import IsAuthenticated
+
 User = get_user_model()
 
 # Sign-up view
@@ -91,3 +94,55 @@ def login(request):
         }, status=status.HTTP_200_OK)
     else:
         return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
+    
+
+@swagger_auto_schema(
+    method='post',
+    operation_description="Toggle follow/unfollow for a specific user. If the user is not followed, the current user will follow them. If the user is already followed, the follow will be removed.",
+    operation_summary="Toggle Follow on a User",
+    responses={
+        201: openapi.Response(
+            description="User followed successfully",
+            examples={
+                'application/json': {
+                    'message': 'User followed successfully'
+                }
+            }
+        ),
+        200: openapi.Response(
+            description="User unfollowed successfully",
+            examples={
+                'application/json': {
+                    'message': 'User unfollowed successfully'
+                }
+            }
+        ),
+        404: openapi.Response(
+            description="User not found",
+            examples={
+                'application/json': {
+                    'error': 'User not found'
+                }
+            }
+        )
+    }
+)
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def toggle_follow(request, user_id):
+    try:
+        following_user = CustomUser.objects.get(id=user_id)
+    except CustomUser.DoesNotExist:
+        return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    follower = request.user
+    if follower == following_user:
+        return Response({"error": "You cannot follow yourself"}, status=status.HTTP_400_BAD_REQUEST)
+
+    follow_instance, created = Follow.objects.get_or_create(follower=follower, following=following_user)
+
+    if not created:
+        follow_instance.delete()
+        return Response({"message": "User unfollowed successfully"}, status=status.HTTP_200_OK)
+    
+    return Response({"message": "User followed successfully"}, status=status.HTTP_201_CREATED)
