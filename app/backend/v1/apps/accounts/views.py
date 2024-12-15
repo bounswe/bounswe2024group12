@@ -188,9 +188,15 @@ def toggle_follow(request, username):
                     "game_bookmarks": [
                         {
                             "game__id": 7,
+                            "game__event": "World Championship",
+                            "game__site": "Reykjavik",
                             "game__white": "Kasparov",
                             "game__black": "Deep Blue",
-                            "game__year": 1997
+                            "game__result": "1-0",
+                            "game__year": 1997,
+                            "game__month": 3,
+                            "game__day": 15,
+                            "game__pgn": "1. e4 e5 2. Nf3 Nc6 3. Bb5 a6"
                         }
                     ],
                     "game_move_bookmarks": [
@@ -240,6 +246,7 @@ def toggle_follow(request, username):
         )
     }
 )
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_user_page(request):
@@ -247,7 +254,18 @@ def get_user_page(request):
 
     # Get Bookmarks
     post_bookmarks = PostBookmark.objects.filter(user=user).values('post__id', 'post__title')
-    game_bookmarks = GameBookmark.objects.filter(user=user).values('game__id', 'game__white', 'game__black', 'game__year')
+    game_bookmarks = GameBookmark.objects.filter(user=user).values(
+        'game__id', 
+        'game__event', 
+        'game__site', 
+        'game__white', 
+        'game__black', 
+        'game__result', 
+        'game__year', 
+        'game__month', 
+        'game__day', 
+        'game__pgn'
+    )
     game_move_bookmarks = GameMoveBookmark.objects.filter(user=user).values('game__id', 'fen')
 
     # Get Likes
