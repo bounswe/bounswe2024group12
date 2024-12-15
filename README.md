@@ -1,4 +1,4 @@
-To see the app: https://167.99.133.190:3000
+To see the app: https://buchessocial.online/
 
 # Setup Instructions
 
