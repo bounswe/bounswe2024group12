@@ -8,6 +8,7 @@ from drf_yasg import openapi
 from .models import Game, GameComment, GameBookmark, GameMoveBookmark, GameOpening
 import requests
 import os
+import json
 
 from rest_framework.response import Response
 from rest_framework import status
@@ -20,6 +21,7 @@ from .serializers import GameCommentSerializer
 
 # Define the Lichess Masters database endpoint
 LICHESS_MASTERS_API = "https://explorer.lichess.ovh/masters"
+LICHESS_BROADCAST_API = "https://lichess.org/api/broadcast"
 LICHESS_ACCESS_TOKEN = os.getenv('LICHESS_ACCESS_TOKEN')
 
 
@@ -513,3 +515,80 @@ def get_opening_by_eco(request):
         }, status=status.HTTP_200_OK)
     except GameOpening.DoesNotExist:
         return Response({"error": f"Opening with ECO code {eco_code} not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+
+
+nb_param = openapi.Parameter(
+    'nb', openapi.IN_QUERY, description="Max number of tournaments to fetch (default: 20)", type=openapi.TYPE_INTEGER
+)
+html_param = openapi.Parameter(
+    'html', openapi.IN_QUERY, description="Convert description field to HTML if true", type=openapi.TYPE_BOOLEAN
+)
+
+@swagger_auto_schema(
+    method='get',
+    manual_parameters=[nb_param, html_param],
+    responses={
+        200: openapi.Response(
+            description="Successfully fetched current tournaments",
+            examples={
+                "application/json": {
+                    "tournaments": [
+                        {
+                            "tour": {
+                                "id": "qKy2yAcs",
+                                "name": "Norway Chess 2024 | Open",
+                                "slug": "norway-chess-2024--open",
+                                "info": {
+                                    "format": "5-round Swiss",
+                                    "players": "featured, players, list",
+                                    "tc": "Classical"
+                                }
+                            },
+                            "createdAt": 1716672627410,
+                            "dates": [1724719373834, 1750560409830],
+                            "tier": 5,
+                            "image": "https://image.lichess1.org/tour.jpg",
+                            "description": "The **Norway Chess 2024** tournament...",
+                            "url": "https://lichess.org/broadcast/"
+                        }
+                    ]
+                }
+            }
+        ),
+        500: openapi.Response(description="Error fetching tournaments"),
+    },
+    operation_description="Fetch current tournaments from the Lichess API.",
+    operation_summary="Fetch Current Tournaments"
+)
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_current_tournaments(request):
+    """
+    Fetches current tournaments from the Lichess API and returns them.
+    """
+    params = {}
+    nb = request.query_params.get('nb', 20)  # Default to 20
+    html = request.query_params.get('html', 'false').lower()
+
+    if nb.isdigit():
+        params['nb'] = int(nb)
+    if html in ['true', '1']:
+        params['html'] = 'true'
+
+    try:
+        # Make a request to the Lichess API
+        response = requests.get(LICHESS_BROADCAST_API, params=params, headers={"Accept": "application/x-ndjson"})
+
+        # Raise an exception for non-200 responses
+        response.raise_for_status()
+
+        # Convert NDJSON to JSON
+        tournaments = []
+        for line in response.text.splitlines():
+            tournaments.append(json.loads(line))  # Correct JSON parsing
+
+        return Response({"tournaments": tournaments}, status=200)
+
+    except requests.exceptions.RequestException as e:
+        return Response({"error": f"Error fetching tournaments: {str(e)}"}, status=500)
