@@ -47,7 +47,6 @@ describe('CreatePostScreen', () => {
       <CreatePostScreen navigation={mockNavigation} />
     );
 
-    // Open tag modal
     fireEvent.press(getByText('Add Tags'));
 
     const tagInput = getByPlaceholderText('Enter tag');
@@ -56,7 +55,6 @@ describe('CreatePostScreen', () => {
 
     expect(getByText('#chess')).toBeTruthy();
 
-    // Remove tag
     fireEvent.press(getByText('×'));
     expect(() => getByText('#chess')).toThrow();
   });

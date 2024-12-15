@@ -18,6 +18,13 @@ import { useAuth } from "./contexts/AuthContext";
 import { api } from "./services/AuthService";
 import PostCard from "./components/PostCard";
 import { likeService } from "./services/LikeService";
+import { ScrollView } from "react-native-gesture-handler";
+import {
+  BookmarkedPosts,
+  BookmarkedGames,
+  BookmarkedMoves,
+} from "./components/BookmarkRenderers";
+import { bookmarkService } from "./services/BookmarkService";
 
 const TABS = ["Posts", "Likes", "Bookmarks"];
 
@@ -93,8 +100,10 @@ const ProfileScreen = ({ navigation }) => {
   useEffect(() => {
     fetchUserData();
     likeService.addLikeChangeListener(fetchUserData);
+    bookmarkService.addBookmarkChangeListener(fetchUserData);
     return () => {
       likeService.removeLikeChangeListener(fetchUserData);
+      bookmarkService.removeBookmarkChangeListener(fetchUserData);
     };
   }, []);
 
@@ -120,7 +129,7 @@ const ProfileScreen = ({ navigation }) => {
         setFollowing(response.data.following || []);
         setFollowers(response.data.followers || []);
         setUserPosts(response.data.posts || []);
-        setLikedPosts(response.data.post_likes || []); // Store liked posts
+        setLikedPosts(response.data.post_likes || []);
         setBookmarks({
           posts: response.data.post_bookmarks || [],
           games: response.data.game_bookmarks || [],
@@ -155,7 +164,6 @@ const ProfileScreen = ({ navigation }) => {
   const toggleBookmarkType = (typeId) => {
     setSelectedBookmarkTypes((prev) => {
       if (prev.includes(typeId)) {
-        // Don't allow deselecting if it's the last selected type
         if (prev.length === 1) return prev;
         return prev.filter((id) => id !== typeId);
       }
@@ -163,39 +171,6 @@ const ProfileScreen = ({ navigation }) => {
     });
   };
 
-  const renderBookmarkItem = (item, type) => {
-    switch (type) {
-      case "posts":
-        const postData = bookmarkedPosts[item.post__id];
-        return postData ? (
-          <PostCard post={postData} />
-        ) : (
-          <View style={styles.loadingBookmarkContainer}>
-            <ActivityIndicator size="small" color="#007AFF" />
-          </View>
-        );
-      case "games":
-        return (
-          <View style={styles.bookmarkItem}>
-            <Text style={styles.bookmarkTitle}>
-              {item.game__white} vs {item.game__black}
-            </Text>
-            <Text style={styles.bookmarkSubtitle}>{item.game__year}</Text>
-          </View>
-        );
-      case "game_moves":
-        return (
-          <View style={styles.bookmarkItem}>
-            <Text style={styles.bookmarkTitle}>Game ID: {item.game__id}</Text>
-            <Text style={styles.bookmarkSubtitle}>{item.fen}</Text>
-          </View>
-        );
-      default:
-        return null;
-    }
-  };
-
-  // Header Component
   const Header = () => (
     <View style={styles.header}>
       <TouchableOpacity
@@ -209,7 +184,6 @@ const ProfileScreen = ({ navigation }) => {
     </View>
   );
 
-  // Profile Info Component
   const ProfileInfo = () => (
     <View style={styles.profileInfo}>
       <View style={styles.userInfoContainer}>
@@ -238,7 +212,6 @@ const ProfileScreen = ({ navigation }) => {
     </View>
   );
 
-  // Tab Strip Component
   const TabStrip = () => (
     <View style={styles.tabStrip}>
       {TABS.map((tab) => (
@@ -257,7 +230,6 @@ const ProfileScreen = ({ navigation }) => {
     </View>
   );
 
-  // Following Modal Component
   const FollowingModal = () => (
     <Modal
       visible={showFollowingModal}
@@ -338,7 +310,6 @@ const ProfileScreen = ({ navigation }) => {
     </Modal>
   );
 
-  // Tab Content Component
   const TabContent = () => {
     if (isLoading) {
       return (
@@ -371,7 +342,6 @@ const ProfileScreen = ({ navigation }) => {
                 post={{
                   id: item.post__id,
                   title: item.post__title,
-                  // Add other post properties as needed
                   ...item,
                 }}
               />
@@ -389,17 +359,38 @@ const ProfileScreen = ({ navigation }) => {
               selectedTypes={selectedBookmarkTypes}
               onToggleType={toggleBookmarkType}
             />
-            <FlatList
-              data={selectedBookmarkTypes.flatMap((type) =>
-                bookmarks[type].map((item) => ({ ...item, type }))
+            <ScrollView style={styles.bookmarksList}>
+              {!bookmarks.posts.length &&
+              !bookmarks.games.length &&
+              !bookmarks.game_moves.length ? (
+                <Text style={styles.emptyText}>No bookmarks yet</Text>
+              ) : (
+                <>
+                  {selectedBookmarkTypes.includes("posts") && (
+                    <BookmarkedPosts
+                      bookmarks={bookmarks.posts}
+                      bookmarkedPosts={bookmarkedPosts}
+                      isLoading={isLoadingBookmarkedPosts}
+                      navigation={navigation}
+                    />
+                  )}
+                  {selectedBookmarkTypes.includes("games") && (
+                    <BookmarkedGames
+                      bookmarks={bookmarks.games}
+                      isLoading={isLoading}
+                      navigation={navigation}
+                    />
+                  )}
+                  {selectedBookmarkTypes.includes("game_moves") && (
+                    <BookmarkedMoves
+                      bookmarks={bookmarks.game_moves}
+                      isLoading={isLoading}
+                      navigation={navigation}
+                    />
+                  )}
+                </>
               )}
-              keyExtractor={(item, index) => `${item.type}-${index}`}
-              renderItem={({ item }) => renderBookmarkItem(item, item.type)}
-              contentContainerStyle={styles.bookmarksList}
-              ListEmptyComponent={
-                <Text style={styles.emptyText}>No bookmarks found</Text>
-              }
-            />
+            </ScrollView>
           </View>
         );
       default:
@@ -649,15 +640,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   loadingBookmarkContainer: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     padding: 16,
     marginVertical: 8,
     borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     height: 100,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,

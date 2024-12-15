@@ -23,6 +23,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/services/AuthService";
 import { likeService } from "@/services/LikeService";
 import PostCommentManagement from "@/components/PostCommentManagement";
+import { bookmarkService } from "./services/BookmarkService";
 
 const normalizeFen = (fen) => {
   if (!fen) return null;
@@ -76,7 +77,6 @@ const ThreadScreen = ({ route, navigation }) => {
     try {
       const response = await api.get("/accounts/me/");
       if (response.data?.post_bookmarks) {
-        // Check if current post is in the bookmarks array
         const isCurrentPostBookmarked = response.data.post_bookmarks.some(
           (bookmark) => bookmark.post__id === post.id
         );
@@ -92,6 +92,7 @@ const ThreadScreen = ({ route, navigation }) => {
       setIsBookmarkLoading(true);
       const response = await api.post(`/posts/bookmark/${post.id}/`);
       await checkBookmarkStatus();
+      bookmarkService.notifyBookmarkChange();
     } catch (error) {
       console.error("Bookmark operation failed:", error.message);
       Alert.alert("Error", "Unable to process your bookmark request.");
@@ -343,11 +344,11 @@ const ThreadScreen = ({ route, navigation }) => {
                 {isBookmarkLoading ? (
                   <ActivityIndicator color="#666" size="small" />
                 ) : (
-                    <Ionicons
+                  <Ionicons
                     name={isBookmarked ? "bookmark" : "bookmark-outline"}
                     size={24}
                     color={isBookmarked ? "#007AFF" : "#666"}
-                />
+                  />
                 )}
               </TouchableOpacity>
             </View>
@@ -674,8 +675,8 @@ const styles = StyleSheet.create({
     minHeight: 36,
   },
   likeButtonContainer: {
-    alignSelf: "flex-start", // Aligns the container to the left
-    marginTop: 8, // Adds some space above the like button
+    alignSelf: "flex-start",
+    marginTop: 8,
   },
   actionButtonsContainer: {
     flexDirection: "row",
@@ -690,8 +691,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E0E0E0",
     margin: 4,
-    height: 40, // Match the height of LikeButton
-    width: 40, // Make it square
+    height: 40,
+    width: 40,
     justifyContent: "center",
     alignItems: "center",
   },

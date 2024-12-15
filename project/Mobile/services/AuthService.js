@@ -10,7 +10,6 @@ const api = axios.create({
   }
 });
 
-// Request interceptor for API calls
 api.interceptors.request.use(
   async (config) => {
     try {
@@ -28,7 +27,6 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor for API calls
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -40,7 +38,6 @@ api.interceptors.response.use(
 );
 
 const parseErrorMessage = (error) => {
-  // Check if it's a database integrity error
   if (error.message && error.message.includes('IntegrityError')) {
     if (error.message.includes('Duplicate entry') && error.message.includes('username')) {
       return 'This username is already taken. Please choose a different one.';
@@ -51,12 +48,11 @@ const parseErrorMessage = (error) => {
     return 'There was a problem creating your account. Please try again with different information.';
   }
 
-  // Handle structured API error responses
   if (error.response?.data) {
     if (typeof error.response.data === 'string') {
       return error.response.data;
     }
-    
+
     const errorMessages = [];
     Object.entries(error.response.data).forEach(([key, value]) => {
       if (Array.isArray(value)) {
@@ -65,23 +61,20 @@ const parseErrorMessage = (error) => {
         errorMessages.push(`${key}: ${value}`);
       }
     });
-    
+
     if (errorMessages.length > 0) {
       return errorMessages.join('\n');
     }
   }
 
-  // Handle network errors
   if (error.message === 'Network Error') {
     return 'Unable to connect to the server. Please check your internet connection.';
   }
 
-  // Handle timeout errors
   if (error.code === 'ECONNABORTED') {
     return 'The request timed out. Please try again.';
   }
 
-  // Default error message
   return 'An unexpected error occurred. Please try again.';
 };
 
@@ -93,9 +86,9 @@ export const authService = {
         mail: mail,
         password: password,
       });
-      
+
       console.log('Login response:', response.data);
-      
+
       if (response.data.token) {
         await AsyncStorage.setItem('userToken', response.data.token);
         await AsyncStorage.setItem('userData', JSON.stringify({
@@ -118,7 +111,7 @@ export const authService = {
         username: username,
         password: password,
       });
-      
+
       console.log('Signup response:', response.data);
       return response.data;
     } catch (error) {

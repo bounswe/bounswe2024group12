@@ -278,66 +278,38 @@ const ArchiveScreen = ({ route, navigation }) => {
 
     const renderGameContent = () => {
         if (mode === 'master' && selectedGamePGN) {
-            return (
-                <View style={styles.masterGameContent}>
-                    <GameSummary
-                        pgn={selectedGamePGN}
-                        onAnalyze={handleAnalyze}
-                    />
-                </View>
-            );
+          return (
+            <View style={styles.masterGameContent}>
+              <GameSummary
+                pgn={selectedGamePGN}
+                onAnalyze={handleAnalyze}
+              />
+            </View>
+          );
         }
 
         return (
-            <View style={styles.gamesListContainer}>
-                {games.map((item, index) => (
-                    <TouchableOpacity 
-                        key={`${item.event}-${item.white}-${item.black}-${index}`}
-                        onPress={() => handleGamePress(item)} 
-                        disabled={isLoading}
-                    >
-                        <View style={styles.gameCard}>
-                            <View style={styles.gameHeader}>
-                                <Text style={styles.gameEvent} numberOfLines={1}>{item.event}</Text>
-                                <Text style={styles.gameDate}>
-                                    {`${item.year}${item.month ? '.' + item.month : ''}${item.day ? '.' + item.day : ''}`}
-                                </Text>
-                            </View>
-                            <View style={styles.playerInfo}>
-                                <Text style={[styles.playerName, item.result === '1-0' && styles.whiteWin]}>
-                                    {item.white}
-                                </Text>
-                                <Text style={styles.vs}>vs</Text>
-                                <Text style={[styles.playerName, item.result === '0-1' && styles.blackWin]}>
-                                    {item.black}
-                                </Text>
-                            </View>
-                            <View style={styles.gameFooter}>
-                                <Text style={styles.gameSite} numberOfLines={1}>{item.site}</Text>
-                                <Text style={[
-                                    styles.gameResult,
-                                    item.result === '1-0' && styles.whiteWin,
-                                    item.result === '0-1' && styles.blackWin,
-                                    item.result === '1/2-1/2' && styles.draw
-                                ]}>
-                                    {item.result}
-                                </Text>
-                            </View>
-                        </View>
-                    </TouchableOpacity>
-                ))}
-                {hasSearched && games.length === 0 && (
-                    <View style={styles.emptyContainer}>
-                        <Text style={styles.emptyText}>No games found</Text>
-                    </View>
-                )}
-            </View>
+          <View style={styles.gamesListContainer}>
+            {games.map((game, index) => (
+              <GameCard
+                key={`${game.event}-${game.white}-${game.black}-${index}`}
+                game={game}
+                onPress={handleGamePress}
+                disabled={isLoading}
+              />
+            ))}
+            {hasSearched && games.length === 0 && (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>No games found</Text>
+              </View>
+            )}
+          </View>
         );
-    };
+      };
 
     return (
         <SafeAreaView style={styles.container}>
-            <ScrollView 
+            <ScrollView
                 style={styles.scrollContainer}
                 contentContainerStyle={styles.scrollContent}
                 showsVerticalScrollIndicator={false}

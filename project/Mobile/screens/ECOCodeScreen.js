@@ -13,7 +13,6 @@ export const ECOCodeScreen = ({ route, navigation }) => {
   const { ecoCode } = route.params;
   const [showAllCodes, setShowAllCodes] = useState(false);
 
-  // Dummy data for the specific ECO code
   const ecoInfo = {
     code: ecoCode,
     name: "King's Pawn Game",
@@ -43,7 +42,6 @@ export const ECOCodeScreen = ({ route, navigation }) => {
     ]
   };
 
-  // Dummy data for general ECO codes
   const generalEcoCodes = [
     {
       category: "A Series (1.any except 1.e4, 1.d4)",
@@ -127,10 +125,10 @@ export const ECOCodeScreen = ({ route, navigation }) => {
             <Text style={styles.learnMoreText}>
               Learn more: <Text style={styles.learnMoreLink}>ECO Codes</Text>
             </Text>
-            <Feather 
-              name={showAllCodes ? "chevron-up" : "chevron-down"} 
-              size={20} 
-              color="#007AFF" 
+            <Feather
+              name={showAllCodes ? "chevron-up" : "chevron-down"}
+              size={20}
+              color="#007AFF"
             />
           </TouchableOpacity>
 
