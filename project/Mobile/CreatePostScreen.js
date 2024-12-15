@@ -17,48 +17,49 @@ import {
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import Chessboard from "react-native-chessboard";
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as ImagePicker from 'expo-image-picker';
-import { api } from './services/AuthService';
-import * as ImageManipulator from 'expo-image-manipulator';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as ImagePicker from "expo-image-picker";
+import { api } from "./services/AuthService";
+import * as ImageManipulator from "expo-image-manipulator";
+import { StatusBar } from "react-native";
 
 const formatFENPosition = (fen) => {
-  if (!fen) return '';
-  
-  let cleanFen = fen.trim().replace(/\s+/g, ' ');
-  
-  if (cleanFen.includes(' ')) return cleanFen;
-  
-  cleanFen = cleanFen.replace(/\/+/g, '/').replace(/\/$/, '');
-  
-  const ranks = cleanFen.split('/');
+  if (!fen) return "";
+
+  let cleanFen = fen.trim().replace(/\s+/g, " ");
+
+  if (cleanFen.includes(" ")) return cleanFen;
+
+  cleanFen = cleanFen.replace(/\/+/g, "/").replace(/\/$/, "");
+
+  const ranks = cleanFen.split("/");
   if (ranks.length < 8) {
     while (ranks.length < 8) {
-      ranks.push('8');
+      ranks.push("8");
     }
   }
-  
+
   const validRanks = ranks.slice(0, 8);
-  return `${validRanks.join('/')} w KQkq - 0 1`;
+  return `${validRanks.join("/")} w KQkq - 0 1`;
 };
 
 const validateFEN = (fen) => {
   if (!fen) return true;
   const trimmedFen = fen.trim();
-  
-  const parts = trimmedFen.split(' ');
+
+  const parts = trimmedFen.split(" ");
   const position = parts[0];
 
-  const ranks = position.split('/');
+  const ranks = position.split("/");
   if (ranks.length !== 8) return false;
 
   for (const rank of ranks) {
     let squares = 0;
     for (let i = 0; i < rank.length; i++) {
       const char = rank[i];
-      if ('12345678'.includes(char)) {
+      if ("12345678".includes(char)) {
         squares += parseInt(char);
-      } else if ('prnbqkPRNBQK'.includes(char)) {
+      } else if ("prnbqkPRNBQK".includes(char)) {
         squares += 1;
       } else {
         return false;
@@ -71,11 +72,13 @@ const validateFEN = (fen) => {
 
   if (parts.length === 6) {
     const [_, turn, castling, enPassant, halfmove, fullmove] = parts;
-    return /^[wb]$/.test(turn) &&
-           /^(-|K?Q?k?q?)$/.test(castling) &&
-           /^(-|[a-h][36])$/.test(enPassant) &&
-           /^\d+$/.test(halfmove) &&
-           /^\d+$/.test(fullmove);
+    return (
+      /^[wb]$/.test(turn) &&
+      /^(-|K?Q?k?q?)$/.test(castling) &&
+      /^(-|[a-h][36])$/.test(enPassant) &&
+      /^\d+$/.test(halfmove) &&
+      /^\d+$/.test(fullmove)
+    );
   }
 
   return false;
@@ -89,15 +92,15 @@ const compressImage = async (uri) => {
       {
         compress: 0.7,
         format: ImageManipulator.SaveFormat.JPEG,
-        base64: true
+        base64: true,
       }
     );
     return {
       uri: manipulatedImage.uri,
-      base64: manipulatedImage.base64
+      base64: manipulatedImage.base64,
     };
   } catch (error) {
-    console.error('Image compression failed:', error);
+    console.error("Image compression failed:", error);
     throw error;
   }
 };
@@ -125,14 +128,14 @@ const CreatePostScreen = ({ navigation }) => {
   };
 
   const removeTag = (tagToRemove) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
+    setTags(tags.filter((tag) => tag !== tagToRemove));
   };
 
   const getAuthToken = async () => {
     try {
-      return await AsyncStorage.getItem('userToken');
+      return await AsyncStorage.getItem("userToken");
     } catch (error) {
-      console.error('Error getting auth token:', error);
+      console.error("Error getting auth token:", error);
       return null;
     }
   };
@@ -170,39 +173,38 @@ const CreatePostScreen = ({ navigation }) => {
         postData.post_image = `data:image/jpeg;base64,${selectedImage.base64}`;
       }
 
-      const response = await api.post('/posts/create/', postData, {
+      const response = await api.post("/posts/create/", postData, {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       });
 
       if (response.status === 201) {
-        Alert.alert(
-          "Success",
-          "Post created successfully!",
-          [{ text: "OK", onPress: () => navigation.goBack() }]
-        );
+        Alert.alert("Success", "Post created successfully!", [
+          { text: "OK", onPress: () => navigation.goBack() },
+        ]);
       }
     } catch (error) {
       console.error("Error creating post:", error);
       if (error.response?.status === 401) {
-        Alert.alert(
-          "Session Expired",
-          "Please log in again.",
-          [{
+        Alert.alert("Session Expired", "Please log in again.", [
+          {
             text: "OK",
             onPress: async () => {
-              await AsyncStorage.removeItem('userToken');
-              navigation.navigate('Login');
-            }
-          }]
-        );
+              await AsyncStorage.removeItem("userToken");
+              navigation.navigate("Login");
+            },
+          },
+        ]);
       } else {
-        const errorMessage = error.response?.data || 'Failed to create post. Please try again.';
-        Alert.alert("Error", typeof errorMessage === 'object'
-          ? Object.values(errorMessage).flat().join('\n')
-          : errorMessage
+        const errorMessage =
+          error.response?.data || "Failed to create post. Please try again.";
+        Alert.alert(
+          "Error",
+          typeof errorMessage === "object"
+            ? Object.values(errorMessage).flat().join("\n")
+            : errorMessage
         );
       }
     }
@@ -210,8 +212,11 @@ const CreatePostScreen = ({ navigation }) => {
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission needed', 'Please grant permission to access your photos');
+    if (status !== "granted") {
+      Alert.alert(
+        "Permission needed",
+        "Please grant permission to access your photos"
+      );
       return;
     }
 
@@ -229,10 +234,10 @@ const CreatePostScreen = ({ navigation }) => {
         setImageMenuVisible(false);
       }
     } catch (error) {
-      console.error('Error picking/processing image:', error);
+      console.error("Error picking/processing image:", error);
       Alert.alert(
-        'Error',
-        'Failed to process the image. Please try again with a different image.'
+        "Error",
+        "Failed to process the image. Please try again with a different image."
       );
     }
   };
@@ -244,7 +249,11 @@ const CreatePostScreen = ({ navigation }) => {
         "Are you sure you want to discard this post?",
         [
           { text: "Cancel", style: "cancel" },
-          { text: "Discard", onPress: () => navigation.goBack(), style: "destructive" }
+          {
+            text: "Discard",
+            onPress: () => navigation.goBack(),
+            style: "destructive",
+          },
         ]
       );
     } else {
@@ -292,7 +301,9 @@ const CreatePostScreen = ({ navigation }) => {
             <TextInput
               style={[
                 styles.fenInput,
-                !validateFEN(formatFENPosition(fenString)) && fenString && styles.fenInputError
+                !validateFEN(formatFENPosition(fenString)) &&
+                  fenString &&
+                  styles.fenInputError,
               ]}
               multiline
               placeholder="Enter position or full FEN notation"
@@ -303,8 +314,9 @@ const CreatePostScreen = ({ navigation }) => {
             {!validateFEN(formatFENPosition(fenString)) && fenString && (
               <Text style={styles.errorText}>
                 Invalid FEN format. Enter either:
-                {'\n'}• Position only (e.g., rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR)
-                {'\n'}• Full FEN (e.g., above + "w KQkq - 0 1")
+                {"\n"}• Position only (e.g.,
+                rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR)
+                {"\n"}• Full FEN (e.g., above + "w KQkq - 0 1")
               </Text>
             )}
             {validateFEN(formatFENPosition(fenString)) && fenString && (
@@ -314,9 +326,9 @@ const CreatePostScreen = ({ navigation }) => {
                   boardSize={boardSize}
                   gestureEnabled={false}
                 />
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.removeButton}
-                  onPress={() => setFenString('')}
+                  onPress={() => setFenString("")}
                 >
                   <Feather name="x" size={16} color="white" />
                 </TouchableOpacity>
@@ -417,30 +429,33 @@ const CreatePostScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: 'white',
+  backgroundColor: 'white',
+  paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight / 2 : 0,
   },
   container: {
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 16,
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight - 24 : 16,
+    backgroundColor: "white",
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: "#eee",
   },
   headerButton: {
     padding: 4,
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   postButton: {
-    color: '#007AFF',
+    color: "#007AFF",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   content: {
     flex: 1,
@@ -448,75 +463,75 @@ const styles = StyleSheet.create({
   },
   titleInput: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 16,
   },
   postInput: {
     fontSize: 16,
     minHeight: 100,
     marginBottom: 16,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
   section: {
     marginBottom: 24,
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 8,
   },
   fenInput: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
     minHeight: 60,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
   fenInputError: {
-    borderColor: '#ff4444',
+    borderColor: "#ff4444",
   },
   errorText: {
-    color: '#ff4444',
+    color: "#ff4444",
     fontSize: 12,
     marginTop: 4,
     lineHeight: 18,
   },
   chessboardContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 16,
     marginBottom: 16,
   },
   tagInputContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginBottom: 8,
   },
   tagInput: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
     marginRight: 8,
   },
   addTagButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: "#007AFF",
     width: 44,
     height: 44,
     borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   tagsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
   },
   tag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f0f0f0',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f0f0f0",
     borderRadius: 16,
     paddingVertical: 6,
     paddingHorizontal: 12,
@@ -531,11 +546,11 @@ const styles = StyleSheet.create({
     padding: 2,
   },
   addImageButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 12,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 8,
     marginBottom: 16,
   },
@@ -544,38 +559,38 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     marginBottom: 16,
-    position: 'relative',
+    position: "relative",
   },
   selectedImage: {
-    width: '100%',
+    width: "100%",
     height: 200,
     borderRadius: 8,
   },
   removeImageButton: {
-    position: 'absolute',
+    position: "absolute",
     top: 8,
     right: 8,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: "rgba(0,0,0,0.5)",
     borderRadius: 12,
     width: 24,
     height: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalOverlay: {
     flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(0,0,0,0.5)",
   },
   imageMenuContainer: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderTopLeftRadius: 15,
     borderTopRightRadius: 15,
     padding: 16,
   },
   imageMenuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 16,
   },
   imageMenuText: {
@@ -583,45 +598,45 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   cancelButton: {
-    alignItems: 'center',
+    alignItems: "center",
     padding: 16,
     marginTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#eee',
+    borderTopColor: "#eee",
   },
   cancelButtonText: {
-    color: '#ff3b30',
+    color: "#ff3b30",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   chessboardContainer: {
-    position: 'relative',
-    alignItems: 'center',
+    position: "relative",
+    alignItems: "center",
     marginTop: 16,
     marginBottom: 16,
   },
   removeButton: {
-    position: 'absolute',
+    position: "absolute",
     top: 8,
     right: 8,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: "rgba(0,0,0,0.5)",
     borderRadius: 12,
     width: 24,
     height: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   fenInput: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
     minHeight: 60,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
   fenInputError: {
-    borderColor: '#ff4444',
+    borderColor: "#ff4444",
   },
 });
 

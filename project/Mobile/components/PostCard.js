@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { 
-    View, 
-    Text, 
-    TouchableOpacity, 
-    Image, 
+import {
+    View,
+    Text,
+    TouchableOpacity,
+    Image,
     StyleSheet,
     Modal,
     Clipboard,
@@ -32,6 +32,10 @@ const PostCard = ({ post }) => {
 
     useEffect(() => {
         loadLikeSummary();
+        likeService.addLikeChangeListener(loadLikeSummary);
+        return () => {
+            likeService.removeLikeChangeListener(loadLikeSummary);
+        };
     }, [post.id]);
 
     const loadLikeSummary = async () => {
@@ -119,14 +123,14 @@ const PostCard = ({ post }) => {
                             <Feather name="x" size={24} color="#666" />
                         </TouchableOpacity>
                     </View>
-                    
+
                     <TouchableOpacity
                         style={styles.fenContainer}
                         onPress={handleCopyFen}
                     >
                         <Text style={styles.fenText}>{post.fen}</Text>
                     </TouchableOpacity>
-                    
+
                     <TouchableOpacity
                         style={styles.copyButton}
                         onPress={handleCopyFen}
@@ -142,12 +146,12 @@ const PostCard = ({ post }) => {
     );
 
     return (
-        <TouchableOpacity 
+        <TouchableOpacity
             style={styles.container}
             onPress={() => navigation.navigate('Thread', { post })}
         >
             <Text style={styles.title}>{post.title}</Text>
-            
+
             {post.post_image && (
                 <View style={styles.imageContainer}>
                     <Image
@@ -165,7 +169,7 @@ const PostCard = ({ post }) => {
             )}
 
             {post.fen && (
-                <TouchableOpacity 
+                <TouchableOpacity
                     style={styles.chessSection}
                     onPress={() => setShowFenModal(true)}
                     activeOpacity={0.8}

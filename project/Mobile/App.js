@@ -4,6 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import MainScreen from './MainScreen';
+import ProfileScreen from './ProfileScreen';
 import AnalysisScreen from './AnalysisScreen';
 import PuzzlesScreen from './PuzzlesScreen';
 import CreatePostScreen from './CreatePostScreen';
@@ -41,6 +42,7 @@ function AppNavigator() {
         ) : (
           <>
             <Stack.Screen name="Home" component={MainScreen} />
+            <Stack.Screen name="Profile" component={ProfileScreen} />
             <Stack.Screen name="Playground" component={PlaygroundScreen} />
             <Stack.Screen name="Analysis" component={AnalysisScreen} />
             <Stack.Screen name="Puzzles" component={PuzzlesScreen} />
