@@ -1,9 +1,25 @@
 import { api } from './AuthService';
 
+let likeChangeListeners = [];
+
 export const likeService = {
+
+  addLikeChangeListener(listener) {
+    likeChangeListeners.push(listener);
+  },
+
+  removeLikeChangeListener(listener) {
+    likeChangeListeners = likeChangeListeners.filter(l => l !== listener);
+  },
+
+  notifyLikeChange() {
+    likeChangeListeners.forEach(listener => listener());
+  },
+
   async toggleLike(postId) {
     try {
       const response = await api.post(`/posts/like/${postId}/`);
+      this.notifyLikeChange();
       return response.data;
     } catch (error) {
       if (error.response?.status === 401) {
