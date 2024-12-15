@@ -1,7 +1,7 @@
 from django.test import TestCase
 
 from django.urls import reverse
-from v1.apps.games.models import Game, GameComment, GameBookmark, GameMoveBookmark
+from v1.apps.games.models import Game, GameComment, GameBookmark, GameMoveBookmark, GameOpening
 from v1.apps.accounts.models import CustomUser
 from rest_framework import status
 
@@ -117,3 +117,35 @@ class BookmarkGameMoveTest(TestCase):
     def test_bookmark_game_move_unauthenticated(self):
         response = self.client.post(self.url, {"fen": self.fen})
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class GetOpeningByECOTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        # Add test data
+        GameOpening.objects.create(
+            eco_code="C50",
+            name="Giuoco Pianissimo (Italian Game)",
+            description="A quiet version of the Italian Game, emphasizing slow development and pawn structure."
+        )
+        GameOpening.objects.create(
+            eco_code="C60",
+            name="Ruy-Lopez (Spanish Game)",
+            description="Highly strategic opening where White attacks the knight on c6 to exert pressure on Black's pawn structure."
+        )
+    
+    def test_get_opening_by_valid_eco(self):
+        response = self.client.get('/v1/games/openings/', {'eco_code': 'C50'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['name'], "Giuoco Pianissimo (Italian Game)")
+        self.assertEqual(response.data['description'], "A quiet version of the Italian Game, emphasizing slow development and pawn structure.")
+    
+    def test_get_opening_by_invalid_eco(self):
+        response = self.client.get('/v1/games/openings/', {'eco_code': 'C99'})
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data['error'], "Opening with ECO code C99 not found")
+    
+    def test_get_opening_without_eco(self):
+        response = self.client.get('/v1/games/openings/')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['error'], "ECO code is required")

@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from v1.apps.headers import auth_header
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from .models import Game, GameComment, GameBookmark, GameMoveBookmark
+from .models import Game, GameComment, GameBookmark, GameMoveBookmark, GameOpening
 import requests
 import os
 
@@ -462,3 +462,54 @@ def toggle_game_move_bookmark(request, game_id):
         return Response({"message": "Game move unbookmarked"}, status=status.HTTP_200_OK)
     
     return Response({"message": "Game move bookmarked"}, status=status.HTTP_201_CREATED)
+
+
+# Swagger parameter
+eco_code_param = openapi.Parameter(
+    'eco_code',
+    in_=openapi.IN_QUERY,
+    description="The ECO code of the chess opening (e.g., 'C50')",
+    type=openapi.TYPE_STRING,
+    required=True
+)
+
+@swagger_auto_schema(
+    method='get',
+    manual_parameters=[eco_code_param],
+    responses={
+        200: openapi.Response(description="Chess opening found", examples={
+            'application/json': {
+                "eco_code": "C50",
+                "name": "Giuoco Pianissimo (Italian Game)",
+                "description": "A quiet version of the Italian Game, emphasizing slow development and pawn structure."
+            }
+        }),
+        404: openapi.Response(description="Opening not found", examples={
+            'application/json': {
+                "error": "Opening with ECO code C50 not found"
+            }
+        })
+    },
+    operation_description="Retrieve a chess opening by its ECO code.",
+    operation_summary="Get Chess Opening by ECO Code"
+)
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_opening_by_eco(request):
+    """
+    Retrieve the opening name and description by ECO code.
+    """
+    eco_code = request.query_params.get('eco_code', None)
+    
+    if not eco_code:
+        return Response({"error": "ECO code is required"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        opening = GameOpening.objects.get(eco_code=eco_code.upper())
+        return Response({
+            "eco_code": opening.eco_code,
+            "name": opening.name,
+            "description": opening.description
+        }, status=status.HTTP_200_OK)
+    except GameOpening.DoesNotExist:
+        return Response({"error": f"Opening with ECO code {eco_code} not found"}, status=status.HTTP_404_NOT_FOUND)
