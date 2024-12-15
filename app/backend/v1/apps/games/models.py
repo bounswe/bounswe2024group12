@@ -52,3 +52,13 @@ class GameMoveBookmark(models.Model):
 
     def __str__(self):
         return f"{self.user.username} bookmarked move {self.fen} in game {self.game.id}"
+    
+
+
+class GameOpening(models.Model):
+    eco_code = models.CharField(max_length=10)
+    name = models.CharField(max_length=255)
+    description = models.TextField()
+
+    def __str__(self):
+        return self.name
