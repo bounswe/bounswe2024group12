@@ -90,7 +90,7 @@ class FollowUserTest(TestCase):
         self.client = APIClient()
         self.follower = CustomUser.objects.create_user(username="follower", password="password")
         self.following = CustomUser.objects.create_user(username="following", password="password")
-        self.url = reverse('toggle-follow', args=[self.following.id])
+        self.url = reverse('toggle-follow', args=[self.following.username])
 
     def test_follow_user_authenticated(self):
         self.client.force_authenticate(user=self.follower)

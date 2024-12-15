@@ -12,6 +12,7 @@ from rest_framework.permissions import IsAuthenticated
 from v1.apps.posts.models import PostBookmark, Like, Post
 from v1.apps.games.models import GameBookmark, GameMoveBookmark
 from django.shortcuts import get_object_or_404
+from v1.apps.headers import auth_header
 User = get_user_model()
 
 # Sign-up view
@@ -102,6 +103,7 @@ def login(request):
     method='post',
     operation_description="Toggle follow/unfollow for a specific user. If the user is not followed, the current user will follow them. If the user is already followed, the follow will be removed.",
     operation_summary="Toggle Follow on a User",
+    manual_parameters=[auth_header],
     responses={
         201: openapi.Response(
             description="User followed successfully",
@@ -126,14 +128,22 @@ def login(request):
                     'error': 'User not found'
                 }
             }
+        ),
+        401: openapi.Response(
+            description="Authentication required",
+            examples={
+                'application/json': {
+                    "detail": "Authentication credentials were not provided."
+                }
+            }
         )
     }
 )
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def toggle_follow(request, user_id):
+def toggle_follow(request, username):
     try:
-        following_user = CustomUser.objects.get(id=user_id)
+        following_user = CustomUser.objects.get(username=username)
     except CustomUser.DoesNotExist:
         return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -154,6 +164,7 @@ def toggle_follow(request, user_id):
     method='get',
     operation_description="Retrieve all user-related information for the authenticated user's profile page. This includes the user's general information (username, email, etc.), bookmarks (post, game, and game move), likes, followers, followings, and user's posts.",
     operation_summary="Get User Page Data",
+    manual_parameters=[auth_header],
     responses={
         200: openapi.Response(
             description="User page data retrieved successfully",
