@@ -13,6 +13,9 @@ const ProfileCard = () => {
   const [profileData, setProfileData] = useState(null);
   const [likedPosts, setLikedPosts] = useState([]);
   const [myPosts, setMyPosts] = useState([]);
+  const [bookmarkedPosts, setBookmarkedPosts] = useState([]);
+  const [bookmarkedGames, setBookmarkedGames] = useState([]);
+  const [bookmarkedGameMoves, setBookmarkedGameMoves] = useState([]);
   const [isFollowing, setIsFollowing] = useState(false);
   const [showFollowers, setShowFollowers] = useState(false);
   const [showFollowing, setShowFollowing] = useState(false);
@@ -62,6 +65,7 @@ const ProfileCard = () => {
     return null;
   };
 
+
   const fetchPosts = async (posts, setPosts) => {
     const postIds = posts.filter(post => post.id || post.post__id).map(post => post.id || post.post__id);
 
@@ -102,7 +106,6 @@ const ProfileCard = () => {
     setPosts(postDetails.sort((a, b) => b.timestamp - a.timestamp));
   };
 
-
   useEffect(() => {
     if (profileData?.posts) {
       fetchPosts(profileData.posts, setMyPosts);
@@ -114,6 +117,20 @@ const ProfileCard = () => {
       fetchPosts(profileData.post_likes, setLikedPosts);
     }
   }, [profileData]);
+
+  useEffect(() => {
+    if (profileData?.post_bookmarks) {
+      fetchPosts(profileData.post_bookmarks, (posts) => {
+        // Add 'bookmarked: true' to each post in the list
+        const bookmarkedPostsWithFlag = posts.map(post => ({
+          ...post,
+          bookmarked: true,
+        }));
+        setBookmarkedPosts(bookmarkedPostsWithFlag);
+      });
+    }
+  }, [profileData]);
+
 
   const handleFollowToggle = async () => {
     const newIsFollowing = !isFollowing;
@@ -151,7 +168,7 @@ const ProfileCard = () => {
   };
 
   const renderPostList = (title, posts) => (
-    <Accordion sx={(theme) => ({ 
+    <Accordion sx={(theme) => ({
       backgroundColor: theme.palette.grey[50],
       boxShadow: theme.shadows[2],
       border: `2px solid ${theme.palette.divider}`,
@@ -173,10 +190,10 @@ const ProfileCard = () => {
         }
       }
     })}>
-      <AccordionSummary 
-        expandIcon={<ExpandMoreIcon />} 
+      <AccordionSummary
+        expandIcon={<ExpandMoreIcon />}
       >
-        <Typography variant="h6" sx={(theme) => ({ 
+        <Typography variant="h6" sx={(theme) => ({
           color: theme.palette.text.primary,
           fontWeight: 500
         })}>
@@ -191,7 +208,7 @@ const ProfileCard = () => {
             </div>
           ))
         ) : (
-          <Typography sx={(theme) => ({ 
+          <Typography sx={(theme) => ({
             color: theme.palette.text.secondary,
             fontStyle: 'italic'
           })}>
@@ -203,7 +220,7 @@ const ProfileCard = () => {
   );
 
   const renderFollowersFollowing = (title, users, isFollower) => (
-    <Accordion sx={(theme) => ({ 
+    <Accordion sx={(theme) => ({
       backgroundColor: theme.palette.grey[50],
       boxShadow: theme.shadows[2],
       border: `2px solid ${theme.palette.divider}`,
@@ -219,14 +236,14 @@ const ProfileCard = () => {
         expandIcon={<ExpandMoreIcon />}
         onClick={() => (title === 'Followers' ? setShowFollowers(!showFollowers) : setShowFollowing(!showFollowing))}
       >
-        <Typography variant="body2" sx={(theme) => ({ 
-          fontWeight: 'bold', 
-          color: theme.palette.text.primary 
+        <Typography variant="body2" sx={(theme) => ({
+          fontWeight: 'bold',
+          color: theme.palette.text.primary
         })}>
           <strong>{title}:</strong>
         </Typography>
       </AccordionSummary>
-      <AccordionDetails sx={{ 
+      <AccordionDetails sx={{
         padding: 2,
         '& > .MuiTypography-root': {
           padding: '4px 8px',
@@ -247,7 +264,7 @@ const ProfileCard = () => {
                 ml: 2,
                 color: theme.palette.primary.main,
                 cursor: 'pointer',
-                '&:hover': { 
+                '&:hover': {
                   textDecoration: 'underline',
                   color: theme.palette.primary.dark,
                   backgroundColor: theme.palette.background.default
@@ -259,7 +276,7 @@ const ProfileCard = () => {
             </Typography>
           ))
         ) : (
-          <Typography sx={(theme) => ({ 
+          <Typography sx={(theme) => ({
             color: theme.palette.text.secondary,
             fontStyle: 'italic'
           })}>
@@ -279,45 +296,45 @@ const ProfileCard = () => {
     <div>
       <Navbar />
       <Container>
-        <Card sx={(theme) => ({ 
-          my: 4, 
-          p: 3, 
+        <Card sx={(theme) => ({
+          my: 4,
+          p: 3,
           backgroundColor: theme.palette.background.paper,
           boxShadow: theme.shadows[3],
           borderRadius: 2
         })}>
-          <Typography variant="h4" gutterBottom align="center" 
+          <Typography variant="h4" gutterBottom align="center"
             sx={(theme) => ({ color: theme.palette.text.primary })}>
             Profile
           </Typography>
           <Divider sx={(theme) => ({ mb: 2, backgroundColor: theme.palette.divider })} />
           <Grid2 container spacing={2}>
             <Grid2 item xs={12} md={6}>
-              <Typography variant="h6" sx={(theme) => ({ 
-                color: theme.palette.text.primary, 
-                mb: 2 
+              <Typography variant="h6" sx={(theme) => ({
+                color: theme.palette.text.primary,
+                mb: 2
               })}>User Info</Typography>
-              <Typography sx={(theme) => ({ 
-                color: theme.palette.text.secondary, 
-                mb: 1 
+              <Typography sx={(theme) => ({
+                color: theme.palette.text.secondary,
+                mb: 1
               })}>Username: {profileData.username}</Typography>
               {(!username || currUser === username) && (
-                <Typography sx={(theme) => ({ 
-                  color: theme.palette.text.secondary, 
-                  mb: 1 
+                <Typography sx={(theme) => ({
+                  color: theme.palette.text.secondary,
+                  mb: 1
                 })}>Email: {profileData.email}</Typography>
               )}
-              <Typography sx={(theme) => ({ 
-                color: theme.palette.text.secondary, 
-                mb: 1 
+              <Typography sx={(theme) => ({
+                color: theme.palette.text.secondary,
+                mb: 1
               })}>Date Joined: {new Date(profileData.date_joined).toLocaleDateString()}</Typography>
-              <Typography sx={(theme) => ({ 
-                color: theme.palette.text.secondary, 
-                mb: 1 
+              <Typography sx={(theme) => ({
+                color: theme.palette.text.secondary,
+                mb: 1
               })}>Followers: {profileData.followers.length}</Typography>
-              <Typography sx={(theme) => ({ 
-                color: theme.palette.text.secondary, 
-                mb: 1 
+              <Typography sx={(theme) => ({
+                color: theme.palette.text.secondary,
+                mb: 1
               })}>Following: {profileData.following.length}</Typography>
               {username && currUser !== username && (
                 <Button
@@ -344,15 +361,26 @@ const ProfileCard = () => {
             </Grid2>
 
             <Grid2 item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-              <Typography variant="h6" sx={(theme) => ({ 
-                color: theme.palette.text.primary, 
-                mb: 2 
+              <Typography variant="h6" sx={(theme) => ({
+                color: theme.palette.text.primary,
+                mb: 2
               })}>Followers & Following</Typography>
               {renderFollowersFollowing('Followers', profileData.followers, true)}
               {renderFollowersFollowing('Following', profileData.following, false)}
             </Grid2>
           </Grid2>
-          <Divider sx={(theme) => ({ my: 2, backgroundColor: theme.palette.divider })} />
+          <Divider sx={{ my: 2 }} />
+          {(!username || currUser === username) && // Only show bookmarks for the current user
+            <>
+              {renderPostList('Bookmarked Posts', bookmarkedPosts)}
+              <Divider sx={{ my: 2 }} />
+              {renderPostList('Bookmarked Games', bookmarkedGames)}
+              <Divider sx={{ my: 2 }} />
+              {renderPostList('Bookmarked Game Moves', bookmarkedGameMoves)}
+              <Divider sx={{ my: 2 }} />
+            </>
+          }
+          <Divider sx={{ my: 2 }} />
           {renderPostList(username ? `${username}'s Posts` : 'Posts', myPosts)}
           <Divider sx={(theme) => ({ my: 2, backgroundColor: theme.palette.divider })} />
           {renderPostList(username ? `${username}'s Liked Posts` : 'Liked Posts', likedPosts)}
