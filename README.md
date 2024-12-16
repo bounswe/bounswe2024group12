@@ -13,6 +13,8 @@ Before running this project, make sure you have the following installed on your 
 - [Docker](https://www.docker.com/get-started)
 
 ### Steps to Run the Backend
+You can reach documentation at: [Swagger-UI](https://buchessocial.online/api/swagger/), [Json-File](https://buchessocial.online/api/swagger.json), [Yaml-file(you can view at swaggerhub](https://buchessocial.online/api/swagger.yaml)
+
 
 1. **Clone the repository:**
 
@@ -37,7 +39,12 @@ Before running this project, make sure you have the following installed on your 
    - `web`: The Django backend service running on port `8000`.
    - `db`: The MySQL database service running on port `3306`.
 
-4. **View logs to monitor the process:**
+   **Important Note!**
+   Due to we are inserting 28K games and bunch of data into database, even if we add an interval before backend start. Backend may failed at the build phase( Due to db is not started yet)
+   We solved this issue by adding start.sh script but we are giving some permission during this phase etc. So, that if anything wrongs about permission please reach out.
+
+
+5. **View logs to monitor the process:**
 
    To view the logs for any service, run:
 
@@ -45,18 +52,18 @@ Before running this project, make sure you have the following installed on your 
    docker-compose logs
    ```
 
-5. **Apply the database migrations:**
+6. **Apply the database migrations:**
 
    ```bash
    docker-compose exec web python manage.py migrate
    ```
 
-6. **Access the application:**
+7. **Access the application:**
 
    - The application will be running at: `http://localhost:8000`
    - The Django admin panel will be available at: `http://localhost:8000/admin`
 
-7. **Stop the containers:**
+8. **Stop the containers:**
 
    To stop the containers, run:
 
@@ -64,7 +71,7 @@ Before running this project, make sure you have the following installed on your 
    docker-compose down
    ```
 
-8. **Show the docker containers:**
+9. **Show the docker containers:**
 
    To show the docker containers, run:
 
@@ -80,8 +87,8 @@ To run all tests for the backend, execute the following command at /backend :
 docker-compose exec web bash /app/api_core/test.sh
 ```
 ### Database Initialization (IMPORTANT)
-
-We scraped chess games from https://www.pgnmentor.com/ and there is a function at "/app/backend/v1/apps/games/management/commands/import_games.py" to import json file to database. Due to file size is too big (~300MB) we will send it if exact database table is needed.
+Due to we put a sql initiator no need to use Commands, you can run by docker-compose scrit at 3rd step
+**OLD** We scraped chess games from https://www.pgnmentor.com/ and there is a function at "/app/backend/v1/apps/games/management/commands/import_games.py" to import json file to database. Due to file size is too big (~300MB) we will send it if exact database table is needed.
 
 
 ## Frontend
