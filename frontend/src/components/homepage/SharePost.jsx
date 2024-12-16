@@ -116,7 +116,8 @@ const SharePost = () => {
                       },
                       "& .MuiInputBase-input": {
                         fontSize: "24px",
-                      }}}
+                      }
+                    }}
                   />
                 )}
               </Field>
@@ -126,6 +127,7 @@ const SharePost = () => {
                   <Autocomplete
                     {...input}
                     multiple
+                    freeSolo
                     options={tagOptions}
                     getOptionLabel={(option) => option}
                     value={Array.isArray(input.value) ? input.value : []}
@@ -135,7 +137,7 @@ const SharePost = () => {
                         {...params}
                         variant="outlined"
                         label="Tags"
-                        placeholder="Select tags"
+                        placeholder="Select or add tags"
                         style={{ marginBottom: "10px" }}
                       />
                     )}
@@ -191,7 +193,7 @@ const SharePost = () => {
 
                 <Field name="imageBase64">
                   {({ input }) => (
-                    <Box sx={{  flex: 1, display: 'flex', gap: 2, marginBottom: 2, justifyContent: "space-around"  }}>
+                    <Box sx={{ flex: 1, display: 'flex', gap: 2, marginBottom: 2, justifyContent: "space-around" }}>
                       <Button variant="contained" component="label">
                         Upload Image
                         <Input
@@ -201,7 +203,7 @@ const SharePost = () => {
                           style={{ display: "none" }}
                         />
                       </Button>
-                      {imageName && <Typography style={{  ml: 1, mt: 1}}>{imageName}</Typography>}
+                      {imageName && <Typography style={{ ml: 1, mt: 1 }}>{imageName}</Typography>}
                       {!imageName && <Typography sx={{ ml: 1, mt: 1 }}>No file chosen.</Typography>}
                     </Box>
                   )}
@@ -249,15 +251,15 @@ const SharePost = () => {
                 </Box>
               )}
               <Box sx={{ display: "flex", justifyContent: "right" }}>
-              <Button
-                type="submit"
-                variant="contained"
-                color="primary"
-                disabled={submitting}
-                sx={{pl:5, pr:5}}
-              >
-                Share
-              </Button>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  disabled={submitting}
+                  sx={{ pl: 5, pr: 5 }}
+                >
+                  Share
+                </Button>
               </Box>
             </form>
           )}

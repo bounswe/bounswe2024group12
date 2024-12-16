@@ -45,7 +45,7 @@ const CommentCard = () => {
       const mappedPost = {
         id: postData.id,
         username: postData.user,
-        title: `${postData.user}'s post:`,
+        title: postData.title || `${postData.user}'s post:`,
         post_text: postData.post_text,
         image: postData.post_image || "",
         fen: postData.fen || "",
@@ -85,7 +85,7 @@ const CommentCard = () => {
           Comments
         </Typography>
 
-        <ShareComment postId={id}/>
+        <ShareComment postId={id} />
         <Divider sx={{ margin: "20px 0" }} />
 
         {comments.map((comment, index) => (
