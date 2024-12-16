@@ -112,7 +112,7 @@ Before running this project, make sure you have the following installed on your 
 2. **Navigate to the frontend folder**:
    
    ```bash
-   cd app/frontend
+   cd bounswer2024group12/frontend
 
 3. **Build the Docker image**:
 First, ensure Docker is running. Then, build the Docker image for the React frontend:
