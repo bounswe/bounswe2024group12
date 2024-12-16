@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import Navbar from '../common/Navbar';
 import Feed from './Feed';
-import { useNavigate } from 'react-router-dom'; // For navigation
+import { useNavigate, useParams } from 'react-router-dom'; // For navigation and params
 
 const BACKEND_URL = process.env.REACT_APP_API_URL;
 
 const HomeCard = () => {
   const navigate = useNavigate();
+  const { tag } = useParams(); // Extract tag from URL
   const [isGuest, setIsGuest] = useState(false);
 
   useEffect(() => {
@@ -45,7 +46,7 @@ const HomeCard = () => {
   return (
     <div>
       <Navbar />
-      <Feed isGuest={isGuest}/>
+      <Feed isGuest={isGuest} passedTag={tag} /> {/* Pass selectedTag prop */}
       {isGuest && (
         <div style={{ padding: '20px', textAlign: 'center' }}>
           <h2>Welcome, Guest!</h2>

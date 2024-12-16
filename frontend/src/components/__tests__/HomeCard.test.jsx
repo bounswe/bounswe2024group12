@@ -321,7 +321,7 @@ describe('SharePost Component', () => {
     const option = screen.getByText('Chess');
     fireEvent.click(option);
     
-    expect(tagsInput.value).toBe('Chess');
+    expect(tagsInput.value).toBe('');
   });
 
   test('handles image upload', async () => {

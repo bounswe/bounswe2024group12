@@ -6,6 +6,7 @@ import { Box, Typography, TextField, Button, List, ListItem, ListItemText } from
 const BACKEND_URL = process.env.REACT_APP_API_URL;
 
 const ArchiveCard = () => {
+  const [currentUser, setCurrentUser] = useState(localStorage.getItem('username'));
   const [filters, setFilters] = useState({
     year: '',
     player: '',
@@ -41,11 +42,20 @@ const ArchiveCard = () => {
 
   const handleGameClick = (game) => {
     console.log(game.pgn);
+    console.log(game);  
     setSelectedGame(game);
   };
 
   const handleReturnToSearch = () => {
     setSelectedGame(null);
+  };
+
+  const handleGameSelect = (game) => {
+    setSelectedGame(game);
+  };
+
+  const cardContentStyle = {
+    fontSize: '1.1rem',
   };
 
   return (
@@ -98,7 +108,11 @@ const ArchiveCard = () => {
             <Button variant="outlined" onClick={handleReturnToSearch} sx={{ mb: 2 }}>
               Return to Search
             </Button>
-            <GameScreen game={selectedGame} />
+            <GameScreen 
+              game={selectedGame} 
+              currentUser={currentUser}
+              onGameSelect={handleGameSelect}
+            />
           </Box>
         </>
       )}
