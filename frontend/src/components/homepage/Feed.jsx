@@ -52,7 +52,7 @@ const Feed = ({ isGuest }) => {
         .map((post) => ({
           id: post.id,
           username: post.user,
-          title: `${post.user}'s post:`,
+          title: post.title || `${post.user}'s post:`,
           post_text: post.post_text,
           image: post.post_image || "",
           fen: post.fen || "",
