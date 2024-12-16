@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   View,
   Text,
@@ -25,6 +25,7 @@ import {
   BookmarkedMoves,
 } from "./components/BookmarkRenderers";
 import { bookmarkService } from "./services/BookmarkService";
+
 
 const TABS = ["Posts", "Likes", "Bookmarks"];
 
@@ -74,8 +75,7 @@ const BookmarkFilters = ({ selectedTypes, onToggleType }) => {
   );
 };
 
-const ProfileScreen = ({ navigation }) => {
-  const { user } = useAuth();
+const ProfileScreen = ({ route, navigation }) => {
   const [userData, setUserData] = useState(null);
   const [activeTab, setActiveTab] = useState("Posts");
   const [showFollowingModal, setShowFollowingModal] = useState(false);
@@ -84,28 +84,148 @@ const ProfileScreen = ({ navigation }) => {
   const [following, setFollowing] = useState([]);
   const [userPosts, setUserPosts] = useState([]);
   const [likedPosts, setLikedPosts] = useState([]);
+  const { user } = useAuth();
+  const username = route.params?.username || user?.username;
+  const isOtherUser = route.params?.isOtherUser || false;
+  const [isFollowing, setIsFollowing] = useState(false);
   const [bookmarks, setBookmarks] = useState({
     posts: [],
     games: [],
     game_moves: [],
   });
   const [bookmarkedPosts, setBookmarkedPosts] = useState({});
-  const [isLoadingBookmarkedPosts, setIsLoadingBookmarkedPosts] =
-    useState(false);
+  const [isLoadingBookmarkedPosts, setIsLoadingBookmarkedPosts] = useState(false);
   const [selectedBookmarkTypes, setSelectedBookmarkTypes] = useState(
     BOOKMARK_TYPES.map((type) => type.id)
   );
   const [isLoading, setIsLoading] = useState(true);
+  const [fullPosts, setFullPosts] = useState([]);
+  const [likedFullPosts, setLikedFullPosts] = useState([]);
+  const [isLoadingPosts, setIsLoadingPosts] = useState(false);
+  const cache = useRef({
+    posts: null,
+    likes: null,
+    bookmarks: null,
+  });
+
+  const fetchPostDetails = useCallback(async (postId) => {
+    try {
+      const response = await api.get(`/posts/${postId}/`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching post ${postId}:`, error);
+      return null;
+    }
+  }, []);
+
+  const fetchUserData = useCallback(async () => {
+    if (!isLoading && cache.current[activeTab.toLowerCase()]) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const response = await api.get(isOtherUser ? `/accounts/${username}/` : "/accounts/me/");
+
+      if (response.data) {
+        setUserData(response.data);
+        if (isOtherUser && user?.username) {
+          console.log('My username: ', user.username);
+          const isUserFollowing = response.data.followers?.some(
+            follower => follower.follower__username === user.username
+          );
+          console.log('Is user following:', isUserFollowing);
+          setIsFollowing(isUserFollowing);
+        }
+        setFollowing(response.data.following || []);
+        setFollowers(response.data.followers || []);
+
+        if (!cache.current.posts && (activeTab === "Posts" || !cache.current.posts)) {
+          setIsLoadingPosts(true);
+          const postsData = await Promise.all(
+            response.data.posts.map(post => fetchPostDetails(post.id))
+          );
+          const filteredPosts = postsData.filter(Boolean);
+          setFullPosts(filteredPosts);
+          cache.current.posts = filteredPosts;
+          setIsLoadingPosts(false);
+        }
+
+        if (!cache.current.likes && (activeTab === "Likes" || !cache.current.likes)) {
+          setIsLoadingPosts(true);
+          const likesData = await Promise.all(
+            response.data.post_likes.map(like => fetchPostDetails(like.post__id))
+          );
+          const filteredLikes = likesData.filter(Boolean);
+          setLikedFullPosts(filteredLikes);
+          cache.current.likes = filteredLikes;
+          setIsLoadingPosts(false);
+        }
+
+        if (!cache.current.bookmarks && (activeTab === "Bookmarks" || !cache.current.bookmarks)) {
+          const bookmarksData = {
+            posts: response.data.post_bookmarks || [],
+            games: response.data.game_bookmarks || [],
+            game_moves: response.data.game_move_bookmarks || [],
+          };
+          setBookmarks(bookmarksData);
+          cache.current.bookmarks = bookmarksData;
+
+          if (bookmarksData.posts.length > 0) {
+            setIsLoadingBookmarkedPosts(true);
+            const bookmarkedPostsData = {};
+            await Promise.all(
+              bookmarksData.posts.map(async (bookmark) => {
+                const post = await fetchPostDetails(bookmark.post__id);
+                if (post) {
+                  bookmarkedPostsData[bookmark.post__id] = post;
+                }
+              })
+            );
+            setBookmarkedPosts(bookmarkedPostsData);
+            setIsLoadingBookmarkedPosts(false);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      Alert.alert("Error", "Failed to load profile data");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [activeTab, isLoading, fetchPostDetails, isOtherUser, username, user?.username]);
+
+  useEffect(() => {
+    return () => {
+      cache.current = {
+        posts: null,
+        likes: null,
+        bookmarks: null,
+      };
+    };
+  }, []);
 
   useEffect(() => {
     fetchUserData();
-    likeService.addLikeChangeListener(fetchUserData);
-    bookmarkService.addBookmarkChangeListener(fetchUserData);
-    return () => {
-      likeService.removeLikeChangeListener(fetchUserData);
-      bookmarkService.removeBookmarkChangeListener(fetchUserData);
+
+    const handleDataChange = () => {
+      cache.current = {
+        posts: null,
+        likes: null,
+        bookmarks: null,
+      };
+      fetchUserData();
     };
-  }, []);
+
+    likeService.addLikeChangeListener(handleDataChange);
+    bookmarkService.addBookmarkChangeListener(handleDataChange);
+
+    return () => {
+      likeService.removeLikeChangeListener(handleDataChange);
+      bookmarkService.removeBookmarkChangeListener(handleDataChange);
+    };
+  }, [fetchUserData]);
+
 
   useEffect(() => {
     if (activeTab === "Bookmarks" && bookmarks.posts) {
@@ -119,33 +239,6 @@ const ProfileScreen = ({ navigation }) => {
       });
     }
   }, [activeTab, bookmarks.posts]);
-
-  const fetchUserData = async () => {
-    try {
-      setIsLoading(true);
-      const response = await api.get("/accounts/me/");
-      if (response.data) {
-        setUserData(response.data);
-        setFollowing(response.data.following || []);
-        setFollowers(response.data.followers || []);
-        setUserPosts(response.data.posts || []);
-        setLikedPosts(response.data.post_likes || []);
-        setBookmarks({
-          posts: response.data.post_bookmarks || [],
-          games: response.data.game_bookmarks || [],
-          game_moves: response.data.game_move_bookmarks || [],
-        });
-      }
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-      Alert.alert(
-        "Error",
-        "Failed to load profile data. Please try again later."
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const fetchBookmarkedPostDetails = async (postId) => {
     try {
@@ -184,13 +277,49 @@ const ProfileScreen = ({ navigation }) => {
     </View>
   );
 
+  const handleFollow = async () => {
+    try {
+      const endpoint = `/accounts/${username}/follow/`;
+  
+      if (isFollowing) {
+        await api.post(endpoint);
+        setFollowers((prev) =>
+          prev.filter((f) => f.follower__username !== user?.username)
+        );
+      } else {
+        await api.post(endpoint);
+        setFollowers((prev) => [
+          ...prev,
+          { follower__username: user?.username, follower__id: user?.id },
+        ]);
+      }
+  
+      setIsFollowing(!isFollowing);
+    } catch (error) {
+      console.error("Follow operation failed:", error);
+      Alert.alert("Error", "Unable to process follow request");
+    }
+  };
+
   const ProfileInfo = () => (
     <View style={styles.profileInfo}>
       <View style={styles.userInfoContainer}>
         <Text style={styles.username}>
-          {userData?.username || user?.username || "User"}{" "}
-          <Text style={styles.userEmail}>({userData?.email || ""})</Text>
+          {userData?.username || username}
+          {!isOtherUser && userData?.email && (
+            <Text style={styles.userEmail}> ({userData.email})</Text>
+          )}
         </Text>
+        {isOtherUser && user?.username !== username && (
+          <TouchableOpacity
+            style={[styles.followButton, isFollowing && styles.followingButton]}
+            onPress={handleFollow}
+          >
+            <Text style={[styles.followButtonText, isFollowing && styles.followingButtonText]}>
+              {isFollowing ? "Following" : "Follow"}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
       <View style={styles.statsContainer}>
         <TouchableOpacity
@@ -229,6 +358,96 @@ const ProfileScreen = ({ navigation }) => {
       ))}
     </View>
   );
+
+  const TabContent = () => {
+    if (isLoading || isLoadingPosts) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#007AFF" />
+        </View>
+      );
+    }
+
+    switch (activeTab) {
+      case "Posts":
+        return (
+          <FlatList
+            data={fullPosts}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+              <PostCard
+                post={item}
+                onPress={() => navigation.navigate("Thread", { post: item })}
+              />
+            )}
+            contentContainerStyle={styles.postsContainer}
+            ListEmptyComponent={
+              <Text style={styles.emptyText}>No posts yet</Text>
+            }
+          />
+        );
+      case "Likes":
+        return (
+          <FlatList
+            data={likedFullPosts}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+              <PostCard
+                post={item}
+                onPress={() => navigation.navigate("Thread", { post: item })}
+              />
+            )}
+            contentContainerStyle={styles.postsContainer}
+            ListEmptyComponent={
+              <Text style={styles.emptyText}>No liked posts yet</Text>
+            }
+          />
+        );
+      case "Bookmarks":
+        return (
+          <View style={styles.bookmarksContainer}>
+            <BookmarkFilters
+              selectedTypes={selectedBookmarkTypes}
+              onToggleType={toggleBookmarkType}
+            />
+            <ScrollView style={styles.bookmarksList}>
+              {!bookmarks.posts.length &&
+                !bookmarks.games.length &&
+                !bookmarks.game_moves.length ? (
+                <Text style={styles.emptyText}>No bookmarks yet</Text>
+              ) : (
+                <>
+                  {selectedBookmarkTypes.includes("posts") && (
+                    <BookmarkedPosts
+                      bookmarks={bookmarks.posts}
+                      bookmarkedPosts={bookmarkedPosts}
+                      isLoading={isLoadingBookmarkedPosts}
+                      navigation={navigation}
+                    />
+                  )}
+                  {selectedBookmarkTypes.includes("games") && (
+                    <BookmarkedGames
+                      bookmarks={bookmarks.games}
+                      isLoading={isLoading}
+                      navigation={navigation}
+                    />
+                  )}
+                  {selectedBookmarkTypes.includes("game_moves") && (
+                    <BookmarkedMoves
+                      bookmarks={bookmarks.game_moves}
+                      isLoading={isLoading}
+                      navigation={navigation}
+                    />
+                  )}
+                </>
+              )}
+            </ScrollView>
+          </View>
+        );
+      default:
+        return null;
+    }
+  };
 
   const FollowingModal = () => (
     <Modal
@@ -309,94 +528,6 @@ const ProfileScreen = ({ navigation }) => {
       </BlurView>
     </Modal>
   );
-
-  const TabContent = () => {
-    if (isLoading) {
-      return (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
-        </View>
-      );
-    }
-
-    switch (activeTab) {
-      case "Posts":
-        return (
-          <FlatList
-            data={userPosts}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => <PostCard post={item} />}
-            contentContainerStyle={styles.postsContainer}
-            ListEmptyComponent={
-              <Text style={styles.emptyText}>No posts yet</Text>
-            }
-          />
-        );
-      case "Likes":
-        return (
-          <FlatList
-            data={likedPosts}
-            keyExtractor={(item) => item.post__id.toString()}
-            renderItem={({ item }) => (
-              <PostCard
-                post={{
-                  id: item.post__id,
-                  title: item.post__title,
-                  ...item,
-                }}
-              />
-            )}
-            contentContainerStyle={styles.postsContainer}
-            ListEmptyComponent={
-              <Text style={styles.emptyText}>No liked posts yet</Text>
-            }
-          />
-        );
-      case "Bookmarks":
-        return (
-          <View style={styles.bookmarksContainer}>
-            <BookmarkFilters
-              selectedTypes={selectedBookmarkTypes}
-              onToggleType={toggleBookmarkType}
-            />
-            <ScrollView style={styles.bookmarksList}>
-              {!bookmarks.posts.length &&
-              !bookmarks.games.length &&
-              !bookmarks.game_moves.length ? (
-                <Text style={styles.emptyText}>No bookmarks yet</Text>
-              ) : (
-                <>
-                  {selectedBookmarkTypes.includes("posts") && (
-                    <BookmarkedPosts
-                      bookmarks={bookmarks.posts}
-                      bookmarkedPosts={bookmarkedPosts}
-                      isLoading={isLoadingBookmarkedPosts}
-                      navigation={navigation}
-                    />
-                  )}
-                  {selectedBookmarkTypes.includes("games") && (
-                    <BookmarkedGames
-                      bookmarks={bookmarks.games}
-                      isLoading={isLoading}
-                      navigation={navigation}
-                    />
-                  )}
-                  {selectedBookmarkTypes.includes("game_moves") && (
-                    <BookmarkedMoves
-                      bookmarks={bookmarks.game_moves}
-                      isLoading={isLoading}
-                      navigation={navigation}
-                    />
-                  )}
-                </>
-              )}
-            </ScrollView>
-          </View>
-        );
-      default:
-        return null;
-    }
-  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -653,6 +784,21 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
+  followButton: {
+    backgroundColor: '#007AFF',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    marginTop: 8,
+  },
+  followButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  followingButtonText: {
+    color: '#666',
+  }
 });
 
 export default ProfileScreen;

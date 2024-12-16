@@ -26,16 +26,16 @@ const parseTags = (tags) => {
     if (!tags || (Array.isArray(tags) && tags.length === 0)) {
         return [];
     }
-    
+
     if (typeof tags.toJS === 'function') {
         const jsArray = tags.toJS();
         return jsArray.length > 0 ? jsArray.map(tag => tag.replace(/[#\[\]']/g, '').trim()).filter(Boolean) : [];
     }
-    
+
     if (Array.isArray(tags)) {
         return tags.map(tag => tag.replace(/[#\[\]']/g, '').trim()).filter(Boolean);
     }
-    
+
     if (typeof tags === 'string') {
         const cleanTag = tags.replace(/[#\[\]']/g, '').trim();
         if (!cleanTag) return [];
@@ -44,7 +44,7 @@ const parseTags = (tags) => {
         }
         return [cleanTag];
     }
-    
+
     return [];
 };
 
@@ -227,7 +227,14 @@ const PostCard = ({ post }) => {
 
             <View style={styles.footer}>
                 <View style={styles.userInfo}>
-                    <Text style={styles.byText}>by {post.user}</Text>
+                    <TouchableOpacity
+                        onPress={() => navigation.navigate('Profile', {
+                            username: post.user,
+                            isOtherUser: true
+                        })}
+                    >
+                        <Text style={[styles.byText, styles.clickableText]}>by {post.user}</Text>
+                    </TouchableOpacity>
                     <Text style={styles.date}>
                         {new Date(post.created_at).toLocaleDateString()}
                     </Text>
@@ -431,6 +438,10 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: '500',
     },
+    clickableText: {
+        color: '#007AFF',
+        textDecorationLine: 'underline',
+      },
 });
 
 export default PostCard;

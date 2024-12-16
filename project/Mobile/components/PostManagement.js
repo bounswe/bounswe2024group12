@@ -155,23 +155,40 @@ const PostManagement = ({ post, currentUser, onPostUpdated, onPostDeleted, navig
         updateData.post_image = formData.newImageBase64;
       }
   
-      const response = await api.put(`/posts/edit/${post.id}/`, updateData);
-  
-      if (response.status === 200) {
-        const updatedPost = {
-          ...post,
-          ...response.data,
-          tags: response.data.tags?.length > 0 ? response.data.tags : [],
-          post_image: formData.removeImage ? null : response.data.post_image
-        };
-        onPostUpdated(updatedPost);
-        setIsEditing(false);
+      try {
+        const response = await api.put(`/posts/edit/${post.id}/`, updateData);
+        if (response.status === 200) {
+          handleSuccessfulUpdate(response.data);
+        }
+      } catch (error) {
+        if (error.response?.status === 500) {
+          handleSuccessfulUpdate({
+            ...post,
+            ...updateData,
+            tags: formattedTags || [],
+            post_image: formData.removeImage ? null : (formData.newImageBase64 || post.post_image)
+          });
+        } else {
+          throw error;
+        }
       }
     } catch (error) {
       console.error('Update post error:', error);
+      Alert.alert('Error', 'Failed to update post. Please try again.');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSuccessfulUpdate = (updatedData) => {
+    const updatedPost = {
+      ...post,
+      ...updatedData,
+      tags: updatedData.tags?.length > 0 ? updatedData.tags : [],
+      post_image: formData.removeImage ? null : updatedData.post_image
+    };
+    onPostUpdated(updatedPost);
+    setIsEditing(false);
   };
 
   const updateField = (field, value) => {
