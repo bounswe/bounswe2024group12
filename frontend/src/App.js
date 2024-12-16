@@ -4,6 +4,7 @@ import SignUpPage from './pages/SignUpPage';
 import HomePage from './pages/HomePage';
 import ArchivePage from './pages/ArchivePage';
 import CommentPage from './pages/CommentPage';
+import ProfilePage from './pages/ProfilePage';
 
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 
@@ -46,6 +47,7 @@ function App() {
           <Route path="/signup" element={<SignUpPage />} />
           <Route path="/archive" element={<ArchivePage />} />
           <Route path="/post/:id/comments" element={<CommentPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
       </Routes>
     </Router>
   </ThemeProvider>
