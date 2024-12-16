@@ -43,11 +43,13 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/home" element={<HomePage />} />
+          <Route path="/home/:tag" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignUpPage />} />
           <Route path="/archive" element={<ArchivePage />} />
           <Route path="/post/:id/comments" element={<CommentPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/profile/:userId" element={<ProfilePage />} />
       </Routes>
     </Router>
   </ThemeProvider>

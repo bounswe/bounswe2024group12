@@ -3,7 +3,7 @@ import { Container, Typography, Divider, Card, Grid2, Accordion, AccordionSummar
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Navbar from '../common/Navbar';
 import Post from '../homepage/Post';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom'; // Import useParams for dynamic routing
 
 const BACKEND_URL = process.env.REACT_APP_API_URL;
 
@@ -11,33 +11,37 @@ const ProfileCard = () => {
   const [profileData, setProfileData] = useState(null);
   const [detailedPosts, setDetailedPosts] = useState([]);
   const navigate = useNavigate();
+  const { userId } = useParams(); // This gets the userId from the URL
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
       navigate('/login');
     } else {
-      fetch(`${BACKEND_URL}/accounts/me/`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-        .then((res) => res.json())
-        .then((data) => {
+      const fetchProfileData = async () => {
+        const endpoint = userId ? `/accounts/${userId}/` : `/accounts/me/`; // Fetch profile using userId if provided
+        try {
+          const response = await fetch(`${BACKEND_URL}${endpoint}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          const data = await response.json();
           setProfileData(data);
-        })
-        .catch((error) => {
+        } catch (error) {
           console.error('Error:', error);
-        });
+        }
+      };
+
+      fetchProfileData();
     }
-  }, [navigate]);
+  }, [navigate, userId]);
 
   const fetchPostDetails = async (postId) => {
     try {
       const response = await fetch(`${BACKEND_URL}/posts/${postId}/`);
       if (response.ok) {
         const data = await response.json();
-        // Ensure username and timestamp are added
         return {
           ...data,
           username: profileData.username,
@@ -54,13 +58,12 @@ const ProfileCard = () => {
 
   const renderPostList = (title, posts) => (
     <Accordion>
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}> 
+      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
         <Typography variant="h6">{title}</Typography>
       </AccordionSummary>
       <AccordionDetails>
         {posts.length > 0 ? (
           posts.map((post) => (
-
             <Post key={post.id} post={post} width="100%" />
           ))
         ) : (
@@ -99,7 +102,7 @@ const ProfileCard = () => {
           <Grid2 container spacing={2}>
             <Grid2 item xs={12} md={6}>
               <Typography variant="h6">User Info</Typography>
-              <Typography>Username: {profileData.username}</Typography>
+              <Typography> Username: {profileData.username} </Typography>
               <Typography>Email: {profileData.email}</Typography>
               <Typography>Date Joined: {new Date(profileData.date_joined).toLocaleDateString()}</Typography>
               <Typography>Followers: {profileData.followers.length}</Typography>

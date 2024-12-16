@@ -9,22 +9,28 @@ import InfiniteScroll from "react-infinite-scroll-component";
 
 const BACKEND_URL = process.env.REACT_APP_API_URL;
 
-const Feed = ({ isGuest }) => {
+const Feed = ({ isGuest, passedTag }) => {
   const [posts, setPosts] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [sorting, setSorting] = useState("");
-  const [selectedTag, setSelectedTag] = useState("");
+  const [selectedTag, setSelectedTag] = useState(passedTag || ""); // Initialize with URL tag
   const [openFilters, setOpenFilters] = useState(false);
   const [followedOnly, setFollowedOnly] = useState(false);
 
   const tagOptions = ["Chess", "Opening", "Endgame", "Tactics", "Strategy"];
 
   useEffect(() => {
-    fetchData();
-  }, [page, sorting, selectedTag, followedOnly]);
+    setSelectedTag(passedTag || ""); // Set selectedTag based on passedTag prop
+    setPage(1); // Reset to first page when tag changes
+    setPosts([]); // Clear previous posts
+  }, [passedTag]); // This will trigger when passedTag changes
+
+  useEffect(() => {
+    fetchData(); // Fetch data when parameters change
+  }, [page, sorting, selectedTag, followedOnly]); // Re-fetch when parameters change
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -90,22 +96,20 @@ const Feed = ({ isGuest }) => {
     }
   };
 
-
   const handleTagChange = (tag) => {
     setSelectedTag(tag);
-    setPage(1);
-    setPosts([]);
+    setPage(1); // Reset to first page when tag changes
+    setPosts([]); // Clear previous posts
   };
 
   const handleSortChange = (sort) => {
     setSorting(sort);
-    setPage(1);
-    setPosts([]);
+    setPage(1); // Reset to first page when sorting changes
+    setPosts([]); // Clear previous posts
   };
 
   return (
     <div>
-
       {/* Only show SharePost if not a guest */}
       {!isGuest && (
         <Box sx={{ marginTop: "40px", marginBottom: "20px" }}>
@@ -148,14 +152,24 @@ const Feed = ({ isGuest }) => {
           </Box>
 
           {/* Followed Only Switch */}
-          <Box display="flex" alignItems="center">
-            <Typography sx={{ color: "text.primary", marginRight: "10px" }}>Followed Only</Typography>
-            <Switch
-              checked={followedOnly}
-              onChange={() => setFollowedOnly(!followedOnly)}
-              color="primary"
-              disabled={isGuest}
-            />
+          <Box display="flex" flexDirection="column" alignItems="flex-start">
+            <Box display="flex" alignItems="center">
+              <Typography sx={{ color: "text.primary", marginRight: "10px" }}>
+                Followed Only
+              </Typography>
+              <Switch
+                checked={followedOnly}
+                onChange={() => setFollowedOnly(!followedOnly)}
+                color="primary"
+                disabled={isGuest}
+              />
+            </Box>
+
+            {isGuest && (
+              <Typography sx={{ color: "text.secondary", fontSize: "12px", marginTop: "5px" }}>
+                For this feature, you must have an account!
+              </Typography>
+            )}
           </Box>
         </Box>
       </Collapse>
