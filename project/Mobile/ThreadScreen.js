@@ -329,16 +329,6 @@ const ThreadScreen = ({ route, navigation }) => {
               </TouchableOpacity>
             )}
 
-            {post.tags && post.tags.length > 0 && (
-              <View style={styles.tagsContainer}>
-                {post.tags.map((tag, index) => (
-                  <View key={index} style={styles.tag}>
-                    <Text style={styles.tagText}>#{tag}</Text>
-                  </View>
-                ))}
-              </View>
-            )}
-
             <View style={styles.actionButtonsContainer}>
               <LikeButton
                 isLiked={isLiked}
@@ -493,22 +483,6 @@ const styles = StyleSheet.create({
   },
   chessboardContainer: {
     alignItems: "center",
-  },
-  tagsContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    marginBottom: 8,
-  },
-  tag: {
-    backgroundColor: "#007AFF20",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
-  tagText: {
-    color: "#007AFF",
-    fontSize: 12,
   },
   commentsSection: {
     backgroundColor: "white",

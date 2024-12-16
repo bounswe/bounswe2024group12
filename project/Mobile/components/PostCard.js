@@ -22,6 +22,32 @@ const normalizeFen = (fen) => {
     return isPositionOnly ? `${fen} w KQkq - 0 1` : fen;
 };
 
+const parseTags = (tags) => {
+    if (!tags || (Array.isArray(tags) && tags.length === 0)) {
+        return [];
+    }
+    
+    if (typeof tags.toJS === 'function') {
+        const jsArray = tags.toJS();
+        return jsArray.length > 0 ? jsArray.map(tag => tag.replace(/[#\[\]']/g, '').trim()).filter(Boolean) : [];
+    }
+    
+    if (Array.isArray(tags)) {
+        return tags.map(tag => tag.replace(/[#\[\]']/g, '').trim()).filter(Boolean);
+    }
+    
+    if (typeof tags === 'string') {
+        const cleanTag = tags.replace(/[#\[\]']/g, '').trim();
+        if (!cleanTag) return [];
+        if (cleanTag.includes(',')) {
+            return cleanTag.split(',').map(tag => tag.trim()).filter(Boolean);
+        }
+        return [cleanTag];
+    }
+    
+    return [];
+};
+
 const PostCard = ({ post }) => {
     const [isLiked, setIsLiked] = useState(false);
     const [likeCount, setLikeCount] = useState(0);
@@ -136,14 +162,27 @@ const PostCard = ({ post }) => {
                         onPress={handleCopyFen}
                     >
                         <Feather name="copy" size={20} color="white" />
-                        <Text style={styles.copyButtonText}>
-                            Copy FEN
-                        </Text>
+                        <Text style={styles.copyButtonText}>Copy FEN</Text>
                     </TouchableOpacity>
                 </View>
             </TouchableOpacity>
         </Modal>
     );
+
+    const renderTags = () => {
+        const cleanTags = parseTags(post.tags);
+        if (!cleanTags || cleanTags.length === 0) return null;
+
+        return (
+            <View style={styles.tagsContainer}>
+                {cleanTags.map((tag, index) => (
+                    <View key={index} style={styles.tag}>
+                        <Text style={styles.tagText}>#{tag}</Text>
+                    </View>
+                ))}
+            </View>
+        );
+    };
 
     return (
         <TouchableOpacity
@@ -184,15 +223,7 @@ const PostCard = ({ post }) => {
                 </TouchableOpacity>
             )}
 
-            {post.tags && post.tags.length > 0 && (
-                <View style={styles.tagsContainer}>
-                    {post.tags.map((tag, index) => (
-                        <View key={index} style={styles.tag}>
-                            <Text style={styles.tagText}>#{tag}</Text>
-                        </View>
-                    ))}
-                </View>
-            )}
+            {renderTags()}
 
             <View style={styles.footer}>
                 <View style={styles.userInfo}>
