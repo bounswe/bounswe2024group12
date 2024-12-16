@@ -6,6 +6,7 @@ import { Box, Typography, TextField, Button, List, ListItem, ListItemText } from
 const BACKEND_URL = process.env.REACT_APP_API_URL;
 
 const ArchiveCard = () => {
+  const [currentUser, setCurrentUser] = useState("currentUser");
   const [filters, setFilters] = useState({
     year: '',
     player: '',
@@ -98,7 +99,7 @@ const ArchiveCard = () => {
             <Button variant="outlined" onClick={handleReturnToSearch} sx={{ mb: 2 }}>
               Return to Search
             </Button>
-            <GameScreen game={selectedGame} />
+            <GameScreen game={selectedGame} currentUser={currentUser} />
           </Box>
         </>
       )}
