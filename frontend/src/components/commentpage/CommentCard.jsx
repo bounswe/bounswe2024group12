@@ -13,6 +13,8 @@ const CommentCard = () => {
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [comment, setComment] = useState('');
+  const [fens, setFens] = useState([]); // Change to array of FENs
 
   const fetchLikeData = async (postIds) => {
     try {
@@ -72,6 +74,34 @@ const CommentCard = () => {
   useEffect(() => {
     fetchPostAndComments();
   }, [id]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch('/api/comments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          comment: comment,
+          fens: fens.join(',') // Join FENs with commas
+        })
+      });
+      // ... rest of submit handling
+    } catch (error) {
+      console.error('Error posting comment:', error);
+    }
+  };
+
+  const handleAddFen = (fen) => {
+    setFens([...fens, fen]); // Add new FEN to array
+  };
+
+  const handleRemoveFen = (index) => {
+    setFens(fens.filter((_, i) => i !== index)); // Remove FEN at index
+  };
 
   if (isLoading) return <Typography>Loading...</Typography>;
 
