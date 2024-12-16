@@ -355,6 +355,7 @@ const GameScreen = ({ game, currentUser }) => {
             color="secondary"
             startIcon={<FaArrowLeft />}
             disabled={currentMoveIndex === 0}
+            data-testid="previous-button"
           >
             Previous
           </Button>
@@ -381,6 +382,7 @@ const GameScreen = ({ game, currentUser }) => {
             color="primary"
             endIcon={<FaArrowRight />}
             disabled={currentMoveIndex === fenList.length - 1}
+            data-testid="next-button"
           >
             Next
           </Button>

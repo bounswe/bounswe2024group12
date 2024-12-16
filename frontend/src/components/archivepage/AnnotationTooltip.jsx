@@ -46,6 +46,7 @@ const AnnotationTooltip = ({ annotations, onDelete, onEdit, currentUser }) => {
                     onEdit(annotation);
                   }}
                   sx={{ ml: 1 }}
+                  aria-label="edit"
                 >
                   <MdEdit />
                 </IconButton>
@@ -57,6 +58,7 @@ const AnnotationTooltip = ({ annotations, onDelete, onEdit, currentUser }) => {
                     onDelete(annotation.id);
                   }}
                   sx={{ ml: 1 }}
+                  aria-label="delete"
                 >
                   <MdDelete />
                 </IconButton>
