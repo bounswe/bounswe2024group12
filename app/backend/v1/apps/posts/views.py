@@ -231,6 +231,46 @@ def delete_post(request, post_id):
     post.delete()
     return Response({"message": "Post deleted successfully"}, status=status.HTTP_200_OK)
 
+
+@swagger_auto_schema(
+    method='delete',
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'post_ids': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Items(type=openapi.TYPE_INTEGER)),
+        },
+        required=['post_ids']
+    ),
+    operation_description="Delete multiple existing posts. Only the admin users  can delete them.",
+    operation_summary="Delete multiple posts",
+    manual_parameters=[auth_header],
+    responses={
+        204: "Posts deleted successfully",
+        403: "Forbidden: User does not have permission to delete these posts",
+        404: "Post not found",
+        401: openapi.Response(
+            description="Authentication required",
+            examples={
+                'application/json': {
+                    "detail": "Authentication credentials were not provided."
+                }
+            }
+        )
+    }
+)
+@api_view(['DELETE'])
+def delete_multiple_posts(request):
+    post_ids = request.data.get('post_ids', [])
+    # only allow for admins for all posts
+    for post_id in post_ids:
+        try:
+            post = Post.objects.get(id=post_id)
+            if request.user.username not in admin_usernames:
+                return Response({"error": "You do not have permission to delete this post"}, status=status.HTTP_403_FORBIDDEN)
+            post.delete()
+        except Post.DoesNotExist:
+            pass
+
 @swagger_auto_schema(
     method='get',
     operation_description="Retrieve all posts with pagination, optional tag filtering, optional followed filtering (only posts from followed users), and ordering. Order options: 'older', 'newer', 'title'.",

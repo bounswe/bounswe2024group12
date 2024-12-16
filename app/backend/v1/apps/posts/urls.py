@@ -6,6 +6,7 @@ urlpatterns = [
     path('create/', views.create_post, name='create-post'),  # Create a post
     path('edit/<int:post_id>/', views.edit_post, name='edit-post'),  # Edit a post
     path('delete/<int:post_id>/', views.delete_post, name='delete-post'),  # Delete a post
+    path('delete_multiple/', views.delete_multiple_posts, name='delete-multiple-posts'),  # Delete multiple posts
     path('<int:post_id>/', views.get_post, name='get-post'),  # Get a post by ID
     path('list_posts/', views.list_posts, name='list-posts'),  # List all posts
     path('like/<int:post_id>/', views.like_post, name='like-post'),
