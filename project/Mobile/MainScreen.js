@@ -17,7 +17,7 @@ import { Feather } from "@expo/vector-icons";
 import { useAuth } from "@/contexts/AuthContext";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { api } from "./services/AuthService";
-import PostCard from "@/components/PostCard";
+import PostCard from "./components/PostCard";
 import { Dimensions } from "react-native";
 
 const SCREEN_WIDTH = Dimensions.get('window').width;

@@ -24,6 +24,7 @@ import { api } from "@/services/AuthService";
 import { likeService } from "@/services/LikeService";
 import PostCommentManagement from "@/components/PostCommentManagement";
 import { bookmarkService } from "./services/BookmarkService";
+import PostManagement from './components/PostManagement';
 
 const normalizeFen = (fen) => {
   if (!fen) return null;
@@ -139,7 +140,7 @@ const ThreadScreen = ({ route, navigation }) => {
       Alert.alert(
         "Error",
         error.response?.data?.message ||
-          "Failed to post comment. Please try again."
+        "Failed to post comment. Please try again."
       );
     } finally {
       setIsLoading(false);
@@ -288,6 +289,18 @@ const ThreadScreen = ({ route, navigation }) => {
               </Text>
             </View>
 
+            <PostManagement
+              post={post}
+              currentUser={user}
+              onPostUpdated={(updatedPost) => {
+                navigation.setParams({ post: updatedPost });
+              }}
+              onPostDeleted={() => {
+                navigation.goBack();
+              }}
+              navigation={navigation}
+            />
+
             {post.post_image && (
               <View style={styles.imageContainer}>
                 <Image
@@ -314,16 +327,6 @@ const ThreadScreen = ({ route, navigation }) => {
                   />
                 </View>
               </TouchableOpacity>
-            )}
-
-            {post.tags && post.tags.length > 0 && (
-              <View style={styles.tagsContainer}>
-                {post.tags.map((tag, index) => (
-                  <View key={index} style={styles.tag}>
-                    <Text style={styles.tagText}>#{tag}</Text>
-                  </View>
-                ))}
-              </View>
             )}
 
             <View style={styles.actionButtonsContainer}>
@@ -480,22 +483,6 @@ const styles = StyleSheet.create({
   },
   chessboardContainer: {
     alignItems: "center",
-  },
-  tagsContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    marginBottom: 8,
-  },
-  tag: {
-    backgroundColor: "#007AFF20",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-  },
-  tagText: {
-    color: "#007AFF",
-    fontSize: 12,
   },
   commentsSection: {
     backgroundColor: "white",

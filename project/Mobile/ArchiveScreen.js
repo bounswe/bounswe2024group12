@@ -17,6 +17,7 @@ import {
 import { Feather } from '@expo/vector-icons';
 import { api } from './services/AuthService';
 import { useAuth } from './contexts/AuthContext';
+import GameCard from './components/GameCard';
 
 const screenWidth = Dimensions.get('window').width;
 

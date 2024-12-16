@@ -81,13 +81,10 @@ const parseErrorMessage = (error) => {
 export const authService = {
   async login(mail, password) {
     try {
-      console.log('Attempting login with:', { mail, password });
       const response = await api.post('/accounts/login/', {
         mail: mail,
         password: password,
       });
-
-      console.log('Login response:', response.data);
 
       if (response.data.token) {
         await AsyncStorage.setItem('userToken', response.data.token);
