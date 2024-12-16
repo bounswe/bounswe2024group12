@@ -84,7 +84,7 @@ You can reach documentation at: [Swagger-UI](https://buchessocial.online/api/swa
 To run all tests for the backend, execute the following command at /backend :
 
 ```bash
-docker-compose exec web bash /app/api_core/test.sh
+docker-compose exec web bash test.sh
 ```
 ### Database Initialization (IMPORTANT)
 Due to we put a sql initiator no need to use Commands, you can run by docker-compose scrit at 3rd step
