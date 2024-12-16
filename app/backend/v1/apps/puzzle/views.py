@@ -135,7 +135,7 @@ def random_puzzle(request):
     """
     Fetch a random puzzle from Lichess API with optional filters for theme or difficulty.
     """
-    url = f"{LICHESS_API_BASE_URL}/puzzle"
+    url = f"{LICHESS_API_BASE_URL}/puzzle/next"
     params = {}
 
     # Extract optional parameters from the request
