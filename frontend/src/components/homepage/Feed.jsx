@@ -212,52 +212,66 @@ const Feed = ({ isGuest, passedTag }) => {
       </Box>
 
 
-      <Collapse in={openFilters} sx={{ padding: "20px", backgroundColor: "background.paper", borderRadius: "8px" }}>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-          {/* Sort and Tag Select Controls */}
-          <Box sx={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
-            <FormControl fullWidth>
-              <InputLabel>Sort by</InputLabel>
-              <Select value={sorting} onChange={(e) => handleSortChange(e.target.value)}>
-                <MenuItem value="newer">Newest</MenuItem>
-                <MenuItem value="older">Oldest</MenuItem>
-                <MenuItem value="title">Title</MenuItem>
-              </Select>
-            </FormControl>
+      {/* Filter section */}
+      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+        {openFilters && (
+          <Box 
+            sx={{ 
+              padding: "20px", 
+              backgroundColor: "background.paper", 
+              borderRadius: "8px",
+              maxWidth: '600px',
+              width: '100%'
+            }}
+          >
+            <Box sx={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+              {/* Sort and Tag Select Controls */}
+              <Box sx={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
+                <FormControl fullWidth>
+                  <InputLabel>Sort by</InputLabel>
+                  <Select value={sorting} onChange={(e) => handleSortChange(e.target.value)}>
+                    <MenuItem value="newer">Newest</MenuItem>
+                    <MenuItem value="older">Oldest</MenuItem>
+                    <MenuItem value="title">Title</MenuItem>
+                  </Select>
+                </FormControl>
+                
 
-            <FormControl fullWidth>
-              <InputLabel>Tag</InputLabel>
-              <Select value={selectedTag} onChange={(e) => handleTagChange(e.target.value)}>
-                <MenuItem value="">All</MenuItem>
-                {tagOptions.map((tag, index) => (
-                  <MenuItem key={index} value={tag}>{tag}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Box>
+                <FormControl fullWidth>
+                  <InputLabel>Tag</InputLabel>
+                  <Select value={selectedTag} onChange={(e) => handleTagChange(e.target.value)}>
+                    <MenuItem value="">All</MenuItem>
+                    {tagOptions.map((tag, index) => (
+                      <MenuItem key={index} value={tag}>{tag}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
 
-          {/* Followed Only Switch */}
-          <Box display="flex" flexDirection="column" alignItems="flex-start">
-            <Box display="flex" alignItems="center">
-              <Typography sx={{ color: "text.primary", marginRight: "10px" }}>
-                Followed Only
-              </Typography>
-              <Switch
-                checked={followedOnly}
-                onChange={() => setFollowedOnly(!followedOnly)}
-                color="primary"
-                disabled={isGuest}
-              />
+              {/* Followed Only Switch */}
+              <Box display="flex" flexDirection="column" alignItems="flex-start">
+                <Box display="flex" alignItems="center">
+                  <Typography sx={{ color: "text.primary", marginRight: "10px" }}>
+                    Followed Only
+                  </Typography>
+                  <Switch
+                    checked={followedOnly}
+                    onChange={() => setFollowedOnly(!followedOnly)}
+                    color="primary"
+                    disabled={isGuest}
+                  />
+                </Box>
+
+                {isGuest && (
+                  <Typography sx={{ color: "text.secondary", fontSize: "12px", marginTop: "5px" }}>
+                    For this feature, you must have an account!
+                  </Typography>
+                )}
+              </Box>
             </Box>
-
-            {isGuest && (
-              <Typography sx={{ color: "text.secondary", fontSize: "12px", marginTop: "5px" }}>
-                For this feature, you must have an account!
-              </Typography>
-            )}
           </Box>
-        </Box>
-      </Collapse>
+        )}
+      </Box>
 
       {posts.length === 0 && !hasMore && (
         <Typography sx={{ color: "text.primary", textAlign: "center", marginTop: "20px" }}>
