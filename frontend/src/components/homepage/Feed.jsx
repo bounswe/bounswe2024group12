@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from "react";
 import Post from "./Post";
 import SharePost from "./SharePost";
-import { Typography, Box, CircularProgress } from "@mui/material";
+import {
+  Typography, Box, CircularProgress, Select, MenuItem,
+  FormControl, InputLabel, Button, Collapse, Switch
+} from "@mui/material";
 import InfiniteScroll from "react-infinite-scroll-component";
 
 const BACKEND_URL = process.env.REACT_APP_API_URL;
@@ -12,47 +15,56 @@ const Feed = ({ isGuest }) => {
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [sorting, setSorting] = useState("");
+  const [selectedTag, setSelectedTag] = useState("");
+  const [openFilters, setOpenFilters] = useState(false);
+  const [followedOnly, setFollowedOnly] = useState(false);
+
+  const tagOptions = ["Chess", "Opening", "Endgame", "Tactics", "Strategy"];
 
   useEffect(() => {
     fetchData();
-  }, [page]);
-
-  const fetchLikeData = async (postIds) => {
-    try {
-      const response = await fetch(`${BACKEND_URL}/posts/likes_summary/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({ post_ids: postIds }),
-      });
-
-      if (response.ok) {
-        return await response.json(); // Returns an array of like data
-      } else {
-        console.error("Failed to fetch like data");
-        return null;
-      }
-    } catch (error) {
-      console.error("Error fetching like data:", error);
-      return null;
-    }
-  };
+  }, [page, sorting, selectedTag, followedOnly]);
 
   const fetchData = async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await fetch(`${BACKEND_URL}/posts/list_posts/?page=${page}`);
+      const token = localStorage.getItem("token");
+      const headers = token ? { "Authorization": `Bearer ${token}` } : {};
+
+      // Start building the query string with page
+      let queryParams = new URLSearchParams({ page: page });
+
+      // Conditionally add query parameters
+      if (sorting) queryParams.append("order_by", sorting);
+      if (selectedTag) queryParams.append("tag", selectedTag);
+      if (followedOnly) queryParams.append("followed", followedOnly);
+
+      const response = await fetch(
+        `${BACKEND_URL}/posts/list_posts/?${queryParams.toString()}`,
+        { headers }
+      );
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          setHasMore(false);
+          setPosts([]);
+        }
+        throw new Error(`Error: ${response.statusText}`);
+      }
+
       const data = await response.json();
-      const filteredPosts = data.results
-        .filter((post) => post.post_text && post.user)
-        .map((post) => ({
+
+      if (data.results.length === 0) {
+        setHasMore(false);
+        setPosts([]);
+      } else {
+        const filteredPosts = data.results.filter((post) => post.post_text && post.user).map((post) => ({
           id: post.id,
           username: post.user,
-          title: post.title || `${post.user}'s post:`,
+          title: post.title || `${post.user}'s post`,
           post_text: post.post_text,
           image: post.post_image || "",
           fen: post.fen || "",
@@ -60,31 +72,16 @@ const Feed = ({ isGuest }) => {
           timestamp: new Date(post.created_at),
         }));
 
-      // Fetch like data for the filtered posts
-      const postIds = filteredPosts.map((post) => post.id);
-      const likeData = await fetchLikeData(postIds);
-      console.log("Like data:", likeData);
-      // Combine the like data with the posts
-      const postsWithLikes = filteredPosts.map((post) => {
-        const likeInfo = likeData?.find((like) => like.post_id === post.id);
-        console.log("Like info:", likeInfo);
-        return {
-          ...post,
-          likeCount: likeInfo?.like_count || 0,
-          liked: likeInfo?.liked_by_requester || false, // Set initial liked status
-        };
-      });
+        setPosts((prevPosts) =>
+          [...prevPosts, ...filteredPosts].sort((a, b) => {
+            if (sorting === "older") return a.timestamp - b.timestamp;
+            if (sorting === "newer") return b.timestamp - a.timestamp;
+            if (sorting === "title") return a.title.localeCompare(b.title);
+          })
+        );
 
-      // Update state with sorted posts including like data
-      setPosts((prevPosts) =>
-        [...prevPosts, ...postsWithLikes].sort((a, b) => b.timestamp - a.timestamp)
-      );
-
-      // Determine if there are more posts to load
-      if (data.next === null) {
-        setHasMore(false); // No more data to load
-      } else {
-        setPage((prevPage) => prevPage + 1); // Increment the page only if there are more posts
+        if (data.next === null) setHasMore(false);
+        else setPage((prevPage) => prevPage + 1);
       }
     } catch (error) {
       setError(error);
@@ -93,91 +90,90 @@ const Feed = ({ isGuest }) => {
     }
   };
 
+
+  const handleTagChange = (tag) => {
+    setSelectedTag(tag);
+    setPage(1);
+    setPosts([]);
+  };
+
+  const handleSortChange = (sort) => {
+    setSorting(sort);
+    setPage(1);
+    setPosts([]);
+  };
+
   return (
     <div>
+
+      {/* Only show SharePost if not a guest */}
       {!isGuest && (
-        <>
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              margin: "20px auto -3px auto",
-              padding: "5px 5px",
-              backgroundColor: "secondary.main",
-              borderRadius: "10px 10px 0px 0px",
-              boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
-              width: "50%",
-            }}
-          >
-            <Typography
-              variant="h6"
-              style={{ textAlign: "center", fontWeight: "bold", color: "#ffffff" }}
-            >
-              Create Post
-            </Typography>
-          </Box>
+        <Box sx={{ marginTop: "40px", marginBottom: "20px" }}>
           <SharePost />
-        </>
+        </Box>
       )}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          margin: "20px auto -20px auto",
-          padding: "10px 20px",
-          backgroundColor: "secondary.main",
-          borderRadius: "10px 10px 0px 0px",
-          boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
-          width: "50%",
-        }}
-      >
-        <Typography
-          variant="h4"
-          style={{ textAlign: "center", fontWeight: "bold", color: "#ffffff" }}
+
+      {/* Center the "Open Filters" Button */}
+      <Box sx={{ display: "flex", justifyContent: "center", marginBottom: "20px" }}>
+        <Button
+          onClick={() => setOpenFilters(!openFilters)}
+          sx={{ backgroundColor: "secondary.main", color: "text.other" }}
         >
-          Main Feed
-        </Typography>
+          {openFilters ? "Close Filters" : "Open Filters"}
+        </Button>
       </Box>
+
+      <Collapse in={openFilters} sx={{ padding: "20px", backgroundColor: "background.paper", borderRadius: "8px" }}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+          {/* Sort and Tag Select Controls */}
+          <Box sx={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
+            <FormControl fullWidth>
+              <InputLabel>Sort by</InputLabel>
+              <Select value={sorting} onChange={(e) => handleSortChange(e.target.value)}>
+                <MenuItem value="newer">Newest</MenuItem>
+                <MenuItem value="older">Oldest</MenuItem>
+                <MenuItem value="title">Title</MenuItem>
+              </Select>
+            </FormControl>
+
+            <FormControl fullWidth>
+              <InputLabel>Tag</InputLabel>
+              <Select value={selectedTag} onChange={(e) => handleTagChange(e.target.value)}>
+                <MenuItem value="">All</MenuItem>
+                {tagOptions.map((tag, index) => (
+                  <MenuItem key={index} value={tag}>{tag}</MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+
+          {/* Followed Only Switch */}
+          <Box display="flex" alignItems="center">
+            <Typography sx={{ color: "text.primary", marginRight: "10px" }}>Followed Only</Typography>
+            <Switch
+              checked={followedOnly}
+              onChange={() => setFollowedOnly(!followedOnly)}
+              color="primary"
+              disabled={isGuest}
+            />
+          </Box>
+        </Box>
+      </Collapse>
+
+      {posts.length === 0 && !hasMore && (
+        <Typography sx={{ color: "text.primary", textAlign: "center", marginTop: "20px" }}>
+          No posts to see here.
+        </Typography>
+      )}
+
       <InfiniteScroll
         dataLength={posts.length}
         next={fetchData}
         hasMore={hasMore}
-        loader={
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              margin: "20px 0",
-            }}
-          >
-            <CircularProgress color="secondary" />
-            <Typography
-              variant="h6"
-              sx={{ marginLeft: "10px" }}
-              style={{ color: "#333" }}
-            >
-              Loading more posts...
-            </Typography>
-          </Box>
-        }
-        endMessage={
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              margin: "20px 0",
-            }}
-          >
-            <Typography variant="h6" sx={{ color: "#333" }}>
-              No more posts to see.
-            </Typography>
-          </Box>
-        }
+        loader={<CircularProgress color="secondary" />}
       >
-        {posts.map((post, index) => (
-          <Post key={index} post={post} />
+        {posts.map((post) => (
+          <Post key={post.id} post={post} />
         ))}
       </InfiniteScroll>
     </div>
