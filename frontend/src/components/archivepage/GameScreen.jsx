@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import FENRenderer from "../common/FENRenderer";
 import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
-import { Button, Select, MenuItem, Box, Stack, Typography } from "@mui/material";
+import { MdExpandLess, MdExpandMore } from "react-icons/md";
+import { Button, Select, MenuItem, Box, Stack, Typography, List, ListItem, ListItemText, IconButton, Collapse } from "@mui/material";
 import ShareComment from "./ShareComment";
 import CommentsList from "./CommentsList";
 import { Chess } from "chess.js";
@@ -59,6 +60,7 @@ const GameScreen = ({ game }) => {
   const [currentMoveIndex, setCurrentMoveIndex] = useState(0);
   const [commentsByStep, setCommentsByStep] = useState({}); // To store comments by step
   const [loadingComments, setLoadingComments] = useState(true); // To handle loading state
+  const [movesListOpen, setMovesListOpen] = useState(false); // State to handle collapse
 
   const fetchComments = async () => {
     try {
@@ -116,79 +118,143 @@ const GameScreen = ({ game }) => {
   const commentsForCurrentStep = commentsByStep[currentMoveIndex] || [];
   const currentPosition = fenList[currentMoveIndex];
 
+  const toggleMovesList = () => {
+    setMovesListOpen((prev) => !prev);
+  };
+
   return (
     <Box
       sx={{
         display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
+        flexDirection: "row",
+        alignItems: "flex-start",
         backgroundColor: "background.default",
         p: 3,
         borderRadius: 2,
       }}
     >
-      {/* Game Details Section */}
-      <Box sx={{ textAlign: "center", mb: 3 }}>
-        <Typography variant="h5">{metadata.Event || "Unknown Event"}</Typography>
-        <Typography variant="subtitle1">
-          {metadata.White || "White"} vs {metadata.Black || "Black"}
-        </Typography>
-        <Typography variant="subtitle2">{metadata.Date || "Unknown Date"}</Typography>
-        <Typography variant="body2">Result: {metadata.Result || "N/A"}</Typography>
-      </Box>
-
-      {/* FEN Renderer */}
-      <Box sx={{ display: "flex", justifyContent: "center" }}>
-        <FENRenderer fen={currentPosition} width={520} />
-      </Box>
-
-      {/* Navigation Controls */}
-      <Stack
-        direction="row"
-        justifyContent="center"
-        alignItems="center"
-        spacing={2}
-        sx={{ mt: 2 }}
+      {/* Game Section */}
+      <Box
+        sx={{
+          flex: 2,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+        }}
       >
-        <Button
-          onClick={handlePrevMove}
-          variant="contained"
-          color="secondary"
-          startIcon={<FaArrowLeft />}
-          disabled={currentMoveIndex === 0}
-        >
-          Previous
-        </Button>
+        {/* Game Details Section */}
+        <Box sx={{ textAlign: "center", mb: 3 }}>
+          <Typography variant="h5">{metadata.Event || "Unknown Event"}</Typography>
+          <Typography variant="subtitle1">
+            {metadata.White || "White"} vs {metadata.Black || "Black"}
+          </Typography>
+          <Typography variant="subtitle2">{metadata.Date || "Unknown Date"}</Typography>
+          <Typography variant="body2">Result: {metadata.Result || "N/A"}</Typography>
+        </Box>
 
-        <Select
-          value={currentMoveIndex}
-          onChange={handleMoveSelect}
-          variant="outlined"
-          sx={{
-            minWidth: 120,
-            bgcolor: "background.paper",
-          }}
-        >
-          {fenList.map((_, index) => (
-            <MenuItem key={index} value={index}>
-              Move {index + 1}
-            </MenuItem>
-          ))}
-        </Select>
+        {/* FEN Renderer */}
+        <Box sx={{ display: "flex", justifyContent: "center" }}>
+          <FENRenderer fen={currentPosition} width={520} />
+        </Box>
 
-        <Button
-          onClick={handleNextMove}
-          variant="contained"
-          color="primary"
-          endIcon={<FaArrowRight />}
-          disabled={currentMoveIndex === fenList.length - 1}
+        {/* Navigation Controls */}
+        <Stack
+          direction="row"
+          justifyContent="center"
+          alignItems="center"
+          spacing={2}
+          sx={{ mt: 2 }}
         >
-          Next
-        </Button>
-      </Stack>
+          <Button
+            onClick={handlePrevMove}
+            variant="contained"
+            color="secondary"
+            startIcon={<FaArrowLeft />}
+            disabled={currentMoveIndex === 0}
+          >
+            Previous
+          </Button>
+
+          <Select
+            value={currentMoveIndex}
+            onChange={handleMoveSelect}
+            variant="outlined"
+            sx={{
+              minWidth: 120,
+              bgcolor: "background.paper",
+            }}
+          >
+            {fenList.map((_, index) => (
+              <MenuItem key={index} value={index}>
+                Move {index + 1}
+              </MenuItem>
+            ))}
+          </Select>
+
+          <Button
+            onClick={handleNextMove}
+            variant="contained"
+            color="primary"
+            endIcon={<FaArrowRight />}
+            disabled={currentMoveIndex === fenList.length - 1}
+          >
+            Next
+          </Button>
+        </Stack>
+
+        {/* Moves List Section */}
+        <Box sx={{ width: "100%", mt: 2 }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 1,
+              backgroundColor: "primary.light",
+              px: 2,
+              py: 1,
+              borderRadius: 1,
+              cursor: "pointer",
+            }}
+            onClick={toggleMovesList}
+          >
+            <Typography variant="subtitle1">All Moves</Typography>
+            <IconButton
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleMovesList();
+              }}
+              size="small"
+            >
+              {movesListOpen ? <MdExpandLess /> : <MdExpandMore />}
+            </IconButton>
+          </Box>
+          <Collapse in={movesListOpen}>
+            <List sx={{ maxHeight: 300, overflow: "auto", bgcolor: "background.paper" }}>
+              {fenList.map((fen, index) => (
+                <ListItem
+                  button
+                  key={index}
+                  selected={currentMoveIndex === index}
+                  onClick={() => goToMove(index)}
+                  sx={{ cursor: "pointer" }}
+                >
+                  <ListItemText
+                    primary={`Move ${index + 1}`}
+                    secondary={`${fen.substring(0, 20)}...`}
+                  />
+                  <Typography variant="caption" color="text.secondary">
+                    {commentsByStep[index]?.length || 0} comments
+                  </Typography>
+                </ListItem>
+              ))}
+            </List>
+          </Collapse>
+        </Box>
+      </Box>
 
       {/* Comments Section */}
-      <Box sx={{ width: "50%", mt: 3 }}>
+      <Box sx={{ flex: 1, ml: 3 }}>
         <ShareComment onCommentSubmit={handleAddComment} gameId={game.id} currentFEN={currentPosition} />
         {loadingComments ? (
           <Typography>Loading comments...</Typography>
