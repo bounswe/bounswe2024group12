@@ -10,6 +10,8 @@ urlpatterns = [
     path('<int:game_id>/bookmark/', views.toggle_game_bookmark, name='toggle-game-bookmark'),
     path('<int:game_id>/move/bookmark/', views.toggle_game_move_bookmark, name='toggle-game-move-bookmark'),
     path('openings/', views.get_opening_by_eco, name='get-opening-by-eco'),
-    path('current_tournaments/', views.get_current_tournaments, name='get-current-tournaments'),
-
+    path('tournaments/', views.get_current_tournaments, name='get-current-tournaments'),
+    path('tournaments/<str:tournamentSlug>/<str:roundSlug>/<str:roundId>/',views.get_tournament_round,name='get-tournament-round'),
+    path('tournament/round/<str:roundId>/pgn/', views.get_tournament_round_pgn, name='get-tournament-round-pgn'),
 ]
+

@@ -9,6 +9,7 @@ from .models import Game, GameComment, GameBookmark, GameMoveBookmark, GameOpeni
 import requests
 import os
 import json
+import re
 
 from rest_framework.response import Response
 from rest_framework import status
@@ -592,3 +593,280 @@ def get_current_tournaments(request):
 
     except requests.exceptions.RequestException as e:
         return Response({"error": f"Error fetching tournaments: {str(e)}"}, status=500)
+    
+# Swagger parameters for the path
+tournament_slug_param = openapi.Parameter(
+    'tournamentSlug',
+    in_=openapi.IN_PATH,
+    description="The tournament slug used to identify the tournament.",
+    type=openapi.TYPE_STRING,
+    required=True
+)
+
+round_slug_param = openapi.Parameter(
+    'roundSlug',
+    in_=openapi.IN_PATH,
+    description="The round slug used to identify the tournament round.",
+    type=openapi.TYPE_STRING,
+    required=True
+)
+
+round_id_param = openapi.Parameter(
+    'roundId',
+    in_=openapi.IN_PATH,
+    description="The round ID (8 characters) used to fetch round details.",
+    type=openapi.TYPE_STRING,
+    required=True
+)
+
+@swagger_auto_schema(
+    method='get',
+    manual_parameters=[tournament_slug_param, round_slug_param, round_id_param],
+    responses={
+        200: openapi.Response(
+            description="Tournament round data retrieved successfully",
+            examples={
+                "application/json": {
+                    
+                "round": {
+                    "id": "p9DoebWl",
+                    "name": "Round 1",
+                    "slug": "round-1",
+                    "createdAt": 1716014105255,
+                    "ongoing": False,
+                    "startsAt": 1716045300000,
+                    "finishedAt": 1716062100000,
+                    "url": "https://lichess.org/broadcast/casablanca-chess-2024/round-1/p9DoebWl"
+                },
+                "tour": {
+                    "id": "ZuOkdeXK",
+                    "name": "Casablanca Chess 2024",
+                    "slug": "casablanca-chess-2024",
+                    "description": "May 18th - 19th  | 4-player double round-robin | Rapid time control | Carlsen, Nakamura, Anand",
+                    "createdAt": 1716014078747,
+                    "tier": 5,
+                    "image": "https://image.lichess1.org/display?h=400&op=thumbnail&path=loepare:relay:ZuOkdeXK:iq0feQJe.jpg&w=800&sig=36e58a1a648af5b9fe6d3f5725c7a2f52d853153",
+                    "url": "https://lichess.org/broadcast/casablanca-chess-2024/ZuOkdeXK"
+                },
+                "study": {
+                    "writeable": False
+                },
+                "games": [
+                    {
+                    "id": "59lrdLPv",
+                    "name": "Carlsen, Magnus - Anand, Viswanathan",
+                    "fen": "r1b2rk1/pppp1ppp/1bn5/n2RP1B1/Q1B1P3/N1P2N2/Pq4PP/1R5K b - - 3 16",
+                    "players": [
+                        {
+                        "name": "Carlsen, Magnus",
+                        "title": "GM",
+                        "rating": 2828,
+                        "clock": 56000,
+                        "fed": "NOR"
+                        },
+                        {
+                        "name": "Anand, Viswanathan",
+                        "title": "GM",
+                        "rating": 2749,
+                        "clock": 56000,
+                        "fed": "IND"
+                        }
+                    ],
+                    "lastMove": "a1b1",
+                    "thinkTime": 63,
+                    "status": "*"
+                    },
+                    {
+                    "id": "upvSjlTk",
+                    "name": "Nakamura, Hikaru - Amin, Bassem",
+                    "fen": "r1b2rk1/pp1p1ppp/6n1/3p2B1/4P2P/5N2/P4PP1/b2Q1BK1 b - - 1 18",
+                    "players": [
+                        {
+                        "name": "Nakamura, Hikaru",
+                        "title": "GM",
+                        "rating": 2746,
+                        "fed": "USA"
+                        },
+                        {
+                        "name": "Amin, Bassem",
+                        "title": "GM",
+                        "rating": 2583,
+                        "fed": "EGY"
+                        }
+                    ],
+                    "lastMove": "b3d1",
+                    "thinkTime": 4,
+                    "status": "*"
+                    }
+                ],
+                "group": {
+                    "name": "UzChess Cup 2024",
+                    "tours": [
+                    {
+                        "id": "YtMYEYu9",
+                        "name": "Masters"
+                    },
+                    {
+                        "id": "d6fsqyMV",
+                        "name": "Challengers"
+                    },
+                    {
+                        "id": "vntwlrw6",
+                        "name": "Futures"
+                    }
+                    ]
+                }
+                
+                },
+            }
+       
+        ),
+        500: "Error fetching data from Lichess API"
+    },
+    operation_description="Fetch details of a specific tournament round.",
+    operation_summary="Get Tournament Round Details"
+)
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_tournament_round(request, tournamentSlug, roundSlug, roundId):
+    """
+    Fetches tournament round details from Lichess API.
+    """
+    # Build the Lichess API endpoint URL
+    lichess_url = f"{LICHESS_BROADCAST_API}/{tournamentSlug}/{roundSlug}/{roundId}"
+    
+    try:
+        # Make the API request
+        response = requests.get(lichess_url)
+        response.raise_for_status()
+
+        # Return the data as is
+        return Response(response.json(), status=status.HTTP_200_OK)
+
+    except requests.exceptions.RequestException as e:
+        return Response({"error": f"Error fetching data: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+
+# Swagger parameter for roundId
+round_id_param = openapi.Parameter(
+    'roundId',
+    in_=openapi.IN_PATH,
+    description="The round ID (8 characters) used to fetch the PGN.",
+    type=openapi.TYPE_STRING,
+    required=True
+)
+
+def parse_pgn_with_game_ids(pgn_text):
+    """
+    Parses PGN text and maps game IDs (from the Site field) to their corresponding PGN,
+    ensuring all PGN content (headers + moves) is captured correctly.
+    """
+    games = {}
+    current_game_id = None
+    current_pgn = []
+    print("pgn_text", pgn_text)
+    # Split PGN data into blocks: headers + moves separated by at least two newlines
+    pgn_blocks = re.split(r'\n\n\n', pgn_text.strip())
+
+    for block in pgn_blocks:
+        print("block", block)
+        lines = block.strip().splitlines()
+        current_game_id = None
+        current_pgn = []
+
+        # Extract game ID from the Site header
+        for line in lines:
+            current_pgn.append(line)  # Add every line to the current PGN
+            if line.startswith("[Site"):
+                match = re.search(r"https://lichess\.org/broadcast/.*/.*/(?P<game_id>\w+)", line)
+                if match:
+                    print("match", match)
+                    current_game_id = match.group("game_id")
+        
+        # If a valid game ID is found, store the PGN
+        if current_game_id:
+            games[current_game_id] = "\n".join(current_pgn)
+
+    return games
+
+
+def parse_pgn_with_player_names(pgn_text):
+    """
+    Parses PGN text and maps games using player names as keys in the format:
+    'WhitePlayer - BlackPlayer'.
+    """
+    games = {}
+    current_pgn = []
+    white_player = None
+    black_player = None
+
+    # Split PGN data into blocks: headers + moves separated by at least two newlines
+    pgn_blocks = re.split(r'\n\n\n', pgn_text.strip())
+
+    for block in pgn_blocks:
+        lines = block.strip().splitlines()
+        current_pgn = []
+        white_player = None
+        black_player = None
+
+        for line in lines:
+            current_pgn.append(line)  # Add all lines (headers + moves) to the current PGN
+            if line.startswith("[White "):
+                white_player = re.search(r'\"(.+?)\"', line).group(1)
+            elif line.startswith("[Black "):
+                black_player = re.search(r'\"(.+?)\"', line).group(1)
+
+        # Generate the key: "WhitePlayer - BlackPlayer"
+        if white_player and black_player:
+            game_key = f"{white_player} - {black_player}"
+            games[game_key] = "\n".join(current_pgn)
+
+    return games
+
+@swagger_auto_schema(
+    method='get',
+    manual_parameters=[round_id_param],
+    responses={
+        200: openapi.Response(
+            description="PGN representation mapped by player names",
+            examples={
+                "application/json": {
+                    "games": {
+                        "Predojevic, Borki - Harikrishna, Pentala": "[Event \"Deutsche Schachbundesliga 24-25\"]\n[Site \"https://lichess.org/broadcast/-/-/uU0gySB0\"]\n[Date \"2024.09.28\"]\n[Round \"1.16\"]\n[White \"Predojevic, Borki\"]\n[Black \"Harikrishna, Pentala\"]\n[Result \"1/2-1/2\"]\n\n1. e4 e5 2. Nf3 Nc6 3. Nc3 Nf6",
+                        "Carlsen, Magnus - Anand, Viswanathan": "[Event \"Another Tournament\"]\n[Site \"https://lichess.org/broadcast/-/-/anotherID\"]\n[Date \"2024.09.28\"]\n[Round \"1.2\"]\n[White \"Carlsen, Magnus\"]\n[Black \"Anand, Viswanathan\"]\n[Result \"1-0\"]\n\n1. e4 e5 2. Nf3 Nc6 3. Bb5 a6"
+                    }
+                }
+            }
+        ),
+        404: "Tournament round not found",
+        500: "Error fetching PGN from Lichess API"
+    },
+    operation_description="Fetch and return PGNs mapped to player names for a specific tournament round.",
+    operation_summary="Get Tournament Round PGNs Mapped by Player Names"
+)
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_tournament_round_pgn(request, roundId):
+    """
+    Fetch PGN representation of all games in a specific tournament round,
+    and map them to player names extracted from the PGN headers.
+    """
+    # Construct the API URL for the PGN
+    lichess_url = f"{LICHESS_BROADCAST_API}/round/{roundId}.pgn"
+
+    try:
+        # Fetch the PGN from Lichess
+        response = requests.get(lichess_url)
+        response.raise_for_status()
+
+        # Parse PGN and map it to player names
+        pgn_text = response.text
+        games = parse_pgn_with_player_names(pgn_text)
+
+        if not games:
+            return Response({"error": "No valid games found in the PGN data"}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response({"games": games}, status=status.HTTP_200_OK)
+
+    except requests.exceptions.RequestException as e:
+        return Response({"error": f"Internal server error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
