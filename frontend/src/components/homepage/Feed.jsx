@@ -15,7 +15,7 @@ const Feed = ({ isGuest, passedTag }) => {
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [sorting, setSorting] = useState("");
+  const [sorting, setSorting] = useState("newer");
   const [selectedTag, setSelectedTag] = useState(passedTag || ""); // Initialize with URL tag
   const [openFilters, setOpenFilters] = useState(false);
   const [followedOnly, setFollowedOnly] = useState(false);
@@ -54,9 +54,10 @@ const Feed = ({ isGuest, passedTag }) => {
       );
 
       if (!response.ok) {
+        // Handle the 404 error when there are no more posts
         if (response.status === 404) {
-          setHasMore(false);
-          setPosts([]);
+          setHasMore(false); // Disable infinite scroll since there are no more posts
+          return; // Prevent further actions if no more posts
         }
         throw new Error(`Error: ${response.statusText}`);
       }
@@ -64,19 +65,20 @@ const Feed = ({ isGuest, passedTag }) => {
       const data = await response.json();
 
       if (data.results.length === 0) {
-        setHasMore(false);
-        setPosts([]);
+        setHasMore(false); // No posts left to load
       } else {
-        const filteredPosts = data.results.filter((post) => post.post_text && post.user).map((post) => ({
-          id: post.id,
-          username: post.user,
-          title: post.title || `${post.user}'s post`,
-          post_text: post.post_text,
-          image: post.post_image || "",
-          fen: post.fen || "",
-          tags: post.tags || [],
-          timestamp: new Date(post.created_at),
-        }));
+        const filteredPosts = data.results
+          .filter((post) => post.post_text && post.user)
+          .map((post) => ({
+            id: post.id,
+            username: post.user,
+            title: post.title || `${post.user}'s post`,
+            post_text: post.post_text,
+            image: post.post_image || "",
+            fen: post.fen || "",
+            tags: post.tags || [],
+            timestamp: new Date(post.created_at),
+          }));
 
         setPosts((prevPosts) =>
           [...prevPosts, ...filteredPosts].sort((a, b) => {
@@ -86,8 +88,11 @@ const Feed = ({ isGuest, passedTag }) => {
           })
         );
 
-        if (data.next === null) setHasMore(false);
-        else setPage((prevPage) => prevPage + 1);
+        if (data.next === null) {
+          setHasMore(false); // No more pages to load
+        } else {
+          setPage((prevPage) => prevPage + 1); // Increase page number for next request
+        }
       }
     } catch (error) {
       setError(error);
@@ -95,6 +100,7 @@ const Feed = ({ isGuest, passedTag }) => {
       setIsLoading(false);
     }
   };
+
 
   const handleTagChange = (tag) => {
     setSelectedTag(tag);
