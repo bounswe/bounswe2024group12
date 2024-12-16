@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Typography, Divider, List, ListItem, ListItemText, Card, Grid, Link, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
+import { Container, Typography, Divider, Card, Grid2, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Navbar from '../common/Navbar';
+import Post from '../homepage/Post';
 import { useNavigate } from 'react-router-dom';
 
 const BACKEND_URL = process.env.REACT_APP_API_URL;
 
 const ProfileCard = () => {
   const [profileData, setProfileData] = useState(null);
+  const [detailedPosts, setDetailedPosts] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -30,43 +32,62 @@ const ProfileCard = () => {
     }
   }, [navigate]);
 
-  if (!profileData) {
-    return <Typography align="center" variant="h6">Loading...</Typography>;
-  }
-
-  const handlePostClick = (id) => {
-    navigate(`/posts/${id}`);
+  const fetchPostDetails = async (postId) => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/posts/${postId}/`);
+      if (response.ok) {
+        const data = await response.json();
+        // Ensure username and timestamp are added
+        return {
+          ...data,
+          username: profileData.username,
+          timestamp: new Date(data.created_at),
+        };
+      } else {
+        console.error('Failed to fetch post details');
+      }
+    } catch (error) {
+      console.error('Error fetching post:', error);
+    }
+    return null;
   };
 
-  const renderList = (title, items, type, isPost = false) => (
+  const renderPostList = (title, posts) => (
     <Accordion>
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />}> 
         <Typography variant="h6">{title}</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        {items.length > 0 ? (
-          <List>
-            {items.map((item, index) => (
-              <ListItem key={index} disablePadding>
-                {isPost ? (
-                  <Link onClick={() => handlePostClick(item.id)} underline="hover" color="inherit">
-                    <ListItemText primary={item.title} />
-                  </Link>
-                ) : (
-                  <ListItemText 
-                    primary={item.post__title || `${item.game__white} vs ${item.game__black}`} 
-                    secondary={item.game__year ? `Year: ${item.game__year}` : null}
-                  />
-                )}
-              </ListItem>
-            ))}
-          </List>
+        {posts.length > 0 ? (
+          posts.map((post) => (
+
+            <Post key={post.id} post={post} width="100%" />
+          ))
         ) : (
           <Typography>Nothing here yet!</Typography>
         )}
       </AccordionDetails>
     </Accordion>
   );
+
+  useEffect(() => {
+    if (profileData && profileData.posts && detailedPosts.length === 0) {
+      const fetchAllPosts = async () => {
+        const updatedPosts = await Promise.all(
+          profileData.posts.map(async (post) => {
+            const detailedPost = await fetchPostDetails(post.id);
+            return detailedPost || post;
+          })
+        );
+        setDetailedPosts(updatedPosts);
+      };
+      fetchAllPosts();
+    }
+  }, [profileData, detailedPosts.length]);
+
+  if (!profileData) {
+    return <Typography align="center" variant="h6">Loading...</Typography>;
+  }
 
   return (
     <div>
@@ -75,24 +96,18 @@ const ProfileCard = () => {
         <Card sx={{ my: 4, p: 3, backgroundColor: 'background.paper' }}>
           <Typography variant="h4" gutterBottom align="center">Profile</Typography>
           <Divider sx={{ mb: 2 }} />
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
+          <Grid2 container spacing={2}>
+            <Grid2 item xs={12} md={6}>
               <Typography variant="h6">User Info</Typography>
               <Typography>Username: {profileData.username}</Typography>
               <Typography>Email: {profileData.email}</Typography>
               <Typography>Date Joined: {new Date(profileData.date_joined).toLocaleDateString()}</Typography>
               <Typography>Followers: {profileData.followers.length}</Typography>
               <Typography>Following: {profileData.following.length}</Typography>
-            </Grid>
-          </Grid>
+            </Grid2>
+          </Grid2>
           <Divider sx={{ my: 2 }} />
-          {renderList('Post Bookmarks', profileData.post_bookmarks, 'post')}
-          {renderList('Game Bookmarks', profileData.game_bookmarks, 'game')}
-          {renderList('Game Move Bookmarks', profileData.game_move_bookmarks, 'move')}
-          {renderList('Post Likes', profileData.post_likes, 'post')}
-          {renderList('Followers', profileData.followers, 'follower')}
-          {renderList('Following', profileData.following, 'following')}
-          {renderList('My Posts', profileData.posts, 'post', true)}
+          {renderPostList('My Posts', detailedPosts)}
         </Card>
       </Container>
     </div>
