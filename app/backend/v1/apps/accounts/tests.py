@@ -90,7 +90,7 @@ class FollowUserTest(TestCase):
         self.client = APIClient()
         self.follower = CustomUser.objects.create_user(username="follower", password="password")
         self.following = CustomUser.objects.create_user(username="following", password="password")
-        self.url = reverse('toggle-follow', args=[self.following.id])
+        self.url = reverse('toggle-follow', args=[self.following.username])
 
     def test_follow_user_authenticated(self):
         self.client.force_authenticate(user=self.follower)
@@ -134,7 +134,7 @@ class UserPageTest(TestCase):
         # Create user's own posts
         self.post_1 = Post.objects.create(user=self.user, title="My Chess Analysis", post_text="Analysis Content")
         self.post_2 = Post.objects.create(user=self.user, title="Endgame Strategy", post_text="Strategy Content")
-        self.user_posts = Post.objects.filter(user=self.user)  # Her yerde bu işlemi yapmamak için kaydedildi
+        self.user_posts = Post.objects.filter(user=self.user) 
 
     def test_user_page_authenticated(self):
         response = self.client.get(self.url)
@@ -149,6 +149,19 @@ class UserPageTest(TestCase):
         expected_posts = self.user_posts.values('id', 'title')
         for post in expected_posts:
             self.assertIn(post, response.data['posts'])
+        
+        # Check that each game bookmark has the required fields
+        for bookmark in response.data['game_bookmarks']:
+            self.assertIn('game__id', bookmark)
+            self.assertIn('game__event', bookmark)
+            self.assertIn('game__site', bookmark)
+            self.assertIn('game__white', bookmark)
+            self.assertIn('game__black', bookmark)
+            self.assertIn('game__result', bookmark)
+            self.assertIn('game__year', bookmark)
+            self.assertIn('game__month', bookmark)
+            self.assertIn('game__day', bookmark)
+            self.assertIn('game__pgn', bookmark)
 
     def test_user_page_unauthenticated(self):
         self.client.logout()

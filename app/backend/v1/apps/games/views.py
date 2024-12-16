@@ -151,7 +151,15 @@ until_param = openapi.Parameter(
     responses={
         200: openapi.Response('Data fetched successfully', examples={'application/json': {'data': '...'}}),
         400: openapi.Response('Invalid request'),
-        500: openapi.Response('Error fetching data')
+        500: openapi.Response('Error fetching data'),
+        401: openapi.Response(
+            description="Authentication required",
+            examples={
+                'application/json': {
+                    "detail": "Authentication credentials were not provided."
+                }
+            }
+        )
     }
 )
 @api_view(['GET'])
@@ -219,6 +227,14 @@ game_id_param = openapi.Parameter(
         500: openapi.Response(
             description="Server error.",
             examples={'application/json': {'error': 'Internal server error'}}
+        ),
+        401: openapi.Response(
+            description="Authentication required",
+            examples={
+                'application/json': {
+                    "detail": "Authentication credentials were not provided."
+                }
+            }
         )
     },
     operation_description="Fetch the PGN representation of a master game from public API's.",
@@ -254,6 +270,7 @@ def master_game(request, game_id):
     method='post',
     operation_description="Add a comment to a specific move in a game.",
     operation_summary="Add Game Comment",
+    manual_parameters=[auth_header],
     request_body=openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
@@ -282,6 +299,14 @@ def master_game(request, game_id):
         }),
         400: openapi.Response(description="Invalid data"),
         404: openapi.Response(description="Game not found"),
+        401: openapi.Response(
+            description="Authentication required",
+            examples={
+                'application/json': {
+                    "detail": "Authentication credentials were not provided."
+                }
+            }
+        )
     },
 )
 @api_view(['POST'])
@@ -358,6 +383,7 @@ def list_game_comments(request, game_id):
     method='post',
     operation_description="Toggle bookmark for a specific game. If the game is not bookmarked, it will be bookmarked. If it is already bookmarked, the bookmark will be removed.",
     operation_summary="Toggle Bookmark on a Game",
+    manual_parameters=[auth_header],
     responses={
         201: openapi.Response(
             description="Game bookmarked successfully",
@@ -382,6 +408,14 @@ def list_game_comments(request, game_id):
                     'error': 'Game not found'
                 }
             }
+        ),
+        401: openapi.Response(
+            description="Authentication required",
+            examples={
+                'application/json': {
+                    "detail": "Authentication credentials were not provided."
+                }
+            }
         )
     }
 )
@@ -404,6 +438,7 @@ def toggle_game_bookmark(request, game_id):
     method='post',
     operation_description="Toggle bookmark for a specific move in a game. If the move is not bookmarked, it will be bookmarked. If it is already bookmarked, the bookmark will be removed.",
     operation_summary="Toggle Bookmark on a Game Move",
+    manual_parameters=[auth_header],
     request_body=openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
@@ -439,6 +474,14 @@ def toggle_game_bookmark(request, game_id):
             examples={
                 'application/json': {
                     'error': 'Game or move not found'
+                }
+            }
+        ),
+        401: openapi.Response(
+            description="Authentication required",
+            examples={
+                'application/json': {
+                    "detail": "Authentication credentials were not provided."
                 }
             }
         )

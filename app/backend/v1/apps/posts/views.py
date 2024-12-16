@@ -13,6 +13,7 @@ from v1.apps.posts.serializers import PostSerializer, LikeSerializer, CommentSer
 
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.pagination import PageNumberPagination
+from v1.apps.headers import auth_header
 
 
 # Swagger documentation for POST /api/v1/posts/create/
@@ -42,6 +43,7 @@ from rest_framework.pagination import PageNumberPagination
     ),
     operation_description="Create a post with an optional base64-encoded image, FEN notation, text content and a list of tags. Requires authentication.",
     operation_summary="Create a new post",
+    manual_parameters=[auth_header],
     responses={
         201: openapi.Response(
             description="Post created successfully",
@@ -64,6 +66,14 @@ from rest_framework.pagination import PageNumberPagination
                 'application/json': {
                     'post_image': ['Invalid image format.'],
                     'fen': ['This field is required.'],
+                }
+            }
+        ),
+        401: openapi.Response(
+            description="Authentication required",
+            examples={
+                'application/json': {
+                    "detail": "Authentication credentials were not provided."
                 }
             }
         )
@@ -335,10 +345,19 @@ def list_posts(request):
     method='post',
     operation_description="Toggle like/unlike for a specific post.",
     operation_summary="Like/Unlike a Post",
+    manual_parameters=[auth_header],
     responses={
         201: openapi.Response("Post liked", examples={"application/json": {"message": "Post liked"}}),
         200: openapi.Response("Post unliked", examples={"application/json": {"message": "Post unliked"}}),
-        404: "Post not found"
+        404: "Post not found",
+        401: openapi.Response(
+            description="Authentication required",
+            examples={
+                'application/json': {
+                    "detail": "Authentication credentials were not provided."
+                }
+            }
+        )
     }
 )
 @api_view(['POST'])
@@ -365,6 +384,7 @@ def like_post(request, post_id):
     ),
     operation_description="Get like count and like status for multiple posts.",
     operation_summary="Like Summary for Multiple Posts",
+    manual_parameters=[auth_header],
     responses={
         200: openapi.Response(
             description="Like summary retrieved",
@@ -374,7 +394,15 @@ def like_post(request, post_id):
                 {"post_id": 3, "error": "Post not found"}
             ]}
         ),
-        400: "Invalid request"
+        400: "Invalid request",
+        401: openapi.Response(
+            description="Authentication required",
+            examples={
+                'application/json': {
+                    "detail": "Authentication credentials were not provided."
+                }
+            }
+        )
     }
 )
 @api_view(['POST'])
@@ -423,6 +451,7 @@ comment_id_param = openapi.Parameter(
     ),
     operation_description="Add a new comment to a specific post. Optionally include FEN notations.",
     operation_summary="Create Comment",
+    manual_parameters=[auth_header],
     responses={
         201: openapi.Response(
             description="Comment created successfully.",
@@ -439,7 +468,15 @@ comment_id_param = openapi.Parameter(
             }
         ),
         400: "Invalid request",
-        404: "Post not found"
+        404: "Post not found",
+        401: openapi.Response(
+            description="Authentication required",
+            examples={
+                'application/json': {
+                    "detail": "Authentication credentials were not provided."
+                }
+            }
+        )
     }
 )
 @api_view(['POST'])
@@ -476,6 +513,7 @@ def create_comment(request, post_id):
     ),
     operation_description="Update an existing comment on a specific post. Optionally include FEN notations.",
     operation_summary="Update Comment",
+    manual_parameters=[auth_header],
     responses={
         200: openapi.Response(
             description="Comment updated successfully.",
@@ -493,17 +531,34 @@ def create_comment(request, post_id):
         ),
         400: "Invalid request",
         403: "Unauthorized",
-        404: "Comment not found"
+        404: "Comment not found",
+        401: openapi.Response(
+            description="Authentication required",
+            examples={
+                'application/json': {
+                    "detail": "Authentication credentials were not provided."
+                }
+            }
+        )
     }
 )
 @swagger_auto_schema(
     method='delete',
     operation_description="Delete an existing comment on a specific post.",
     operation_summary="Delete Comment",
+    manual_parameters=[auth_header],
     responses={
         204: "Comment deleted successfully",
         403: "Unauthorized",
-        404: "Comment not found"
+        404: "Comment not found",
+        401: openapi.Response(
+            description="Authentication required",
+            examples={
+                'application/json': {
+                    "detail": "Authentication credentials were not provided."
+                }
+            }
+        )
     }
 )
 @api_view(['PUT', 'DELETE'])
@@ -584,6 +639,7 @@ def list_comments(request, post_id):
     method='post',
     operation_description="Toggle bookmark for a specific post. If the post is not bookmarked, it will be bookmarked. If it is already bookmarked, the bookmark will be removed.",
     operation_summary="Toggle Bookmark on a Post",
+    manual_parameters=[auth_header],
     responses={
         201: openapi.Response(
             description="Post bookmarked successfully",
@@ -606,6 +662,14 @@ def list_comments(request, post_id):
             examples={
                 'application/json': {
                     'error': 'Post not found'
+                }
+            }
+        ),
+        401: openapi.Response(
+            description="Authentication required",
+            examples={
+                'application/json': {
+                    "detail": "Authentication credentials were not provided."
                 }
             }
         )
