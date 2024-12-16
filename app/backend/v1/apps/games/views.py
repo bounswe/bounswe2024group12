@@ -17,7 +17,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 
-from .serializers import GameCommentSerializer
+from .serializers import GameCommentSerializer, AnnotationSerializer
 
 
 # Swagger Parameters
@@ -1003,7 +1003,7 @@ def get_tournament_round_pgn(request, roundId):
                 'application/json': [
                     {
                         "@context": "http://www.w3.org/ns/anno.jsonld",
-                        "id": "annotation-1",
+                        "id": "341c8d29-867d-43f6-8892-9f675ea7d8c5",
                         "type": "Annotation",
                         "created": "2024-03-14T12:00:00Z",
                         "modified": "2024-03-14T12:00:00Z",
@@ -1050,28 +1050,33 @@ def get_tournament_round_pgn(request, roundId):
 )
 @swagger_auto_schema(
     method='post',
-    operation_description="Create a new annotation for a specific game. The annotation includes information about the user, move details, and a comment.",
+    operation_description="Create a new annotation for a specific game.",
     operation_summary="Create an Annotation for a Game",
     manual_parameters=[auth_header],
     request_body=openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
-            "type": openapi.Schema(type=openapi.TYPE_STRING, description="The type of the annotation", example="Annotation"),
-            "created": openapi.Schema(type=openapi.TYPE_STRING, format="date-time", description="The creation timestamp", example="2024-03-14T12:00:00Z"),
-            "body": openapi.Schema(type=openapi.TYPE_OBJECT, properties={
-                "type": openapi.Schema(type=openapi.TYPE_STRING, description="Body type", example="TextualBody"),
-                "value": openapi.Schema(type=openapi.TYPE_STRING, description="Comment or annotation content", example="This is a strong pawn move."),
-                "format": openapi.Schema(type=openapi.TYPE_STRING, description="Format of the annotation body", example="text/plain")
-            }),
-            "target": openapi.Schema(type=openapi.TYPE_OBJECT, properties={
-                "type": openapi.Schema(type=openapi.TYPE_STRING, description="The type of target", example="ChessPosition"),
-                "source": openapi.Schema(type=openapi.TYPE_STRING, description="The source URL of the game", example="http://example.com/games/7"),
-                "state": openapi.Schema(type=openapi.TYPE_OBJECT, properties={
-                    "fen": openapi.Schema(type=openapi.TYPE_STRING, description="FEN notation for the position", example="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"),
-                    "moveNumber": openapi.Schema(type=openapi.TYPE_INTEGER, description="Move number", example=1)
-                })
-            }),
-            "motivation": openapi.Schema(type=openapi.TYPE_STRING, description="Reason for the annotation", example="commenting")
+            "@context": openapi.Schema(type=openapi.TYPE_STRING, description="Context for the annotation", example="http://www.w3.org/ns/anno.jsonld"),
+            "type": openapi.Schema(type=openapi.TYPE_STRING, description="Type of annotation", example="Annotation"),
+            "body": openapi.Schema(
+                type=openapi.TYPE_OBJECT, 
+                properties={
+                    "type": openapi.Schema(type=openapi.TYPE_STRING, description="Type of body", example="TextualBody"),
+                    "value": openapi.Schema(type=openapi.TYPE_STRING, description="Content of the annotation", example="Opening position - Classic setup"),
+                    "format": openapi.Schema(type=openapi.TYPE_STRING, description="Format of the annotation body", example="text/plain")
+                }
+            ),
+            "target": openapi.Schema(
+                type=openapi.TYPE_OBJECT, 
+                properties={
+                    "state": openapi.Schema(type=openapi.TYPE_OBJECT, properties={
+                        "fen": openapi.Schema(type=openapi.TYPE_STRING, description="FEN notation", example="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"),
+                        "moveNumber": openapi.Schema(type=openapi.TYPE_INTEGER, description="Move number", example=1)
+                    }),
+                    "source": openapi.Schema(type=openapi.TYPE_STRING, description="URL of the game", example="http://localhost/games/1")
+                }
+            ),
+            "motivation": openapi.Schema(type=openapi.TYPE_STRING, description="Reason for annotation", example="commenting")
         }
     ),
     responses={
@@ -1079,7 +1084,18 @@ def get_tournament_round_pgn(request, roundId):
             description="Annotation created successfully",
             examples={
                 'application/json': {
-                    "message": "Annotation created successfully"
+                    "id": "341c8d29-867d-43f6-8892-9f675ea7d8c5",
+                    "@context": "http://www.w3.org/ns/anno.jsonld",
+                    "type": "Annotation",
+                    "body": {
+                        "value": "Opening position - Classic setup"
+                    },
+                    "target": {
+                        "state": {
+                            "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
+                        }
+                    },
+                    "motivation": "commenting"
                 }
             }
         ),
@@ -1106,51 +1122,35 @@ def get_tournament_round_pgn(request, roundId):
 def annotations_list_create(request, game_id):
     if request.method == 'GET':
         annotations = Annotation.objects.filter(game_id=game_id)
-        serialized_data = [
-            {
-                'id': annotation.id,
-                'body_value': annotation.body_value,
-                'body_format': annotation.body_format,
-                'target_fen': annotation.target_fen,
-                'move_number': annotation.move_number,
-                'motivation': annotation.motivation,
-            }
-            for annotation in annotations
-        ]
-        return Response(serialized_data, status=status.HTTP_200_OK)
+        serializer = AnnotationSerializer(annotations, many=True, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     if request.method == 'POST':
-        game = get_object_or_404(Game, id=game_id)
         data = request.data
-        annotation = Annotation.objects.create(
-            game=game,
-            creator=request.user,
-            body_value=data.get('body_value', ''),
-            body_format=data.get('body_format', 'text/plain'),
-            target_fen=data.get('target_fen', ''),
-            move_number=data.get('move_number', 0),
-            motivation=data.get('motivation', 'commenting')
-        )
-        return Response({"annotation": {
-            "id": annotation.id,
-            "body_value": annotation.body_value,
-            "body_format": annotation.body_format,
-            "target_fen": annotation.target_fen,
-            "move_number": annotation.move_number,
-            "motivation": annotation.motivation,
-        }}, status=status.HTTP_201_CREATED)
+        game = get_object_or_404(Game, id=game_id)  # Oyunu veritabanından al
+        data['creator'] = request.user.id  # Yaratıcıyı ekle
+        serializer = AnnotationSerializer(data=data, context={'request': request})
+        if serializer.is_valid():
+            # save() metodu ile ForeignKey ilişkilendirmesini yapıyoruz.
+            annotation = serializer.save(game=game, creator=request.user)
+            response_serializer = AnnotationSerializer(annotation)
+            return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @swagger_auto_schema(
     method='put',
-    operation_description="Update an existing annotation for a specific game. Only the creator of the annotation can update it.",
+    operation_description="Update an existing annotation for a specific game.",
     operation_summary="Update an Annotation for a Game",
     manual_parameters=[auth_header],
     request_body=openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
-            "body": openapi.Schema(type=openapi.TYPE_OBJECT, properties={
-                "value": openapi.Schema(type=openapi.TYPE_STRING, description="Updated comment or annotation content", example="Updated content for the annotation")
-            }),
+            "body": openapi.Schema(
+                type=openapi.TYPE_OBJECT, 
+                properties={
+                    "value": openapi.Schema(type=openapi.TYPE_STRING, description="Updated comment", example="Updated content"),
+                }
+            ),
             "modified": openapi.Schema(type=openapi.TYPE_STRING, format="date-time", description="The modification timestamp", example="2024-03-14T12:10:00Z")
         }
     ),
@@ -1159,15 +1159,10 @@ def annotations_list_create(request, game_id):
             description="Annotation updated successfully",
             examples={
                 'application/json': {
-                    "message": "Annotation updated successfully"
-                }
-            }
-        ),
-        403: openapi.Response(
-            description="User is not the creator of the annotation",
-            examples={
-                'application/json': {
-                    "error": "Only the creator can update this annotation"
+                    "id": "341c8d29-867d-43f6-8892-9f675ea7d8c5",
+                    "body": {
+                        "value": "Updated content"
+                    }
                 }
             }
         ),
@@ -1183,23 +1178,14 @@ def annotations_list_create(request, game_id):
 )
 @swagger_auto_schema(
     method='delete',
-    operation_description="Delete an annotation for a specific game. Only the creator of the annotation can delete it.",
+    operation_description="Delete an annotation for a specific game.",
     operation_summary="Delete an Annotation for a Game",
-    manual_parameters=[auth_header],
     responses={
         200: openapi.Response(
             description="Annotation deleted successfully",
             examples={
                 'application/json': {
                     "message": "Annotation deleted successfully"
-                }
-            }
-        ),
-        403: openapi.Response(
-            description="User is not the creator of the annotation",
-            examples={
-                'application/json': {
-                    "error": "Only the creator can delete this annotation"
                 }
             }
         ),
@@ -1222,19 +1208,13 @@ def annotation_detail(request, game_id, anno_id):
         if request.user != annotation.creator:
             return Response({"error": "Only the creator can update this annotation."}, status=status.HTTP_403_FORBIDDEN)
         
-        annotation.body_value = request.data.get('body_value', annotation.body_value)
-        annotation.move_number = request.data.get('move_number', annotation.move_number)
-        annotation.save()
-        
-        return Response({"annotation": {
-            "id": annotation.id,
-            "body_value": annotation.body_value,
-            "body_format": annotation.body_format,
-            "target_fen": annotation.target_fen,
-            "move_number": annotation.move_number,
-            "motivation": annotation.motivation,
-        }}, status=status.HTTP_200_OK)
-
+        serializer = AnnotationSerializer(annotation, data=request.data, partial=True, context={'request': request})
+        if serializer.is_valid():
+            annotation = serializer.save()
+            response_serializer = AnnotationSerializer(annotation)
+            return Response(response_serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
     if request.method == 'DELETE':
         if request.user != annotation.creator:
             return Response({"error": "Only the creator can delete this annotation."}, status=status.HTTP_403_FORBIDDEN)
