@@ -8,6 +8,8 @@ import CommentsList from "./CommentsList";
 import AnnotationTooltip from "./AnnotationTooltip";
 import AddAnnotationDialog from "./AddAnnotationDialog";
 import { Chess } from "chess.js";
+import { BsDatabase } from 'react-icons/bs';
+import MasterGamesDialog from './MasterGamesDialog';
 
 const BACKEND_URL = process.env.REACT_APP_API_URL;
 
@@ -51,7 +53,7 @@ function pgnToFenListAndMetadata(pgn) {
   return { fenList, metadata };
 }
 
-const GameScreen = ({ game, currentUser }) => {
+const GameScreen = ({ game, currentUser, onGameSelect }) => {
   useEffect(() => {
     window.scrollTo(0, 0); // Scroll to the top of the page
   }, []);
@@ -68,6 +70,10 @@ const GameScreen = ({ game, currentUser }) => {
   const [isAddAnnotationOpen, setIsAddAnnotationOpen] = useState(false); // State for Add Annotation Dialog
   const [selectedStepForAnnotation, setSelectedStepForAnnotation] = useState(null); // Step selected for adding annotation
   const [editingAnnotation, setEditingAnnotation] = useState(null);
+  const [masterGamesOpen, setMasterGamesOpen] = useState(false);
+  const [masterGames, setMasterGames] = useState([]);
+  const [loadingMasterGames, setLoadingMasterGames] = useState(false);
+  const [targetFen, setTargetFen] = useState(null);
 
   const fetchComments = async () => {
     try {
@@ -306,6 +312,93 @@ const GameScreen = ({ game, currentUser }) => {
     setMovesListOpen((prev) => !prev);
   };
 
+  const fetchMasterGames = async (fen) => {
+    setLoadingMasterGames(true);
+    try {
+      const encodedFen = encodeURIComponent(fen.replace(/\s+/g, '_'));
+      console.log('Fetching games for FEN:', fen);
+      
+      const response = await fetch(`${BACKEND_URL}/games/explore/?fen=${encodedFen}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      const data = await response.json();
+      console.log('API Response:', data);
+      
+      if (!response.ok) throw new Error('Failed to fetch master games');
+      
+      // Pass the entire response data
+      setMasterGames(data);
+    } catch (error) {
+      console.error('Error fetching master games:', error);
+      setMasterGames(null);
+    } finally {
+      setLoadingMasterGames(false);
+    }
+  };
+
+  const handleMoreGamesClick = () => {
+    setTargetFen(currentPosition);
+    setMasterGamesOpen(true);
+    fetchMasterGames(currentPosition);
+  };
+
+  const handleMasterGameSelect = async (gameId) => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/games/master_game/${gameId}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (!response.ok) throw new Error('Failed to fetch master game');
+      const data = await response.json();
+
+      // Create a game object in the format your app expects
+      const selectedGame = {
+        id: data.game.id,
+        pgn: data.game.pgn,
+        white: data.game.white,
+        black: data.game.black,
+        result: data.game.result,
+        year: data.game.year,
+        event: data.game.event,
+        site: data.game.site,
+        date: `${data.game.year}.${String(data.game.month).padStart(2, '0')}.${String(data.game.day).padStart(2, '0')}`
+      };
+      
+      // Update the current game first
+      setMasterGamesOpen(false); // Close the dialog
+      if (onGameSelect) {
+        onGameSelect(selectedGame);
+      }
+
+      // Parse the new game's PGN to get FEN list
+      const { fenList: newFenList, metadata: newMetadata } = pgnToFenListAndMetadata(data.game.pgn);
+      
+      // Find the move index that matches our saved target FEN
+      const matchingMoveIndex = newFenList.findIndex(fen => fen === targetFen);
+      console.log('Target FEN:', targetFen);
+      console.log('Matching index:', matchingMoveIndex);
+      console.log('Available FENs:', newFenList);
+      
+      // Set the move index to the matching position, or 0 if not found
+      setCurrentMoveIndex(matchingMoveIndex !== -1 ? matchingMoveIndex : 0);
+      
+      // Clear existing comments and annotations
+      setCommentsByStep({});
+      setAnnotationsByStep({});
+      
+      // Fetch new comments and annotations if needed
+      fetchComments();
+      fetchAnnotations();
+    } catch (error) {
+      console.error('Error fetching master game:', error);
+    }
+  };
+
   return (
     <Box
       sx={{
@@ -385,6 +478,14 @@ const GameScreen = ({ game, currentUser }) => {
             data-testid="next-button"
           >
             Next
+          </Button>
+
+          <Button
+            onClick={handleMoreGamesClick}
+            variant="outlined"
+            startIcon={<BsDatabase />}
+          >
+            More Games
           </Button>
         </Stack>
 
@@ -499,6 +600,14 @@ const GameScreen = ({ game, currentUser }) => {
           <CommentsList comments={commentsForCurrentStep} />
         )}
       </Box>
+
+      <MasterGamesDialog
+        open={masterGamesOpen}
+        onClose={() => setMasterGamesOpen(false)}
+        games={masterGames}
+        loading={loadingMasterGames}
+        onGameSelect={handleMasterGameSelect}
+      />
     </Box>
   );
 };
