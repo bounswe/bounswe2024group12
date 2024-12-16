@@ -18,6 +18,7 @@ import Chessboard from 'react-native-chessboard';
 import { Dimensions } from 'react-native';
 import { Chess } from 'chess.js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { api } from "./services/AuthService";
 
 const screenWidth = Dimensions.get('window').width;
 const boardSize = screenWidth - 40;
@@ -71,7 +72,8 @@ const PuzzlesScreen = ({ navigation }) => {
         try {
             await AsyncStorage.setItem('lastPuzzle', JSON.stringify({
                 puzzle: puzzleData,
-                position: position
+                position: position,
+                timestamp: new Date().toISOString(),
             }));
         } catch (error) {
             console.error('Failed to save puzzle:', error);
@@ -82,7 +84,14 @@ const PuzzlesScreen = ({ navigation }) => {
         try {
             const savedData = await AsyncStorage.getItem('lastPuzzle');
             if (savedData) {
-                const { puzzle: savedPuzzle, position } = JSON.parse(savedData);
+                const { puzzle: savedPuzzle, position, timestamp } = JSON.parse(savedData);
+                
+                const savedDate = new Date(timestamp).toDateString();
+                const currentDate = new Date().toDateString();
+                if (savedDate !== currentDate) {
+                    return false;
+                }
+                
                 setPuzzle(savedPuzzle);
                 setPuzzlePosition(position);
                 setLoading(false);
@@ -95,17 +104,30 @@ const PuzzlesScreen = ({ navigation }) => {
         }
     };
 
-    const fetchPuzzle = async (endpoint) => {
+    const fetchPuzzle = async (endpoint, params = {}) => {
         setLoading(true);
         try {
-            const response = await fetch(endpoint);
-            const data = await response.json();
+            const queryString = new URLSearchParams(params).toString();
+            const url = queryString ? `${endpoint}?${queryString}` : endpoint;
+            
+            const response = await api.get(url);
+            const data = response.data;
+            
+            if (!data.game?.pgn || !data.puzzle?.initialPly) {
+                throw new Error('Invalid puzzle data structure');
+            }
+            
             setPuzzle(data.puzzle);
             const position = getPuzzlePosition(data.game.pgn, data.puzzle.initialPly);
             setPuzzlePosition(position);
             savePuzzle(data.puzzle, position);
         } catch (error) {
             console.error('Failed to fetch puzzle:', error);
+            Alert.alert(
+                'Error',
+                'Failed to load puzzle. Please try again later.',
+                [{ text: 'OK' }]
+            );
         } finally {
             setLoading(false);
         }
@@ -115,14 +137,14 @@ const PuzzlesScreen = ({ navigation }) => {
         const initializePuzzle = async () => {
             const hasSavedPuzzle = await loadSavedPuzzle();
             if (!hasSavedPuzzle) {
-                fetchPuzzle('https://lichess.org/api/puzzle/daily');
+                fetchPuzzle('/puzzle/daily/');
             }
         };
         initializePuzzle();
     }, []);
 
     const getNextPuzzle = () => {
-        fetchPuzzle('https://lichess.org/api/puzzle/next');
+        fetchPuzzle('/puzzle/random/');
     };
 
     if (loading) {
@@ -407,14 +429,7 @@ const styles = StyleSheet.create({
     },
     headerButton: {
         padding: 12,
-    },
-    header: {
-        marginBottom: 20,
-    },
-    rating: {
-        fontSize: 18,
-        color: '#666',
-    },
+    }
 });
 
 export default PuzzlesScreen;

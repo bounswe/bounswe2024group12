@@ -24,6 +24,7 @@ import { api } from "@/services/AuthService";
 import { likeService } from "@/services/LikeService";
 import PostCommentManagement from "@/components/PostCommentManagement";
 import { bookmarkService } from "./services/BookmarkService";
+import PostManagement from './components/PostManagement';
 
 const normalizeFen = (fen) => {
   if (!fen) return null;
@@ -139,7 +140,7 @@ const ThreadScreen = ({ route, navigation }) => {
       Alert.alert(
         "Error",
         error.response?.data?.message ||
-          "Failed to post comment. Please try again."
+        "Failed to post comment. Please try again."
       );
     } finally {
       setIsLoading(false);
@@ -287,6 +288,18 @@ const ThreadScreen = ({ route, navigation }) => {
                 {new Date(post.created_at).toLocaleDateString()}
               </Text>
             </View>
+
+            <PostManagement
+              post={post}
+              currentUser={user}
+              onPostUpdated={(updatedPost) => {
+                navigation.setParams({ post: updatedPost });
+              }}
+              onPostDeleted={() => {
+                navigation.goBack();
+              }}
+              navigation={navigation}
+            />
 
             {post.post_image && (
               <View style={styles.imageContainer}>
