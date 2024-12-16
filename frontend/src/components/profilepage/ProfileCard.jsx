@@ -44,8 +44,9 @@ const ProfileCard = () => {
         const data = await response.json();
         return {
           ...data,
+          image: data.post_image || '',
           username: profileData.username,
-          timestamp: new Date(data.created_at),
+          timestamp: new Date(data.created_at), // Ensure timestamp is in Date format
         };
       } else {
         console.error('Failed to fetch post details');
@@ -82,7 +83,10 @@ const ProfileCard = () => {
             return detailedPost || post;
           })
         );
-        setDetailedPosts(updatedPosts);
+
+        // Sort posts by timestamp (latest first)
+        const sortedPosts = updatedPosts.sort((a, b) => b.timestamp - a.timestamp);
+        setDetailedPosts(sortedPosts);
       };
       fetchAllPosts();
     }
