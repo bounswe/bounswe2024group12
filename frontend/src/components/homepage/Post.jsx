@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom"; // Import Link here
 import {
   Card,
   CardContent,
@@ -18,7 +18,7 @@ import CommentIcon from "@mui/icons-material/Comment";
 
 const BACKEND_URL = process.env.REACT_APP_API_URL;
 
-const Post = ({ post, width}) => {
+const Post = ({ post, width }) => {
   const postWidth = width || '50%';
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const currUser = localStorage.getItem('username');
@@ -35,12 +35,10 @@ const Post = ({ post, width}) => {
   const timestamp = new Date(post.timestamp); // Parse timestamp as Date
 
   const [like_count, setLikeCount] = useState(post.likeCount || 0);
-
   const [liked, setLiked] = useState(post.liked || false); // Track if the post is liked
-  // console.log("Post id:", postID);
-  // console.log("Initial like count:", initialLikeCount);
-  // console.log("like count", like_count);
+  
   const navigate = useNavigate();
+
   useEffect(() => {
     setLikeCount(initialLikeCount);
     setLiked(post.liked || false);
@@ -111,12 +109,15 @@ const Post = ({ post, width}) => {
         alert("Failed to copy link!");
       });
   };
-  
-  
 
   // Format date and time
   const formattedDate = timestamp.toLocaleDateString();
   const formattedTime = timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  // Handle tag click to navigate to feed with the selected tag
+  const handleTagClick = (tag) => {
+    navigate(`/home/${tag}`); // Navigate to the feed with the selected tag
+  };
 
   return (
     <Card sx={{ width: postWidth, margin: '1% auto' }}>
@@ -126,9 +127,11 @@ const Post = ({ post, width}) => {
             {postHeader}
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Typography variant="h6" sx={{ marginRight: '10px' }}>
-              {username}
-            </Typography>
+            <Link to={`/profile/${username}`} style={{ textDecoration: 'none' }}>
+              <Typography variant="h6" sx={{ marginRight: '10px' }}>
+                {username}
+              </Typography>
+            </Link>
             <Avatar alt={username} src={getImageSrc(userIcon, "png")} />
           </Box>
         </Box>
@@ -183,7 +186,8 @@ const Post = ({ post, width}) => {
                   key={index}
                   label={tag}
                   variant="filled"
-                  sx={{ backgroundColor: 'secondary.main', color: '#000' }}
+                  sx={{ backgroundColor: 'secondary.main', color: '#000', cursor: 'pointer' }}
+                  onClick={() => handleTagClick(tag)} // Handle tag click
                 />
               ))}
           </Box>

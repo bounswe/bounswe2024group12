@@ -33,16 +33,20 @@ const Navbar = () => {
     navigate('/');
   };
 
+  const handleProfileClick = () => {
+    navigate('/profile');
+  };
+
   return (
     <AppBar position="static">
       <Toolbar>
-        <Typography variant="h5" color= "text.secondary" style={{ flexGrow: 1, fontFamily: "Helvetica", justifyContent:'center', fontWeight: "bold"}}>
+        <Typography variant="h5" color="text.secondary" style={{ flexGrow: 1, fontFamily: "Helvetica", justifyContent: 'center', fontWeight: "bold" }}>
           Chess Social
         </Typography>
         <Button color="inherit" onClick={handleHomeClick}>Home</Button>
         <Button color="inherit" onClick={handleArchiveClick}>Archive</Button>
         {!isLoggedIn && <Button color="inherit" onClick={handleLoginClick}>Login</Button>}
-        {isLoggedIn && <Button color="inherit">Profile</Button>}
+        {isLoggedIn && <Button color="inherit" onClick={handleProfileClick}>Profile</Button>}
         {isLoggedIn && <Button color="inherit" onClick={handleLogoutClick}>Logout</Button>}
       </Toolbar>
     </AppBar>
