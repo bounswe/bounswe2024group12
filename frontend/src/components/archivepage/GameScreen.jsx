@@ -109,21 +109,35 @@ const GameScreen = ({ game, currentUser, onGameSelect }) => {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}` // Add auth if needed
+          'Authorization': `Bearer ${localStorage.getItem('token')}` 
         }
       });
       if (!response.ok) throw new Error('Failed to fetch annotations');
       const data = await response.json();
+      
+      // Add data validation
+      if (!data || !Array.isArray(data.annotations)) {
+        console.warn('Invalid annotations data received:', data);
+        setAnnotationsByStep({});
+        setLoadingAnnotations(false);
+        return;
+      }
     
       // Convert W3C Annotations to our internal format
       const annotationsByFen = data.annotations.reduce((acc, annotation) => {
+        // Add null checks for nested properties
+        if (!annotation?.target?.state?.fen) {
+          console.warn('Invalid annotation format:', annotation);
+          return acc;
+        }
+
         const fenIndex = fenList.indexOf(annotation.target.state.fen);
         if (fenIndex !== -1) {
           if (!acc[fenIndex]) acc[fenIndex] = [];
           acc[fenIndex].push({
             id: annotation.id,
-            text: annotation.body.value,
-            username: annotation.creator.name,
+            text: annotation.body?.value || '',
+            username: annotation.creator?.name || 'Unknown',
             created: annotation.created,
             modified: annotation.modified
           });
@@ -135,6 +149,7 @@ const GameScreen = ({ game, currentUser, onGameSelect }) => {
       setLoadingAnnotations(false);
     } catch (error) {
       console.error('Error fetching annotations:', error);
+      setAnnotationsByStep({}); // Set empty object on error
       setLoadingAnnotations(false);
     }
   };
@@ -263,7 +278,7 @@ const GameScreen = ({ game, currentUser, onGameSelect }) => {
       
       if (!response.ok) throw new Error('Failed to add annotation');
       const newAnnotation = await response.json();
-
+      console.log('New Annotation:', newAnnotation);
       // Update local state with the new annotation
       setAnnotationsByStep((prev) => {
         const updated = { ...prev };
