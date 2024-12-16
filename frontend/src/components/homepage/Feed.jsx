@@ -181,8 +181,28 @@ const Feed = ({ isGuest, passedTag }) => {
         </Box>
       )}
 
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          margin: "20px auto",  // Adjusted margin for proper spacing
+          padding: "10px 20px",
+          backgroundColor: "secondary.main",
+          borderRadius: "10px 10px 0px 0px",
+          boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
+          width: "60%",  // Increased width for more room
+        }}
+      >
+        <Typography
+          variant="h4"
+          style={{ textAlign: "center", fontWeight: "bold", color: "#ffffff" }}
+        >
+          Main Feed
+        </Typography>
+      </Box>
+
       {/* Center the "Open Filters" Button */}
-      <Box sx={{ display: "flex", justifyContent: "center", marginBottom: "20px" }}>
+      <Box sx={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
         <Button
           onClick={() => setOpenFilters(!openFilters)}
           sx={{ backgroundColor: "secondary.main", color: "text.other" }}
@@ -190,6 +210,7 @@ const Feed = ({ isGuest, passedTag }) => {
           {openFilters ? "Close Filters" : "Open Filters"}
         </Button>
       </Box>
+
 
       <Collapse in={openFilters} sx={{ padding: "20px", backgroundColor: "background.paper", borderRadius: "8px" }}>
         <Box sx={{ display: "flex", flexDirection: "column", gap: "20px" }}>
