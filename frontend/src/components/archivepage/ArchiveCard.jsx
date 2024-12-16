@@ -42,11 +42,16 @@ const ArchiveCard = () => {
 
   const handleGameClick = (game) => {
     console.log(game.pgn);
+    console.log(game);  
     setSelectedGame(game);
   };
 
   const handleReturnToSearch = () => {
     setSelectedGame(null);
+  };
+
+  const handleGameSelect = (game) => {
+    setSelectedGame(game);
   };
 
   return (
@@ -99,7 +104,11 @@ const ArchiveCard = () => {
             <Button variant="outlined" onClick={handleReturnToSearch} sx={{ mb: 2 }}>
               Return to Search
             </Button>
-            <GameScreen game={selectedGame} currentUser={currentUser} />
+            <GameScreen 
+              game={selectedGame} 
+              currentUser={currentUser}
+              onGameSelect={handleGameSelect}
+            />
           </Box>
         </>
       )}
