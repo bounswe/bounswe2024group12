@@ -53,7 +53,7 @@ function pgnToFenListAndMetadata(pgn) {
   return { fenList, metadata };
 }
 
-const GameScreen = ({ game, currentUser, onGameSelect }) => {
+const GameScreen = ({ game, currentUser, onGameSelect, onMetadataClick }) => {
   useEffect(() => {
     window.scrollTo(0, 0); // Scroll to the top of the page
   }, []);
@@ -414,6 +414,12 @@ const GameScreen = ({ game, currentUser, onGameSelect }) => {
     }
   };
 
+  const handleMetadataClick = (filterType, value) => {
+    if (onMetadataClick) {
+      onMetadataClick(filterType, value);
+    }
+  };
+
   return (
     <Box
       sx={{
@@ -436,12 +442,51 @@ const GameScreen = ({ game, currentUser, onGameSelect }) => {
       >
         {/* Game Details Section */}
         <Box sx={{ textAlign: "center", mb: 3 }}>
-          <Typography variant="h5">{metadata.Event || "Unknown Event"}</Typography>
-          <Typography variant="subtitle1">
-            {metadata.White || "White"} vs {metadata.Black || "Black"}
+          <Typography 
+            variant="h5" 
+            onClick={() => handleMetadataClick('event', metadata.Event)}
+            sx={{ 
+              cursor: 'pointer',
+              '&:hover': { textDecoration: 'underline' }
+            }}
+          >
+            {metadata.Event || "Unknown Event"}
           </Typography>
-          <Typography variant="subtitle2">{metadata.Date || "Unknown Date"}</Typography>
-          <Typography variant="body2">Result: {metadata.Result || "N/A"}</Typography>
+          <Typography variant="subtitle1">
+            <span 
+              onClick={() => handleMetadataClick('player', metadata.White)}
+              style={{ cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
+            >
+              {metadata.White || "White"}
+            </span>
+            {" vs "}
+            <span 
+              onClick={() => handleMetadataClick('player', metadata.Black)}
+              style={{ cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
+            >
+              {metadata.Black || "Black"}
+            </span>
+          </Typography>
+          <Typography 
+            variant="subtitle2"
+            onClick={() => handleMetadataClick('year', metadata.Date?.split('.')[0])}
+            sx={{ 
+              cursor: 'pointer',
+              '&:hover': { textDecoration: 'underline' }
+            }}
+          >
+            {metadata.Date || "Unknown Date"}
+          </Typography>
+          <Typography 
+            variant="body2"
+            onClick={() => handleMetadataClick('result', metadata.Result)}
+            sx={{ 
+              cursor: 'pointer',
+              '&:hover': { textDecoration: 'underline' }
+            }}
+          >
+            Result: {metadata.Result || "N/A"}
+          </Typography>
         </Box>
 
         {/* FEN Renderer */}
