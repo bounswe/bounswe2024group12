@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom"; // Import Link here
 import {
   Card,
   CardContent,
@@ -127,9 +127,11 @@ const Post = ({ post, width }) => {
             {postHeader}
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Typography variant="h6" sx={{ marginRight: '10px' }}>
-              {username}
-            </Typography>
+            <Link to={`/profile/${username}`} style={{ textDecoration: 'none' }}>
+              <Typography variant="h6" sx={{ marginRight: '10px' }}>
+                {username}
+              </Typography>
+            </Link>
             <Avatar alt={username} src={getImageSrc(userIcon, "png")} />
           </Box>
         </Box>

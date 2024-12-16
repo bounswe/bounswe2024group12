@@ -49,7 +49,7 @@ function App() {
           <Route path="/archive" element={<ArchivePage />} />
           <Route path="/post/:id/comments" element={<CommentPage />} />
           <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/profile/:userId" element={<ProfilePage />} />
+          <Route path="/profile/:username" element={<ProfilePage />} />
       </Routes>
     </Router>
   </ThemeProvider>

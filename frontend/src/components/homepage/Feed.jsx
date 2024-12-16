@@ -115,10 +115,50 @@ const Feed = ({ isGuest, passedTag }) => {
     } finally {
       setIsLoading(false);
     }
-
-    console.log("Posts:", posts);
   };
 
+  useEffect(() => {
+    // Check if there are posts to fetch like summary for
+    if (posts.length === 0) return;
+
+    const fetchLikeSummary = async () => {
+      try {
+        const postIds = posts.map((post) => post.id); // Collect all post IDs
+        const response = await fetch(`${BACKEND_URL}/posts/likes_summary/`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({ post_ids: postIds }), // Send post IDs
+        });
+
+        if (response.ok) {
+          const likeSummary = await response.json();
+
+          // Update the posts with the like count and liked status
+          setPosts((prevPosts) =>
+            prevPosts.map((post) => {
+              const summary = likeSummary.find(
+                (item) => item.post_id === post.id
+              );
+              if (summary) {
+                post.likeCount = summary.like_count;
+                post.liked = summary.liked_by_requester;
+              }
+              return post;
+            })
+          );
+        } else {
+          console.error("Failed to fetch like summary");
+        }
+      } catch (error) {
+        console.error("An error occurred while fetching like summary:", error);
+      }
+    };
+
+    fetchLikeSummary();
+  }, [page, sorting, selectedTag, followedOnly]);
 
   const handleTagChange = (tag) => {
     setSelectedTag(tag);
