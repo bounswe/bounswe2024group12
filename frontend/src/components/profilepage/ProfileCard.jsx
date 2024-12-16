@@ -63,15 +63,45 @@ const ProfileCard = () => {
   };
 
   const fetchPosts = async (posts, setPosts) => {
+    const postIds = posts.filter(post => post.id || post.post__id).map(post => post.id || post.post__id);
+
+    // Fetch like counts for all posts at once
+    const likeSummaryResponse = await fetch(`${BACKEND_URL}/posts/likes_summary/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ post_ids: postIds })
+    });
+
+    const likeSummary = await likeSummaryResponse.json();
+    const likeSummaryMap = likeSummary.reduce((acc, { post_id, like_count, liked_by_requester }) => {
+      if (post_id) {
+        acc[post_id] = { likeCount: like_count, likedByRequester: liked_by_requester };
+      }
+      return acc;
+    }, {});
+
+    // Fetch the post details and merge like summary with the posts
     const postDetails = await Promise.all(
       posts.filter((post) => post.id || post.post__id).map(async (post) => {
         const postId = post.id || post.post__id;
         const detailedPost = await fetchPostDetails(postId);
-        return detailedPost || post;
+
+        // Add the like count and like status from the likeSummary
+        const likeData = likeSummaryMap[postId] || { likeCount: 0, likedByRequester: false };
+        return {
+          ...detailedPost,
+          likeCount: likeData.likeCount,
+          liked: likeData.likedByRequester,
+        };
       })
     );
+
     setPosts(postDetails.sort((a, b) => b.timestamp - a.timestamp));
   };
+
 
   useEffect(() => {
     if (profileData?.posts) {
@@ -224,9 +254,9 @@ const ProfileCard = () => {
             </Grid2>
           </Grid2>
           <Divider sx={{ my: 2 }} />
-          {renderPostList(`${username}'s Posts`, myPosts)}
+          {renderPostList(username ? `${username}'s Posts` : 'Posts', myPosts)}
           <Divider sx={{ my: 2 }} />
-          {renderPostList(`${username}'s Liked Posts`, likedPosts)}
+          {renderPostList(username ? `${username}'s Liked Posts` : 'Liked Posts', likedPosts)}
         </Card>
       </Container>
     </div>
