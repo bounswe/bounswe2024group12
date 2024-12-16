@@ -15,6 +15,8 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.pagination import PageNumberPagination
 from v1.apps.headers import auth_header
 
+from v1.apps.admin_users import admin_usernames
+
 
 # Swagger documentation for POST /api/v1/posts/create/
 @swagger_auto_schema(
@@ -223,7 +225,7 @@ def delete_post(request, post_id):
     except Post.DoesNotExist:
         return Response({"error": "Post not found"}, status=status.HTTP_404_NOT_FOUND)
     
-    if post.user != request.user:
+    if post.user != request.user and request.user.username not in admin_usernames:
         return Response({"error": "You do not have permission to delete this post"}, status=status.HTTP_403_FORBIDDEN)
     
     post.delete()
@@ -570,7 +572,7 @@ def update_delete_comment(request, post_id, comment_id):
     except (Post.DoesNotExist, Comment.DoesNotExist):
         return Response({"error": "Comment not found"}, status=status.HTTP_404_NOT_FOUND)
 
-    if comment.user != request.user:
+    if comment.user != request.user and request.user.username not in admin_usernames:
         return Response({"error": "Unauthorized"}, status=status.HTTP_403_FORBIDDEN)
 
     if request.method == 'PUT':
