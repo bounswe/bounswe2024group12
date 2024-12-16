@@ -151,59 +151,122 @@ const ProfileCard = () => {
   };
 
   const renderPostList = (title, posts) => (
-    <Accordion sx={{ backgroundColor: '#f1f1f1' }}>
-      <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ cursor: 'pointer', backgroundColor: '#e0e0e0' }}>
-        <Typography variant="h6">{title}</Typography>
+    <Accordion sx={(theme) => ({ 
+      backgroundColor: theme.palette.grey[50],
+      boxShadow: theme.shadows[2],
+      border: `2px solid ${theme.palette.divider}`,
+      '& .MuiAccordionSummary-root': {
+        backgroundColor: theme.palette.grey[50],
+        borderBottom: `2px solid ${theme.palette.divider}`,
+      },
+      '& .MuiAccordionDetails-root': {
+        backgroundColor: theme.palette.background.paper,
+        '& > div': {
+          borderRadius: 1,
+          padding: '4px',
+          margin: '8px 0',
+          borderLeft: `3px solid ${theme.palette.primary.light}`,
+          borderBottom: `1px solid ${theme.palette.divider}`,
+          '&:last-child': {
+            borderBottom: 'none'
+          }
+        }
+      }
+    })}>
+      <AccordionSummary 
+        expandIcon={<ExpandMoreIcon />} 
+      >
+        <Typography variant="h6" sx={(theme) => ({ 
+          color: theme.palette.text.primary,
+          fontWeight: 500
+        })}>
+          {title}
+        </Typography>
       </AccordionSummary>
       <AccordionDetails sx={{ padding: 2 }}>
         {posts.length > 0 ? (
           posts.map((post) => (
-            <Post key={post.id || post.post__id} post={post} width="100%" />
+            <div key={post.id || post.post__id}>
+              <Post post={post} width="100%" />
+            </div>
           ))
         ) : (
-          <Typography>No posts yet!</Typography>
+          <Typography sx={(theme) => ({ 
+            color: theme.palette.text.secondary,
+            fontStyle: 'italic'
+          })}>
+            No posts yet!
+          </Typography>
         )}
       </AccordionDetails>
     </Accordion>
   );
 
   const renderFollowersFollowing = (title, users, isFollower) => (
-    <Accordion sx={{ backgroundColor: '#f1f1f1' }}>
+    <Accordion sx={(theme) => ({ 
+      backgroundColor: theme.palette.grey[50],
+      boxShadow: theme.shadows[2],
+      border: `2px solid ${theme.palette.divider}`,
+      '& .MuiAccordionSummary-root': {
+        backgroundColor: theme.palette.grey[50],
+        borderBottom: `2px solid ${theme.palette.divider}`,
+      },
+      '& .MuiAccordionDetails-root': {
+        backgroundColor: theme.palette.background.paper
+      }
+    })}>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
         onClick={() => (title === 'Followers' ? setShowFollowers(!showFollowers) : setShowFollowing(!showFollowing))}
-        sx={{
-          cursor: 'pointer',
-          backgroundColor: '#e0e0e0',
-          '&:hover': { backgroundColor: '#d0d0d0' },
-        }}
       >
-        <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+        <Typography variant="body2" sx={(theme) => ({ 
+          fontWeight: 'bold', 
+          color: theme.palette.text.primary 
+        })}>
           <strong>{title}:</strong>
         </Typography>
       </AccordionSummary>
-      {((title === 'Followers' && showFollowers) || (title === 'Following' && showFollowing)) && (
-        <AccordionDetails sx={{ padding: 2 }}>
-          {users.length > 0 ? (
-            users.map((user) => (
-              <Typography
-                key={user.follower__username || user.follower_username || user.following__username || user.following_username}
-                sx={{
-                  ml: 2,
-                  color: '#1976d2',
-                  cursor: 'pointer',
-                  '&:hover': { textDecoration: 'underline' },
-                }}
-                onClick={() => navigate(`/profile/${user.follower__username || user.follower_username || user.following__username || user.following_username}`)}
-              >
-                {user.follower__username || user.follower_username || user.following__username || user.following_username}
-              </Typography>
-            ))
-          ) : (
-            <Typography>No {title.toLowerCase()} yet!</Typography>
-          )}
-        </AccordionDetails>
-      )}
+      <AccordionDetails sx={{ 
+        padding: 2,
+        '& > .MuiTypography-root': {
+          padding: '4px 8px',
+          borderRadius: 1,
+          ...(users.length > 0 && {
+            '&:hover': {
+              backgroundColor: theme => theme.palette.background.default,
+              boxShadow: theme => theme.shadows[1]
+            }
+          })
+        }
+      }}>
+        {users.length > 0 ? (
+          users.map((user) => (
+            <Typography
+              key={user.follower__username || user.follower_username || user.following__username || user.following_username}
+              sx={(theme) => ({
+                ml: 2,
+                color: theme.palette.primary.main,
+                cursor: 'pointer',
+                '&:hover': { 
+                  textDecoration: 'underline',
+                  color: theme.palette.primary.dark,
+                  backgroundColor: theme.palette.background.default
+                },
+              })}
+              onClick={() => navigate(`/profile/${user.follower__username || user.follower_username || user.following__username || user.following_username}`)}
+            >
+              {user.follower__username || user.follower_username || user.following__username || user.following_username}
+            </Typography>
+          ))
+        ) : (
+          <Typography sx={(theme) => ({ 
+            color: theme.palette.text.secondary,
+            fontStyle: 'italic'
+          })}>
+            No {title.toLowerCase()} yet!
+          </Typography>
+        )}
+      </AccordionDetails>
     </Accordion>
   );
 
@@ -216,46 +279,82 @@ const ProfileCard = () => {
     <div>
       <Navbar />
       <Container>
-        <Card sx={{ my: 4, p: 3, backgroundColor: '#f7f7f7' }}>
-          <Typography variant="h4" gutterBottom align="center">Profile</Typography>
-          <Divider sx={{ mb: 2 }} />
+        <Card sx={(theme) => ({ 
+          my: 4, 
+          p: 3, 
+          backgroundColor: theme.palette.background.paper,
+          boxShadow: theme.shadows[3],
+          borderRadius: 2
+        })}>
+          <Typography variant="h4" gutterBottom align="center" 
+            sx={(theme) => ({ color: theme.palette.text.primary })}>
+            Profile
+          </Typography>
+          <Divider sx={(theme) => ({ mb: 2, backgroundColor: theme.palette.divider })} />
           <Grid2 container spacing={2}>
             <Grid2 item xs={12} md={6}>
-              <Typography variant="h6">User Info</Typography>
-              <Typography>Username: {profileData.username}</Typography>
+              <Typography variant="h6" sx={(theme) => ({ 
+                color: theme.palette.text.primary, 
+                mb: 2 
+              })}>User Info</Typography>
+              <Typography sx={(theme) => ({ 
+                color: theme.palette.text.secondary, 
+                mb: 1 
+              })}>Username: {profileData.username}</Typography>
               {(!username || currUser === username) && (
-                <Typography>Email: {profileData.email}</Typography>
+                <Typography sx={(theme) => ({ 
+                  color: theme.palette.text.secondary, 
+                  mb: 1 
+                })}>Email: {profileData.email}</Typography>
               )}
-              <Typography>Date Joined: {new Date(profileData.date_joined).toLocaleDateString()}</Typography>
-              <Typography>Followers: {profileData.followers.length}</Typography>
-              <Typography>Following: {profileData.following.length}</Typography>
+              <Typography sx={(theme) => ({ 
+                color: theme.palette.text.secondary, 
+                mb: 1 
+              })}>Date Joined: {new Date(profileData.date_joined).toLocaleDateString()}</Typography>
+              <Typography sx={(theme) => ({ 
+                color: theme.palette.text.secondary, 
+                mb: 1 
+              })}>Followers: {profileData.followers.length}</Typography>
+              <Typography sx={(theme) => ({ 
+                color: theme.palette.text.secondary, 
+                mb: 1 
+              })}>Following: {profileData.following.length}</Typography>
               {username && currUser !== username && (
                 <Button
                   variant={isFollowing ? 'outlined' : 'contained'}
-                  color={isFollowing ? 'default' : 'primary'}
+                  color="primary"
                   startIcon={isFollowing ? <PersonRemoveIcon /> : <PersonAddIcon />}
                   onClick={handleFollowToggle}
-                  sx={{
+                  sx={(theme) => ({
                     marginTop: 2,
                     fontWeight: 'bold',
                     textTransform: 'none',
-                  }}
+                    backgroundColor: isFollowing ? 'transparent' : theme.palette.primary.main,
+                    color: isFollowing ? theme.palette.text.primary : theme.palette.primary.contrastText,
+                    borderColor: isFollowing ? theme.palette.text.primary : 'transparent',
+                    '&:hover': {
+                      backgroundColor: isFollowing ? theme.palette.action.hover : theme.palette.primary.dark,
+                      borderColor: isFollowing ? theme.palette.text.primary : 'transparent',
+                    }
+                  })}
                 >
                   {isFollowing ? 'Unfollow' : 'Follow'}
                 </Button>
               )}
             </Grid2>
 
-            {/* Right-side column for Followers and Following */}
             <Grid2 item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-              <Typography variant="h6">Followers & Following</Typography>
+              <Typography variant="h6" sx={(theme) => ({ 
+                color: theme.palette.text.primary, 
+                mb: 2 
+              })}>Followers & Following</Typography>
               {renderFollowersFollowing('Followers', profileData.followers, true)}
               {renderFollowersFollowing('Following', profileData.following, false)}
             </Grid2>
           </Grid2>
-          <Divider sx={{ my: 2 }} />
+          <Divider sx={(theme) => ({ my: 2, backgroundColor: theme.palette.divider })} />
           {renderPostList(username ? `${username}'s Posts` : 'Posts', myPosts)}
-          <Divider sx={{ my: 2 }} />
+          <Divider sx={(theme) => ({ my: 2, backgroundColor: theme.palette.divider })} />
           {renderPostList(username ? `${username}'s Liked Posts` : 'Liked Posts', likedPosts)}
         </Card>
       </Container>

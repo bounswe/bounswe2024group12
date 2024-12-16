@@ -14,23 +14,67 @@ import { CssBaseline } from '@mui/material';
 const theme = createTheme({
   palette: {
     background: {
-      default: '#F3F3E0',
-      paper: '#DCE4C9', 
+      default: '#F5F5E6',
+      paper: '#E8EFD8',
     },
     primary: {
-      main: '#A0D683',
+      main: '#7FB069',
+      light: '#98C379',
+      dark: '#5F8B4F',
+      contrastText: '#FFFFFF',
     },
     secondary: {
-      main: '#72BF78',
+      main: '#628B48',
+      light: '#7FA866',
+      dark: '#4A6934',
+      contrastText: '#FFFFFF',
     },
     text: {
-      primary: '#333333',
-      secondary: '#333333',
-      other: "#FFFFFF"
+      primary: '#2C3E2D',
+      secondary: '#4A5D4B',
     },
+    grey: {
+      50: '#F0F4E8',
+      100: '#E1E9D5',
+      200: '#D2DEC2',
+    },
+    divider: '#C9D6B8',
+    action: {
+      hover: '#EDF2E3',
+      selected: '#DCE6CC',
+    }
   },
   typography: {
     fontFamily: 'Roboto, Arial',
+    h4: {
+      fontWeight: 500,
+      color: '#2C3E2D',
+    },
+    h6: {
+      fontWeight: 500,
+      color: '#2C3E2D',
+    },
+  },
+  components: {
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          transition: 'box-shadow 0.3s ease-in-out',
+          '&:hover': {
+            boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+          },
+        },
+      },
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+          textTransform: 'none',
+          fontWeight: 500,
+        },
+      },
+    },
   },
 });
 
