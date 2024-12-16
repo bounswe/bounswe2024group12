@@ -13,5 +13,7 @@ urlpatterns = [
     path('tournaments/', views.get_current_tournaments, name='get-current-tournaments'),
     path('tournaments/<str:tournamentSlug>/<str:roundSlug>/<str:roundId>/',views.get_tournament_round,name='get-tournament-round'),
     path('tournament/round/<str:roundId>/pgn/', views.get_tournament_round_pgn, name='get-tournament-round-pgn'),
+    path('<int:game_id>/annotations/', views.annotations_list_create, name='annotations_list_create'),
+    path('<int:game_id>/annotations/<uuid:anno_id>/', views.annotation_detail, name='annotation_detail'),
 ]
 

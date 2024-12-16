@@ -1,12 +1,12 @@
 from django.test import TestCase
 
 from django.urls import reverse
-from v1.apps.games.models import Game, GameComment, GameBookmark, GameMoveBookmark, GameOpening
+from v1.apps.games.models import Game, GameComment, GameBookmark, GameMoveBookmark, GameOpening, Annotation
 from v1.apps.accounts.models import CustomUser
 from rest_framework import status
 from unittest.mock import patch
 
-from rest_framework.test import APIClient
+from rest_framework.test import APIClient, APITestCase
 
 class FilterGamesTest(TestCase):
     def setUp(self):
@@ -205,3 +205,92 @@ class GetTournamentRoundTest(TestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
         self.assertIn("error", response.json())
+
+
+
+class AnnotationTestCase(APITestCase):
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = CustomUser.objects.create_user(username="testuser", password="password123")
+        self.other_user = CustomUser.objects.create_user(username="otheruser", password="password123")
+        self.game = Game.objects.create(white="Kasparov", black="Deep Blue", year=1997)
+        self.annotation = Annotation.objects.create(
+            game=self.game,
+            creator=self.user,
+            body_value="Test annotation",
+            body_format="text/plain",
+            target_fen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
+            move_number=1,
+            motivation="commenting"
+        )
+        self.get_url = reverse('annotations_list_create', kwargs={'game_id': self.game.id})
+        self.post_url = reverse('annotations_list_create', kwargs={'game_id': self.game.id})
+        self.put_url = reverse('annotation_detail', kwargs={'game_id': self.game.id, 'anno_id': self.annotation.id})
+        self.delete_url = reverse('annotation_detail', kwargs={'game_id': self.game.id, 'anno_id': self.annotation.id})
+    
+    # GET Annotations Test
+    def test_get_annotations_authenticated(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(self.get_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertGreaterEqual(len(response.data), 1)  # At least 1 annotation
+        self.assertEqual(response.data[0]['body_value'], "Test annotation")
+    
+    # POST Annotation Test
+    def test_create_annotation_authenticated(self):
+        self.client.force_authenticate(user=self.user)
+        data = {
+            'body_value': 'New annotation content',
+            'body_format': 'text/plain',
+            'target_fen': 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR',
+            'move_number': 2,
+            'motivation': 'commenting'
+        }
+        response = self.client.post(self.post_url, data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['annotation']['body_value'], 'New annotation content')
+    
+    # PUT Annotation Test
+    def test_update_annotation_authenticated(self):
+        self.client.force_authenticate(user=self.user)
+        data = {
+            'body_value': 'Updated annotation content',
+            'move_number': 3
+        }
+        response = self.client.put(self.put_url, data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.annotation.refresh_from_db()
+        self.assertEqual(self.annotation.body_value, 'Updated annotation content')
+        self.assertEqual(self.annotation.move_number, 3)
+    
+    # DELETE Annotation Test
+    def test_delete_annotation_authenticated(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.delete(self.delete_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        annotation_exists = Annotation.objects.filter(id=self.annotation.id).exists()
+        self.assertFalse(annotation_exists)
+    
+    # Permissions Tests
+    def test_unauthenticated_user_cannot_create_annotation(self):
+        data = {
+            'body_value': 'Unauthorized annotation content',
+            'body_format': 'text/plain',
+            'target_fen': 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR',
+            'move_number': 2,
+            'motivation': 'commenting'
+        }
+        response = self.client.post(self.post_url, data)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+    
+    def test_only_creator_can_update_annotation(self):
+        self.client.force_authenticate(user=self.other_user)
+        data = {'body_value': 'Malicious update'}
+        response = self.client.put(self.put_url, data)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+    
+    def test_only_creator_can_delete_annotation(self):
+        self.client.force_authenticate(user=self.other_user)
+        response = self.client.delete(self.delete_url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
