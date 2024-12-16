@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useMemo } from "react";
 import FENRenderer from "../common/FENRenderer";
-import { FaArrowLeft, FaArrowRight } from "react-icons/fa";
+import { FaArrowLeft, FaArrowRight, FaPencilAlt } from "react-icons/fa";
 import { MdExpandLess, MdExpandMore } from "react-icons/md";
-import { Button, Select, MenuItem, Box, Stack, Typography, List, ListItem, ListItemText, IconButton, Collapse } from "@mui/material";
+import { Button, Select, MenuItem, Box, Stack, Typography, List, ListItem, ListItemText, IconButton, Collapse, Tooltip } from "@mui/material";
 import ShareComment from "./ShareComment";
 import CommentsList from "./CommentsList";
+import AnnotationTooltip from "./AnnotationTooltip";
+import AddAnnotationDialog from "./AddAnnotationDialog";
 import { Chess } from "chess.js";
 
 const BACKEND_URL = process.env.REACT_APP_API_URL;
@@ -49,7 +51,7 @@ function pgnToFenListAndMetadata(pgn) {
   return { fenList, metadata };
 }
 
-const GameScreen = ({ game }) => {
+const GameScreen = ({ game, currentUser }) => {
   useEffect(() => {
     window.scrollTo(0, 0); // Scroll to the top of the page
   }, []);
@@ -59,8 +61,13 @@ const GameScreen = ({ game }) => {
 
   const [currentMoveIndex, setCurrentMoveIndex] = useState(0);
   const [commentsByStep, setCommentsByStep] = useState({}); // To store comments by step
+  const [annotationsByStep, setAnnotationsByStep] = useState({}); // To store annotations by step
   const [loadingComments, setLoadingComments] = useState(true); // To handle loading state
+  const [loadingAnnotations, setLoadingAnnotations] = useState(true); // To handle loading annotations
   const [movesListOpen, setMovesListOpen] = useState(false); // State to handle collapse
+  const [isAddAnnotationOpen, setIsAddAnnotationOpen] = useState(false); // State for Add Annotation Dialog
+  const [selectedStepForAnnotation, setSelectedStepForAnnotation] = useState(null); // Step selected for adding annotation
+  const [editingAnnotation, setEditingAnnotation] = useState(null);
 
   const fetchComments = async () => {
     try {
@@ -90,12 +97,49 @@ const GameScreen = ({ game }) => {
     }
   };
 
-  // Fetch comments for the game (only when game.id changes)
+  const fetchAnnotations = async () => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/games/${game.id}/annotations/`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}` // Add auth if needed
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch annotations');
+      const data = await response.json();
+    
+      // Convert W3C Annotations to our internal format
+      const annotationsByFen = data.annotations.reduce((acc, annotation) => {
+        const fenIndex = fenList.indexOf(annotation.target.state.fen);
+        if (fenIndex !== -1) {
+          if (!acc[fenIndex]) acc[fenIndex] = [];
+          acc[fenIndex].push({
+            id: annotation.id,
+            text: annotation.body.value,
+            username: annotation.creator.name,
+            created: annotation.created,
+            modified: annotation.modified
+          });
+        }
+        return acc;
+      }, {});
+    
+      setAnnotationsByStep(annotationsByFen);
+      setLoadingAnnotations(false);
+    } catch (error) {
+      console.error('Error fetching annotations:', error);
+      setLoadingAnnotations(false);
+    }
+  };
+
+  // Fetch comments and annotations for the game (only when game.id changes)
   useEffect(() => {
     if (game.id) {
       fetchComments();
+      fetchAnnotations();
     }
-  }, [game.id]); // Only depend on game.id for fetching comments
+  }, [game.id]); // Only depend on game.id for fetching comments and annotations
 
   const goToMove = (index) => {
     if (index >= 0 && index < fenList.length) {
@@ -115,7 +159,146 @@ const GameScreen = ({ game }) => {
     fetchComments(); // Refetch comments after adding a new comment
   };
 
+  const handleAddAnnotation = () => {
+    // Open the Add Annotation Dialog
+    setIsAddAnnotationOpen(true);
+  };
+
+  const handleCloseAddAnnotation = () => {
+    setIsAddAnnotationOpen(false);
+    setSelectedStepForAnnotation(null);
+    setEditingAnnotation(null);
+  };
+
+  const handleEditAnnotation = async (stepIndex, text, annotationId) => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/games/${game.id}/annotations/${annotationId}/`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          "@context": "http://www.w3.org/ns/anno.jsonld",
+          type: "Annotation",
+          body: {
+            type: "TextualBody",
+            value: text,
+            format: "text/plain"
+          },
+          target: {
+            type: "ChessPosition",
+            source: `${window.location.origin}/games/${game.id}`,
+            state: {
+              fen: fenList[stepIndex],
+              moveNumber: stepIndex + 1
+            }
+          }
+        }),
+      });
+      
+      if (!response.ok) throw new Error('Failed to update annotation');
+      const updatedAnnotation = await response.json();
+
+      setAnnotationsByStep((prev) => {
+        const updated = { ...prev };
+        updated[stepIndex] = updated[stepIndex].map(a => 
+          a.id === annotationId ? {
+            ...a,
+            text: updatedAnnotation.body.value,
+            modified: updatedAnnotation.modified
+          } : a
+        );
+        return updated;
+      });
+      await fetchAnnotations();
+    } catch (error) {
+      console.error('Error updating annotation:', error);
+    }
+  };
+
+  const handleSubmitAnnotation = async (stepIndex, text, annotationId = null) => {
+    if (annotationId) {
+      return handleEditAnnotation(stepIndex, text, annotationId);
+    }
+    
+    try {
+      const response = await fetch(`${BACKEND_URL}/games/${game.id}/annotations/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          "@context": "http://www.w3.org/ns/anno.jsonld",
+          type: "Annotation",
+          creator: {
+            id: currentUser,
+            name: currentUser,
+            type: "Person"
+          },
+          body: {
+            type: "TextualBody",
+            value: text,
+            format: "text/plain"
+          },
+          target: {
+            type: "ChessPosition",
+            source: `${window.location.origin}/games/${game.id}`,
+            state: {
+              fen: fenList[stepIndex],
+              moveNumber: stepIndex + 1
+            }
+          },
+          motivation: "commenting"
+        }),
+      });
+      
+      if (!response.ok) throw new Error('Failed to add annotation');
+      const newAnnotation = await response.json();
+
+      // Update local state with the new annotation
+      setAnnotationsByStep((prev) => {
+        const updated = { ...prev };
+        if (!updated[stepIndex]) updated[stepIndex] = [];
+        updated[stepIndex].push({
+          id: newAnnotation.id,
+          text: newAnnotation.body.value,
+          username: newAnnotation.creator.name,
+          created: newAnnotation.created,
+          modified: newAnnotation.modified
+        });
+        return updated;
+      });
+      await fetchAnnotations();
+    } catch (error) {
+      console.error('Error adding annotation:', error);
+    }
+  };
+
+  const handleDeleteAnnotation = async (stepIndex, annotationId) => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/games/${game.id}/annotations/${annotationId}/`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (!response.ok) throw new Error('Failed to delete annotation');
+
+      setAnnotationsByStep((prev) => {
+        const updated = { ...prev };
+        updated[stepIndex] = updated[stepIndex].filter(a => a.id !== annotationId);
+        return updated;
+      });
+      await fetchAnnotations();
+    } catch (error) {
+      console.error('Error deleting annotation:', error);
+    }
+  };
+
   const commentsForCurrentStep = commentsByStep[currentMoveIndex] || [];
+  const annotationsForCurrentStep = annotationsByStep[currentMoveIndex] || [];
   const currentPosition = fenList[currentMoveIndex];
 
   const toggleMovesList = () => {
@@ -210,19 +393,19 @@ const GameScreen = ({ game }) => {
               justifyContent: "space-between",
               alignItems: "center",
               mb: 1,
-              backgroundColor: "primary.light",
+              backgroundColor: "primary.light", // Use theme color
               px: 2,
               py: 1,
               borderRadius: 1,
               cursor: "pointer",
             }}
-            onClick={toggleMovesList}
+            onClick={toggleMovesList} // Made the entire header clickable
           >
             <Typography variant="subtitle1">All Moves</Typography>
             <IconButton
               onClick={(e) => {
-                e.stopPropagation();
-                toggleMovesList();
+                e.stopPropagation(); // Prevents the parent onClick from triggering
+                toggleMovesList(); // Toggles the moves list
               }}
               size="small"
             >
@@ -232,25 +415,76 @@ const GameScreen = ({ game }) => {
           <Collapse in={movesListOpen}>
             <List sx={{ maxHeight: 300, overflow: "auto", bgcolor: "background.paper" }}>
               {fenList.map((fen, index) => (
-                <ListItem
-                  button
-                  key={index}
-                  selected={currentMoveIndex === index}
-                  onClick={() => goToMove(index)}
-                  sx={{ cursor: "pointer" }}
-                >
-                  <ListItemText
-                    primary={`Move ${index + 1}`}
-                    secondary={`${fen.substring(0, 20)}...`}
-                  />
-                  <Typography variant="caption" color="text.secondary">
-                    {commentsByStep[index]?.length || 0} comments
-                  </Typography>
-                </ListItem>
+                <Box key={index} sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Tooltip
+                    title={
+                      annotationsByStep[index]?.length > 0 ? (
+                        <AnnotationTooltip
+                          annotations={annotationsByStep[index]}
+                          onDelete={(annotationId) => handleDeleteAnnotation(index, annotationId)}
+                          onEdit={(annotation) => {
+                            if (annotation.username !== currentUser) {
+                              return;
+                            }
+                            setSelectedStepForAnnotation(index);
+                            setEditingAnnotation(annotation);
+                            setIsAddAnnotationOpen(true);
+                          }}
+                          currentUser={currentUser}
+                        />
+                      ) : (
+                        "No Annotations"
+                      )
+                    }
+                    arrow
+                    placement="right"
+                  >
+                    <ListItem
+                      button
+                      selected={currentMoveIndex === index}
+                      onClick={() => goToMove(index)}
+                      sx={{
+                        cursor: "pointer",
+                        backgroundColor: annotationsByStep[index] ? "background.annotation" : "inherit", // Highlight if annotated
+                      }}
+                    >
+                      <ListItemText
+                        primary={`Move ${index + 1}`}
+                        secondary={`${fen}`}
+                      />
+                      {commentsByStep[index]?.length > 0 && (
+                        <Typography variant="caption" color="text.secondary">
+                          {commentsByStep[index].length} comments
+                        </Typography>
+                      )}
+                    </ListItem>
+                  </Tooltip>
+                  <IconButton
+                    onClick={() => {
+                      setSelectedStepForAnnotation(index);
+                      setIsAddAnnotationOpen(true);
+                    }}
+                    size="small"
+                    sx={{ ml: 1 }}
+                  >
+                    <FaPencilAlt />
+                  </IconButton>
+                </Box>
               ))}
             </List>
           </Collapse>
         </Box>
+
+        {/* Add Annotation Dialog */}
+        {isAddAnnotationOpen && (
+          <AddAnnotationDialog
+            open={isAddAnnotationOpen}
+            onClose={handleCloseAddAnnotation}
+            onSubmit={handleSubmitAnnotation}
+            stepIndex={selectedStepForAnnotation}
+            editAnnotation={editingAnnotation}
+          />
+        )}
       </Box>
 
       {/* Comments Section */}

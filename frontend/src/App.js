@@ -15,9 +15,11 @@ const theme = createTheme({
     background: {
       default: '#F3F3E0',
       paper: '#DCE4C9', 
+      annotation: '#c9d6ac',
     },
     primary: {
       main: '#A0D683',
+      light: '#A0D683',
     },
     secondary: {
       main: '#72BF78',
