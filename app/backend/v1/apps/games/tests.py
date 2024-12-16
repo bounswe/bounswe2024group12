@@ -4,6 +4,7 @@ from django.urls import reverse
 from v1.apps.games.models import Game, GameComment, GameBookmark, GameMoveBookmark, GameOpening
 from v1.apps.accounts.models import CustomUser
 from rest_framework import status
+from unittest.mock import patch
 
 from rest_framework.test import APIClient
 
@@ -149,3 +150,58 @@ class GetOpeningByECOTest(TestCase):
         response = self.client.get('/v1/games/openings/')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(response.data['error'], "ECO code is required")
+
+class GetTournamentRoundPGNTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.url = "/api/v1/games/tournament/round/uU0gySB0/pgn/"
+
+    @patch('v1.apps.games.views.requests.get')
+    def test_get_pgn_success(self, mock_get):
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.text = "[Event \"Example Event\"]\n1. e4 e5 2. Nf3 Nc6"
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("pgn", response.data)
+
+    @patch('v1.apps.games.views.requests.get')
+    def test_get_pgn_not_found(self, mock_get):
+        mock_get.return_value.status_code = 404
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data["error"], "Tournament round not found")
+
+    @patch('v1.apps.games.views.requests.get')
+    def test_get_pgn_server_error(self, mock_get):
+        mock_get.side_effect = Exception("Internal error")
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertIn("error", response.data)
+
+class GetTournamentRoundTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.url = "/api/v1/games/tournaments/casablanca-chess-2024/round-1/p9DoebWl/"
+
+    @patch('v1.apps.games.views.requests.get')
+    def test_get_tournament_round_success(self, mock_get):
+        mock_response = {
+            "round": {"id": "p9DoebWl", "name": "Round 1"},
+            "tour": {"id": "ZuOkdeXK", "name": "Casablanca Chess 2024"}
+        }
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = mock_response
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json(), mock_response)
+
+    @patch('v1.apps.games.views.requests.get')
+    def test_get_tournament_round_failure(self, mock_get):
+        mock_get.side_effect = Exception("API Error")
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertIn("error", response.json())
