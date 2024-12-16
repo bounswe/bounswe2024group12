@@ -180,7 +180,7 @@ class OtherUserPageTest(TestCase):
         self.post_2 = Post.objects.create(user=self.user, title="Rook Endgames", post_text="Endgame Content")
         self.user_posts = Post.objects.filter(user=self.user)
         
-        self.url = reverse('get-other-user-page', kwargs={'user_id': self.user.id})
+        self.url = reverse('get-other-user-page', kwargs={'username': self.user.username})
         
     def test_other_user_page_authenticated(self):
         self.client.force_authenticate(user=self.user)
@@ -214,7 +214,7 @@ class OtherUserPageTest(TestCase):
             self.assertIn(post, response.data['posts'])
 
     def test_other_user_page_not_found(self):
-        url = reverse('get-other-user-page', kwargs={'user_id': 999})  # Non-existing user ID
+        url = reverse('get-other-user-page', kwargs={'username': '-------323232-----------'})  # Non-existing username
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(response.data, {'detail': 'No CustomUser matches the given query.'})

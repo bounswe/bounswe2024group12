@@ -300,8 +300,16 @@ def get_user_page(request):
 
 @swagger_auto_schema(
     method='get',
-    operation_description="Retrieve public profile of a specific user by user_id. Returns user's basic information, post likes, followers, following details, and the user's posts.",
-    operation_summary="Get User Profile by User ID",
+    operation_description="Retrieve public profile of a specific user by username. Returns user's basic information, post likes, followers, following details, and the user's posts.",
+    operation_summary="Get User Profile by Username",
+    manual_parameters=[
+        openapi.Parameter(
+            'username', 
+            openapi.IN_PATH, 
+            description="The username of the user whose profile is being requested", 
+            type=openapi.TYPE_STRING
+        )
+    ],
     responses={
         200: openapi.Response(
             description="User profile retrieved successfully",
@@ -339,9 +347,9 @@ def get_user_page(request):
 )
 @api_view(['GET'])
 @permission_classes([AllowAny])
-def get_other_user_page(request, user_id):
+def get_other_user_page(request, username):
     # Retrieve user
-    user = get_object_or_404(CustomUser, id=user_id)
+    user = get_object_or_404(CustomUser, username=username)
     
     # Get Post Likes
     post_likes = Like.objects.filter(user=user).values('post__id', 'post__title')

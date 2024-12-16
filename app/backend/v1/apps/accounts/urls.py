@@ -6,5 +6,5 @@ urlpatterns = [
     path('login/', views.login, name='login'),
     path('<str:username>/follow/', views.toggle_follow, name='toggle-follow'),
     path('me/', views.get_user_page, name='get-user-page'),
-    path('<int:user_id>/', views.get_other_user_page, name='get-other-user-page'),
+    path('<str:username>/', views.get_other_user_page, name='get-other-user-page'),
 ]
