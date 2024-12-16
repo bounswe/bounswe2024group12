@@ -414,6 +414,13 @@ const GameScreen = ({ game, currentUser, onGameSelect }) => {
     }
   };
 
+  // Find the container/content area and add/update the styles
+  const contentStyle = {
+    // existing styles...
+    fontSize: '1.1rem',  // Increase base font size
+    // ...
+  }
+
   return (
     <Box
       sx={{

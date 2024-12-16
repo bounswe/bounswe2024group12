@@ -55,6 +55,13 @@ const theme = createTheme({
       fontWeight: 500,
       color: '#2C3E2D',
     },
+    fontSize: 16,
+    body1: {
+      fontSize: '1.1rem',
+    },
+    body2: {
+      fontSize: '1rem',
+    },
   },
   components: {
     MuiCard: {

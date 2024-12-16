@@ -4,6 +4,7 @@ import { Box, Typography, Divider } from "@mui/material";
 import Post from "../homepage/Post"; // Reuse the Post component
 import ShareComment from "./ShareComment"; // Import ShareComment
 import Comment from "./Comment"; // Import the Comment component
+import Navbar from "../common/Navbar";
 
 const BACKEND_URL = process.env.REACT_APP_API_URL;
 
@@ -75,6 +76,8 @@ const CommentCard = () => {
   if (isLoading) return <Typography>Loading...</Typography>;
 
   return (
+    <>
+    <Navbar/>
     <Box sx={{ display: "flex", margin: "20px" }}>
       <Box sx={{ flex: 3 }}>
         <Post post={post} width={"75%"} />
@@ -100,6 +103,7 @@ const CommentCard = () => {
         ))}
       </Box>
     </Box>
+    </>
   );
 };
 
