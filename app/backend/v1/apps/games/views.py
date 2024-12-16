@@ -10,6 +10,8 @@ import requests
 import os
 import json
 import re
+import io
+import chess.pgn
 
 from rest_framework.response import Response
 from rest_framework import status
@@ -220,8 +222,23 @@ game_id_param = openapi.Parameter(
     manual_parameters=[auth_header, game_id_param],
     responses={
         200: openapi.Response(
-            description="The PGN representation of Masters Game.",
-            examples={'application/json': {'pgn': '1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 ...'}}
+            description="Successfully retrieved and stored the Masters Game.",
+            examples={
+                'application/json': {
+                    "game": {
+                        "id": 1,
+                        "event": "7th Norway Chess 2019",
+                        "site": "Stavanger NOR",
+                        "white": "Caruana, F.",
+                        "black": "Carlsen, M.",
+                        "result": "1/2-1/2",
+                        "year": 2019,
+                        "month": 6,
+                        "day": 14,
+                        "pgn": "[Event \"7th Norway Chess 2019\"]\n[Site \"Stavanger NOR\"]\n[Date \"2019.06.14\"]\n[Round \"9.1\"]\n[White \"Caruana, F.\"]\n[Black \"Carlsen, M.\"]\n[Result \"1/2-1/2\"]\n...\n"
+                    }
+                }
+            }
         ),
         404: openapi.Response(
             description="Game not found.",
@@ -240,35 +257,94 @@ game_id_param = openapi.Parameter(
             }
         )
     },
-    operation_description="Fetch the PGN representation of a master game from public API's.",
-    operation_summary="Get PGN for a specific game"
+    operation_description="Fetch the PGN representation of a master game from the Lichess Masters database. The PGN is then parsed, stored in the local database, and returned as a saved game object.",
+    operation_summary="Get and Store Masters Game PGN"
 )
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])  # Allow public access
 def master_game(request, game_id):
     """
-    Fetches the PGN of a game from the Lichess Masters database.
+    Fetches the PGN of a game from the Lichess Masters database,
+    parses and stores it into the database, and returns the stored game.
     """
     try:
         # Construct the Lichess API URL
         url = f"https://explorer.lichess.ovh/masters/pgn/{game_id}"
 
-        # Make the GET request with the Authorization header
-        headers = {
-            "Authorization": f"Bearer {LICHESS_ACCESS_TOKEN}"
-        }
+        # Set headers with the Lichess access token if available
+        headers = {}
+        if LICHESS_ACCESS_TOKEN:
+            headers["Authorization"] = f"Bearer {LICHESS_ACCESS_TOKEN}"
+
         response = requests.get(url, headers=headers)
 
         # Check the response status
         if response.status_code == 200:
-            return JsonResponse({"pgn": response.text}, status=200)
+            pgn_text = response.text
+
+            # Parse the PGN
+            pgn_file = io.StringIO(pgn_text)
+            game = chess.pgn.read_game(pgn_file)
+
+            if game is None:
+                return JsonResponse({"error": "Invalid PGN format."}, status=400)
+
+            # Extract headers
+            event = game.headers.get("Event", None)
+            site = game.headers.get("Site", None)
+            date = game.headers.get("Date", None)
+            white = game.headers.get("White", None)
+            black = game.headers.get("Black", None)
+            result = game.headers.get("Result", None)
+
+            # Parse date into year, month, day if possible
+            year, month, day = None, None, None
+            if date and date != "????.??.??":
+                parts = date.split(".")
+                if len(parts) == 3:
+                    try:
+                        year = int(parts[0])
+                        month = int(parts[1])
+                        day = int(parts[2])
+                    except ValueError:
+                        pass
+
+            # Store the game in the database
+            db_game = Game.objects.create(
+                event=event,
+                site=site,
+                white=white,
+                black=black,
+                result=result,
+                year=year,
+                month=month,
+                day=day,
+                pgn=pgn_text
+            )
+
+            # Return the saved game data
+            game_data = {
+                "id": db_game.id,
+                "event": db_game.event,
+                "site": db_game.site,
+                "white": db_game.white,
+                "black": db_game.black,
+                "result": db_game.result,
+                "year": db_game.year,
+                "month": db_game.month,
+                "day": db_game.day,
+                "pgn": db_game.pgn
+            }
+            return JsonResponse({"game": game_data}, status=200)
+
         elif response.status_code == 404:
             return JsonResponse({"error": "Game not found"}, status=404)
         else:
             return JsonResponse({"error": "Failed to fetch game data"}, status=response.status_code)
+
     except Exception as e:
         return JsonResponse({"error": "Internal server error", "details": str(e)}, status=500)
-    
+
 @swagger_auto_schema(
     method='post',
     operation_description="Add a comment to a specific move in a game.",
