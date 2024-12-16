@@ -15,6 +15,8 @@ import ThumbUpIcon from "@mui/icons-material/ThumbUp";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ShareIcon from "@mui/icons-material/Share";
 import CommentIcon from "@mui/icons-material/Comment";
+import BookmarkIcon from '@mui/icons-material/Bookmark';
+import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 
 const BACKEND_URL = process.env.REACT_APP_API_URL;
 
@@ -36,17 +38,19 @@ const Post = ({ post, width }) => {
 
   const [like_count, setLikeCount] = useState(post.likeCount || 0);
   const [liked, setLiked] = useState(post.liked || false); // Track if the post is liked
-  
+  const [bookmarked, setBookmarked] = useState(post.bookmarked || false);
+
   const navigate = useNavigate();
 
   useEffect(() => {
     setLikeCount(initialLikeCount);
     setLiked(post.liked || false);
+    setBookmarked(post.bookmarked || false);
     const token = localStorage.getItem('token');
     if (token) {
       setIsLoggedIn(true);
     }
-  }, [post.likeCount, post.liked]);
+  }, [post.likeCount, post.liked, post.bookmarked]);
 
   const getImageSrc = (image, mimeType = "jpeg") => {
     if (!image) return "";
@@ -74,6 +78,26 @@ const Post = ({ post, width }) => {
     }
   };
 
+  const handleBookmarkToggle = async () => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/posts/bookmark/${postID}/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      if (response.ok) {
+        setBookmarked(!bookmarked); // Toggle the bookmarked state
+      } else {
+        console.error("Failed to toggle bookmark status");
+      }
+    } catch (error) {
+      console.error("An error occurred while bookmarking the post:", error);
+    }
+  };
+
   const handleDelete = async () => {
     if (!isLoggedIn) return;
     try {
@@ -84,7 +108,7 @@ const Post = ({ post, width }) => {
           "Authorization": `Bearer ${localStorage.getItem("token")}`,
         },
       });
-  
+
       if (response.ok) {
         console.log("Post deleted successfully");
         setTimeout(() => {
@@ -137,7 +161,7 @@ const Post = ({ post, width }) => {
         </Box>
 
         <Divider sx={{ backgroundColor: 'gray', marginBottom: '10px' }} />
-        
+
         <Typography variant="body2" sx={{ marginBottom: '20px' }}>
           {postContent}
         </Typography>
@@ -161,9 +185,9 @@ const Post = ({ post, width }) => {
 
             {postImage && (
               <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                <img 
-                  src={getImageSrc(postImage)} 
-                  alt="Post" 
+                <img
+                  src={getImageSrc(postImage)}
+                  alt="Post"
                   style={{ maxWidth: "100%", maxHeight: "500px" }}
                 />
               </Box>
@@ -200,38 +224,44 @@ const Post = ({ post, width }) => {
         </Box>
         <Divider sx={{ backgroundColor: 'gray', mt: '20px' }} />
         {isLoggedIn && (
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-around',
-            alignItems: 'center',
-            borderTop: '1px solid #ddd',
-            paddingTop: '10px',
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <IconButton onClick={handleLikeToggle} color={liked ? "primary" : "default"}>
-              <ThumbUpIcon />
-            </IconButton>
-            <Typography variant="body2">{like_count}</Typography>
-          </Box>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-around',
+              alignItems: 'center',
+              borderTop: '1px solid #ddd',
+              paddingTop: '10px',
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <IconButton onClick={handleLikeToggle} color={liked ? "primary" : "default"}>
+                <ThumbUpIcon />
+              </IconButton>
+              <Typography variant="body2">{like_count}</Typography>
+            </Box>
 
-          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <Box sx={{ display: "flex", alignItems: "center" }}>
               <IconButton onClick={() => navigate(`/post/${postID}/comments`)}>
                 <CommentIcon />
               </IconButton>
               <Typography variant="body2">{commentCount}</Typography>
             </Box>
 
-          <IconButton onClick={handleShare}>
-            <ShareIcon />
-          </IconButton>
+            <IconButton onClick={handleShare}>
+              <ShareIcon />
+            </IconButton>
 
-          {(currUser === username) && (<IconButton onClick={handleDelete}>
-            <DeleteIcon />
-          </IconButton>)}
-          
-        </Box>)}
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <IconButton onClick={handleBookmarkToggle} color={bookmarked ? "primary" : "default"}>
+                {bookmarked ? <BookmarkIcon /> : <BookmarkBorderIcon />}
+              </IconButton>
+            </Box>
+
+            {(currUser === username) && (<IconButton onClick={handleDelete}>
+              <DeleteIcon />
+            </IconButton>)}
+
+          </Box>)}
       </CardContent>
     </Card>
   );
