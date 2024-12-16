@@ -214,6 +214,7 @@ const GameScreen = ({ game, currentUser }) => {
       await fetchAnnotations();
     } catch (error) {
       console.error('Error updating annotation:', error);
+      await fetchAnnotations();
     }
   };
 
@@ -270,9 +271,9 @@ const GameScreen = ({ game, currentUser }) => {
         });
         return updated;
       });
-      await fetchAnnotations();
     } catch (error) {
       console.error('Error adding annotation:', error);
+      await fetchAnnotations();
     }
   };
 
@@ -291,9 +292,9 @@ const GameScreen = ({ game, currentUser }) => {
         updated[stepIndex] = updated[stepIndex].filter(a => a.id !== annotationId);
         return updated;
       });
-      await fetchAnnotations();
     } catch (error) {
       console.error('Error deleting annotation:', error);
+      await fetchAnnotations();
     }
   };
 

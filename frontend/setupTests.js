@@ -16,3 +16,6 @@ class ResizeObserver {
   disconnect() {}
 }
 window.ResizeObserver = ResizeObserver;
+
+// Mock environment variables
+process.env.REACT_APP_API_URL = 'http://test-api.com';
