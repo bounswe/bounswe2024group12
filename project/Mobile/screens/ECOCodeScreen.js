@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,70 +6,35 @@ import {
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { api } from '../services/AuthService';
 
 export const ECOCodeScreen = ({ route, navigation }) => {
   const { ecoCode } = route.params;
-  const [showAllCodes, setShowAllCodes] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [openingData, setOpeningData] = useState(null);
 
-  const ecoInfo = {
-    code: ecoCode,
-    name: "King's Pawn Game",
-    description: "The King's pawn opening is one of the most popular chess openings, created by moving the king's pawn two squares forward. This classic opening directly fights for the center and can lead to both tactical and positional play.",
-    mainLines: [
-      {
-        moves: "1. e4 e5",
-        name: "Open Game",
-        description: "Black responds symmetrically, also claiming central space"
-      },
-      {
-        moves: "1. e4 e6",
-        name: "French Defense",
-        description: "Black prepares to challenge White's center with ...d5"
-      },
-      {
-        moves: "1. e4 c5",
-        name: "Sicilian Defense",
-        description: "Black immediately fights for the d4 square"
+  useEffect(() => {
+    const fetchOpeningData = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get(`/games/openings/?eco_code=${ecoCode}`);
+        setOpeningData(response.data);
+        setError(null);
+      } catch (err) {
+        setError(err.response?.data?.error || 'Failed to fetch opening data');
+      } finally {
+        setLoading(false);
       }
-    ],
-    features: [
-      "Controls central squares d5 and e5",
-      "Opens lines for both queen and king's bishop",
-      "Provides good attacking chances",
-      "Can transpose into many different opening systems"
-    ]
-  };
+    };
 
-  const generalEcoCodes = [
-    {
-      category: "A Series (1.any except 1.e4, 1.d4)",
-      codes: [
-        "A00-A39: Irregular Openings and Flank Openings",
-        "A40-A79: Queen's Pawn, Indian Defences",
-        "A80-A99: Dutch Defense"
-      ]
-    },
-    {
-      category: "B Series (1.e4)",
-      codes: [
-        "B00-B19: Open Games without 1...e5",
-        "B20-B59: Sicilian Defence",
-        "B60-B99: Sicilian Defence, Variations"
-      ]
-    },
-    {
-      category: "C Series (1.e4 e5)",
-      codes: [
-        "C00-C19: French Defense",
-        "C20-C59: Open Games",
-        "C60-C99: Ruy Lopez"
-      ]
-    }
-  ];
+    fetchOpeningData();
+  }, [ecoCode]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     navigation.setOptions({
       headerShown: true,
       headerTitle: "ECO Codes",
@@ -84,68 +49,40 @@ export const ECOCodeScreen = ({ route, navigation }) => {
     });
   }, [navigation]);
 
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#007AFF" />
+      </SafeAreaView>
+    );
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView style={styles.errorContainer}>
+        <Text style={styles.errorText}>{error}</Text>
+        <TouchableOpacity
+          style={styles.retryButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.retryButtonText}>Go Back</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView}>
         <View style={styles.content}>
           <View style={styles.codeIndicator}>
-            <Text style={styles.currentCode}>ECO {ecoCode}</Text>
+            <Text style={styles.currentCode}>ECO {openingData.eco_code}</Text>
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.title}>{ecoInfo.name}</Text>
-            <Text style={styles.description}>{ecoInfo.description}</Text>
+            <Text style={styles.title}>{openingData.name}</Text>
+            <Text style={styles.description}>{openingData.description}</Text>
           </View>
-
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Key Features</Text>
-            {ecoInfo.features.map((feature, index) => (
-              <View key={index} style={styles.featureItem}>
-                <View style={styles.bullet} />
-                <Text style={styles.featureText}>{feature}</Text>
-              </View>
-            ))}
-          </View>
-
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Main Lines</Text>
-            {ecoInfo.mainLines.map((line, index) => (
-              <View key={index} style={styles.lineItem}>
-                <Text style={styles.movesText}>{line.moves}</Text>
-                <Text style={styles.lineName}>{line.name}</Text>
-                <Text style={styles.lineDescription}>{line.description}</Text>
-              </View>
-            ))}
-          </View>
-
-          <TouchableOpacity
-            style={styles.learnMoreButton}
-            onPress={() => setShowAllCodes(!showAllCodes)}
-          >
-            <Text style={styles.learnMoreText}>
-              Learn more: <Text style={styles.learnMoreLink}>ECO Codes</Text>
-            </Text>
-            <Feather
-              name={showAllCodes ? "chevron-up" : "chevron-down"}
-              size={20}
-              color="#007AFF"
-            />
-          </TouchableOpacity>
-
-          {showAllCodes && (
-            <View style={styles.allCodesSection}>
-              {generalEcoCodes.map((category, index) => (
-                <View key={index} style={styles.categoryContainer}>
-                  <Text style={styles.categoryTitle}>{category.category}</Text>
-                  {category.codes.map((code, codeIndex) => (
-                    <Text key={codeIndex} style={styles.codeText}>
-                      • {code}
-                    </Text>
-                  ))}
-                </View>
-              ))}
-            </View>
-          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -201,88 +138,34 @@ const styles = StyleSheet.create({
     color: '#666',
     lineHeight: 24,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 12,
-  },
-  featureItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  bullet: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#007AFF',
-    marginRight: 8,
-  },
-  featureText: {
-    fontSize: 15,
-    color: '#444',
+  loadingContainer: {
     flex: 1,
-  },
-  lineItem: {
-    marginBottom: 16,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  movesText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#007AFF',
-    marginBottom: 4,
-  },
-  lineName: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#333',
-    marginBottom: 4,
-  },
-  lineDescription: {
-    fontSize: 14,
-    color: '#666',
-  },
-  learnMoreButton: {
-    backgroundColor: 'white',
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 16,
-    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    backgroundColor: '#f5f5f5',
   },
-  learnMoreText: {
-    fontSize: 16,
-    color: '#333',
-  },
-  learnMoreLink: {
-    color: '#007AFF',
-    fontWeight: '500',
-  },
-  allCodesSection: {
-    backgroundColor: 'white',
-    borderRadius: 8,
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
     padding: 16,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#ff3b30',
+    textAlign: 'center',
     marginBottom: 16,
   },
-  categoryContainer: {
-    marginBottom: 16,
+  retryButton: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
   },
-  categoryTitle: {
+  retryButtonText: {
+    color: 'white',
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
-    marginBottom: 8,
-  },
-  codeText: {
-    fontSize: 14,
-    color: '#666',
-    marginLeft: 8,
-    marginBottom: 4,
-    lineHeight: 20,
   },
 });
