@@ -80,13 +80,29 @@ const Feed = ({ isGuest, passedTag }) => {
             timestamp: new Date(post.created_at),
           }));
 
-        setPosts((prevPosts) =>
-          [...prevPosts, ...filteredPosts].sort((a, b) => {
+        setPosts((prevPosts) => {
+          const newPosts = [...prevPosts, ...filteredPosts];
+          const uniquePosts = [];
+
+          // Create a Set to track unique post ids
+          const postIds = new Set();
+
+          // Filter out posts with duplicate ids
+          newPosts.forEach(post => {
+            if (!postIds.has(post.id)) {
+              uniquePosts.push(post);
+              postIds.add(post.id); // Mark the id as seen
+            }
+          });
+
+          // Sort unique posts
+          return uniquePosts.sort((a, b) => {
             if (sorting === "older") return a.timestamp - b.timestamp;
             if (sorting === "newer") return b.timestamp - a.timestamp;
             if (sorting === "title") return a.title.localeCompare(b.title);
-          })
-        );
+          });
+        });
+
 
         if (data.next === null) {
           setHasMore(false); // No more pages to load
@@ -99,6 +115,8 @@ const Feed = ({ isGuest, passedTag }) => {
     } finally {
       setIsLoading(false);
     }
+
+    console.log("Posts:", posts);
   };
 
 
