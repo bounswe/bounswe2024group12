@@ -7,12 +7,15 @@ from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 
-from v1.apps.posts.models import Post, Like, Comment
+from v1.apps.posts.models import Post, Like, Comment, PostBookmark
 from v1.apps.accounts.models import CustomUser
 from v1.apps.posts.serializers import PostSerializer, LikeSerializer, CommentSerializer
 
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.pagination import PageNumberPagination
+from v1.apps.headers import auth_header
+
+from v1.apps.admin_users import admin_usernames
 
 
 # Swagger documentation for POST /api/v1/posts/create/
@@ -42,6 +45,7 @@ from rest_framework.pagination import PageNumberPagination
     ),
     operation_description="Create a post with an optional base64-encoded image, FEN notation, text content and a list of tags. Requires authentication.",
     operation_summary="Create a new post",
+    manual_parameters=[auth_header],
     responses={
         201: openapi.Response(
             description="Post created successfully",
@@ -66,6 +70,14 @@ from rest_framework.pagination import PageNumberPagination
                     'fen': ['This field is required.'],
                 }
             }
+        ),
+        401: openapi.Response(
+            description="Authentication required",
+            examples={
+                'application/json': {
+                    "detail": "Authentication credentials were not provided."
+                }
+            }
         )
     }
 )
@@ -78,6 +90,68 @@ def create_post(request):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+@swagger_auto_schema(
+    method='put',
+    operation_description="Edit an existing post. Only the owner of the post can edit it.",
+    operation_summary="Edit an existing post",
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'post_image': openapi.Schema(type=openapi.TYPE_STRING, description='Base64 encoded image string'),
+            'title': openapi.Schema(type=openapi.TYPE_STRING, description='Post title'),
+            'fen': openapi.Schema(type=openapi.TYPE_STRING, description='FEN notation string'),
+            'post_text': openapi.Schema(type=openapi.TYPE_STRING, description='Text content for the post'),
+            'tags': openapi.Schema(
+                type=openapi.TYPE_ARRAY,
+                items=openapi.Items(type=openapi.TYPE_STRING),
+                description='List of tags as strings'
+            ),
+        },
+        example={
+            'title': 'Updated Chess Post',
+            'post_text': 'Updated content for the post',
+            'tags': ['updated', 'tag']
+        }
+    ),
+    responses={
+        200: openapi.Response(
+            description="Post updated successfully",
+            examples={
+                'application/json': {
+                    'id': 1,
+                    'post_image': '/media/post_images/example.jpg',
+                    'title': 'Updated Chess Post',
+                    'fen': 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR',
+                    'post_text': 'Updated content for the post',
+                    'tags': ['updated', 'tag'],
+                    'created_at': '2024-10-16T12:00:00Z',
+                    'user': 'example_user'
+                }
+            }
+        ),
+        400: openapi.Response(description="Invalid input"),
+        403: openapi.Response(description="Forbidden: User does not own this post"),
+        404: openapi.Response(description="Post not found"),
+    }
+)
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def edit_post(request, post_id):
+    try:
+        post = Post.objects.get(id=post_id)
+    except Post.DoesNotExist:
+        return Response({"error": "Post not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    # Check if the authenticated user is the owner of the post
+    if post.user != request.user:
+        return Response({"error": "You do not have permission to edit this post"}, status=status.HTTP_403_FORBIDDEN)
+    
+    # Perform partial updates (fields omitted won't reset)
+    serializer = PostSerializer(post, data=request.data, partial=True)
+    if serializer.is_valid():
+        serializer.save()  # user is not changed; only given fields are updated
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # Swagger documentation for GET /api/v1/posts/{post_id}/
 @swagger_auto_schema(
@@ -131,19 +205,115 @@ def get_post(request, post_id):
 class PostPagination(PageNumberPagination):
     page_size = 10  # 10 post per page
 
+@swagger_auto_schema(
+    method='delete',
+    operation_description="Delete an existing post. Only the owner of the post can delete it.",
+    operation_summary="Delete an existing post",
+    responses={
+        200: openapi.Response(
+            description="Post deleted successfully"
+        ),
+        403: openapi.Response(description="Forbidden: User does not own this post"),
+        404: openapi.Response(description="Post not found"),
+    }
+)
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_post(request, post_id):
+    try:
+        post = Post.objects.get(id=post_id)
+    except Post.DoesNotExist:
+        return Response({"error": "Post not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    if post.user != request.user and request.user.username not in admin_usernames:
+        return Response({"error": "You do not have permission to delete this post"}, status=status.HTTP_403_FORBIDDEN)
+    
+    post.delete()
+    return Response({"message": "Post deleted successfully"}, status=status.HTTP_200_OK)
+
+
+@swagger_auto_schema(
+    method='delete',
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'post_ids': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Items(type=openapi.TYPE_INTEGER)),
+        },
+        required=['post_ids']
+    ),
+    operation_description="Delete multiple existing posts. Only the admin users  can delete them.",
+    operation_summary="Delete multiple posts",
+    manual_parameters=[auth_header],
+    responses={
+        204: "Posts deleted successfully",
+        403: "Forbidden: User does not have permission to delete these posts",
+        404: "Post not found",
+        401: openapi.Response(
+            description="Authentication required",
+            examples={
+                'application/json': {
+                    "detail": "Authentication credentials were not provided."
+                }
+            }
+        )
+    }
+)
+@api_view(['DELETE'])
+def delete_multiple_posts(request):
+    post_ids = request.data.get('post_ids', [])
+    # only allow for admins for all posts
+    for post_id in post_ids:
+        try:
+            post = Post.objects.get(id=post_id)
+            if request.user.username not in admin_usernames:
+                return Response({"error": "You do not have permission to delete this post"}, status=status.HTTP_403_FORBIDDEN)
+            post.delete()
+        except Post.DoesNotExist:
+            pass
 
 @swagger_auto_schema(
     method='get',
-    operation_description="Retrieve all posts with pagination.",
-    operation_summary="List all posts with pagination",
+    operation_description="Retrieve all posts with pagination, optional tag filtering, optional followed filtering (only posts from followed users), and ordering. Order options: 'older', 'newer', 'title'.",
+    operation_summary="List all posts with optional tag filtering, followed filtering, and ordering",
+    manual_parameters=[
+        openapi.Parameter(
+            'tag', 
+            openapi.IN_QUERY, 
+            description="Filter posts by a specific tag contained in their 'tags' field",
+            type=openapi.TYPE_STRING,
+            required=False
+        ),
+        openapi.Parameter(
+            'order_by',
+            openapi.IN_QUERY,
+            description="Order posts by a specific criterion: 'older', 'newer', or 'title'.",
+            type=openapi.TYPE_STRING,
+            enum=['older', 'newer', 'title'],
+            required=False
+        ),
+        openapi.Parameter(
+            'followed',
+            openapi.IN_QUERY,
+            description="If 'true', return only posts from users followed by the authenticated user. If 'false' or omitted, return all posts.",
+            type=openapi.TYPE_BOOLEAN,
+            required=False
+        ),
+        openapi.Parameter(
+            'page',
+            openapi.IN_QUERY,
+            description="Page number for pagination",
+            type=openapi.TYPE_INTEGER,
+            required=False
+        )
+    ],
     responses={
         200: openapi.Response(
-            description="List of posts retrieved successfully with pagination",
+            description="List of posts retrieved successfully with pagination, optional filtering, and ordering",
             examples={
                 'application/json': {
-                    'count': 100,  # Total number of posts
-                    'next': 'http://api.example.com/posts/?page=2',  # Next page URL
-                    'previous': None,  # Previous page URL
+                    'count': 100,
+                    'next': 'http://api.example.com/posts/?page=2',
+                    'previous': None,
                     'results': [
                         {
                             'id': 1,
@@ -171,28 +341,65 @@ class PostPagination(PageNumberPagination):
         ),
         400: openapi.Response(
             description="Invalid request",
+        ),
+        401: openapi.Response(
+            description="Authentication required if 'followed=true'"
         )
     }
 )
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def list_posts(request):
-    posts = Post.objects.all()  # Get all posts
+    tag = request.query_params.get('tag')
+    order_by = request.query_params.get('order_by', 'newer')
+    followed = request.query_params.get('followed', 'false').lower() == 'true'
+
+    posts = Post.objects.all()
+
+    # If followed=true, ensure the user is authenticated and filter to followed users
+    if followed:
+        if not request.user.is_authenticated:
+            return Response({"error": "Authentication required to filter by followed."}, status=status.HTTP_401_UNAUTHORIZED)
+        # Get the IDs of users that the current user follows
+        followed_user_ids = request.user.following.values_list('following_id', flat=True)
+        posts = posts.filter(user_id__in=followed_user_ids)
+
+    # Filter by tag if provided
+    if tag:
+        posts = posts.filter(tags__icontains=tag)
+    
+    # Order by logic
+    if order_by == 'older':
+        posts = posts.order_by('created_at')
+    elif order_by == 'title':
+        posts = posts.order_by('title')
+    else:
+        # Default or 'newer'
+        posts = posts.order_by('-created_at')
+
     paginator = PostPagination()
     result_page = paginator.paginate_queryset(posts, request)
-    serializer = PostSerializer(result_page, many=True) # Serialize multiple posts
+    serializer = PostSerializer(result_page, many=True)
     return paginator.get_paginated_response(serializer.data)
-
 
 # Like/Unlike a Post
 @swagger_auto_schema(
     method='post',
     operation_description="Toggle like/unlike for a specific post.",
     operation_summary="Like/Unlike a Post",
+    manual_parameters=[auth_header],
     responses={
         201: openapi.Response("Post liked", examples={"application/json": {"message": "Post liked"}}),
         200: openapi.Response("Post unliked", examples={"application/json": {"message": "Post unliked"}}),
-        404: "Post not found"
+        404: "Post not found",
+        401: openapi.Response(
+            description="Authentication required",
+            examples={
+                'application/json': {
+                    "detail": "Authentication credentials were not provided."
+                }
+            }
+        )
     }
 )
 @api_view(['POST'])
@@ -219,6 +426,7 @@ def like_post(request, post_id):
     ),
     operation_description="Get like count and like status for multiple posts.",
     operation_summary="Like Summary for Multiple Posts",
+    manual_parameters=[auth_header],
     responses={
         200: openapi.Response(
             description="Like summary retrieved",
@@ -228,7 +436,15 @@ def like_post(request, post_id):
                 {"post_id": 3, "error": "Post not found"}
             ]}
         ),
-        400: "Invalid request"
+        400: "Invalid request",
+        401: openapi.Response(
+            description="Authentication required",
+            examples={
+                'application/json': {
+                    "detail": "Authentication credentials were not provided."
+                }
+            }
+        )
     }
 )
 @api_view(['POST'])
@@ -277,6 +493,7 @@ comment_id_param = openapi.Parameter(
     ),
     operation_description="Add a new comment to a specific post. Optionally include FEN notations.",
     operation_summary="Create Comment",
+    manual_parameters=[auth_header],
     responses={
         201: openapi.Response(
             description="Comment created successfully.",
@@ -293,7 +510,15 @@ comment_id_param = openapi.Parameter(
             }
         ),
         400: "Invalid request",
-        404: "Post not found"
+        404: "Post not found",
+        401: openapi.Response(
+            description="Authentication required",
+            examples={
+                'application/json': {
+                    "detail": "Authentication credentials were not provided."
+                }
+            }
+        )
     }
 )
 @api_view(['POST'])
@@ -330,6 +555,7 @@ def create_comment(request, post_id):
     ),
     operation_description="Update an existing comment on a specific post. Optionally include FEN notations.",
     operation_summary="Update Comment",
+    manual_parameters=[auth_header],
     responses={
         200: openapi.Response(
             description="Comment updated successfully.",
@@ -347,17 +573,34 @@ def create_comment(request, post_id):
         ),
         400: "Invalid request",
         403: "Unauthorized",
-        404: "Comment not found"
+        404: "Comment not found",
+        401: openapi.Response(
+            description="Authentication required",
+            examples={
+                'application/json': {
+                    "detail": "Authentication credentials were not provided."
+                }
+            }
+        )
     }
 )
 @swagger_auto_schema(
     method='delete',
     operation_description="Delete an existing comment on a specific post.",
     operation_summary="Delete Comment",
+    manual_parameters=[auth_header],
     responses={
         204: "Comment deleted successfully",
         403: "Unauthorized",
-        404: "Comment not found"
+        404: "Comment not found",
+        401: openapi.Response(
+            description="Authentication required",
+            examples={
+                'application/json': {
+                    "detail": "Authentication credentials were not provided."
+                }
+            }
+        )
     }
 )
 @api_view(['PUT', 'DELETE'])
@@ -369,7 +612,7 @@ def update_delete_comment(request, post_id, comment_id):
     except (Post.DoesNotExist, Comment.DoesNotExist):
         return Response({"error": "Comment not found"}, status=status.HTTP_404_NOT_FOUND)
 
-    if comment.user != request.user:
+    if comment.user != request.user and request.user.username not in admin_usernames:
         return Response({"error": "Unauthorized"}, status=status.HTTP_403_FORBIDDEN)
 
     if request.method == 'PUT':
@@ -382,6 +625,7 @@ def update_delete_comment(request, post_id, comment_id):
     elif request.method == 'DELETE':
         comment.delete()
         return Response({"message": "Comment deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+
 # List comments for a post
 @swagger_auto_schema(
     method='get',
@@ -432,6 +676,64 @@ def list_comments(request, post_id):
     
     return Response(res, status=status.HTTP_200_OK)
 
+
+@swagger_auto_schema(
+    method='post',
+    operation_description="Toggle bookmark for a specific post. If the post is not bookmarked, it will be bookmarked. If it is already bookmarked, the bookmark will be removed.",
+    operation_summary="Toggle Bookmark on a Post",
+    manual_parameters=[auth_header],
+    responses={
+        201: openapi.Response(
+            description="Post bookmarked successfully",
+            examples={
+                'application/json': {
+                    'message': 'Post bookmarked successfully'
+                }
+            }
+        ),
+        200: openapi.Response(
+            description="Post unbookmarked successfully",
+            examples={
+                'application/json': {
+                    'message': 'Post unbookmarked successfully'
+                }
+            }
+        ),
+        404: openapi.Response(
+            description="Post not found",
+            examples={
+                'application/json': {
+                    'error': 'Post not found'
+                }
+            }
+        ),
+        401: openapi.Response(
+            description="Authentication required",
+            examples={
+                'application/json': {
+                    "detail": "Authentication credentials were not provided."
+                }
+            }
+        )
+    }
+)
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def toggle_post_bookmark(request, post_id):
+    #User bookmarks a post or removes a bookmark from a post (toggle system)
+    try:
+        post = Post.objects.get(id=post_id)
+    except Post.DoesNotExist:
+        return Response({"error": "Post not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    user = request.user
+    bookmark_instance, created = PostBookmark.objects.get_or_create(user=user, post=post)
+    
+    if not created:  # Remove existing bookmark
+        bookmark_instance.delete()
+        return Response({"message": "Bookmark removed"}, status=status.HTTP_200_OK)
+    
+    return Response({"message": "Bookmark added"}, status=status.HTTP_201_CREATED)
     
         
     

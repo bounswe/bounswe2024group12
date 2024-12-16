@@ -1,7 +1,12 @@
 from django.urls import reverse
-from rest_framework.test import APITestCase
+from rest_framework.test import APITestCase, APIClient
 from rest_framework import status
-from v1.apps.accounts.models import CustomUser
+from v1.apps.accounts.models import CustomUser, Follow
+from django.test import TestCase
+from v1.apps.posts.models import Post, PostBookmark, Like
+from v1.apps.games.models import Game, GameBookmark, GameMoveBookmark
+
+
 
 class AccountsTests(APITestCase):
     def setUp(self):
@@ -79,3 +84,138 @@ class AccountsTests(APITestCase):
         response = self.client.post(self.login_url, login_data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("Invalid credentials", response.data['error'])
+
+class FollowUserTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.follower = CustomUser.objects.create_user(username="follower", password="password")
+        self.following = CustomUser.objects.create_user(username="following", password="password")
+        self.url = reverse('toggle-follow', args=[self.following.username])
+
+    def test_follow_user_authenticated(self):
+        self.client.force_authenticate(user=self.follower)
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        follow_exists = Follow.objects.filter(follower=self.follower, following=self.following).exists()
+        self.assertTrue(follow_exists)
+
+    def test_unfollow_user_authenticated(self):
+        self.client.force_authenticate(user=self.follower)
+        self.client.post(self.url)  # Follow first
+        response = self.client.post(self.url)  # Then unfollow
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        follow_exists = Follow.objects.filter(follower=self.follower, following=self.following).exists()
+        self.assertFalse(follow_exists)
+
+    def test_follow_user_unauthenticated(self):
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class UserPageTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = CustomUser.objects.create_user(username="chessmaster", password="password123")
+        self.url = reverse('get-user-page')
+        self.client.force_authenticate(user=self.user)
+
+        # Create dummy bookmarks, likes, follows, etc.
+        self.post = Post.objects.create(user=self.user, title="Test Post", post_text="Test Content")
+        PostBookmark.objects.create(user=self.user, post=self.post)
+        Like.objects.create(user=self.user, post=self.post)
+        
+        self.game = Game.objects.create(white="Kasparov", black="Deep Blue", year=1997)
+        GameBookmark.objects.create(user=self.user, game=self.game)
+        GameMoveBookmark.objects.create(user=self.user, game=self.game, fen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR")
+        
+        self.follower = CustomUser.objects.create_user(username="follower", password="password")
+        Follow.objects.create(follower=self.follower, following=self.user)
+        
+        # Create user's own posts
+        self.post_1 = Post.objects.create(user=self.user, title="My Chess Analysis", post_text="Analysis Content")
+        self.post_2 = Post.objects.create(user=self.user, title="Endgame Strategy", post_text="Strategy Content")
+        self.user_posts = Post.objects.filter(user=self.user) 
+
+    def test_user_page_authenticated(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        keys_to_check = ['username', 'post_bookmarks', 'game_bookmarks', 'game_move_bookmarks', 'post_likes', 'followers', 'following', 'posts']
+        
+        for key in keys_to_check:
+            self.assertIn(key, response.data)
+        
+        self.assertEqual(len(response.data['posts']), self.user_posts.count())
+        
+        expected_posts = self.user_posts.values('id', 'title')
+        for post in expected_posts:
+            self.assertIn(post, response.data['posts'])
+        
+        # Check that each game bookmark has the required fields
+        for bookmark in response.data['game_bookmarks']:
+            self.assertIn('game__id', bookmark)
+            self.assertIn('game__event', bookmark)
+            self.assertIn('game__site', bookmark)
+            self.assertIn('game__white', bookmark)
+            self.assertIn('game__black', bookmark)
+            self.assertIn('game__result', bookmark)
+            self.assertIn('game__year', bookmark)
+            self.assertIn('game__month', bookmark)
+            self.assertIn('game__day', bookmark)
+            self.assertIn('game__pgn', bookmark)
+
+    def test_user_page_unauthenticated(self):
+        self.client.logout()
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+
+class OtherUserPageTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = CustomUser.objects.create_user(username="chessmaster", email="chessmaster@example.com", password="password123")
+        self.other_user = CustomUser.objects.create_user(username="follower", email="follower@example.com", password="password123")
+        
+        self.post_1 = Post.objects.create(user=self.user, title="My Chess Journey", post_text="Journey Content")
+        self.post_2 = Post.objects.create(user=self.user, title="Rook Endgames", post_text="Endgame Content")
+        self.user_posts = Post.objects.filter(user=self.user)
+        
+        self.url = reverse('get-other-user-page', kwargs={'username': self.user.username})
+        
+    def test_other_user_page_authenticated(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(self.url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        keys_to_check = ['username', 'email', 'first_name', 'last_name', 'date_joined', 'post_likes', 'followers', 'following', 'posts']
+        for key in keys_to_check:
+            self.assertIn(key, response.data)
+
+        expected_posts = self.user_posts.values('id', 'title')
+        for post in expected_posts:
+            self.assertIn(post, response.data['posts'])
+
+    def test_other_user_page_authenticated_other_user(self):
+        self.client.force_authenticate(user=self.other_user)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        expected_posts = self.user_posts.values('id', 'title')
+        for post in expected_posts:
+            self.assertIn(post, response.data['posts'])
+
+    def test_other_user_page_unauthenticated(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        expected_posts = self.user_posts.values('id', 'title')
+        for post in expected_posts:
+            self.assertIn(post, response.data['posts'])
+
+    def test_other_user_page_not_found(self):
+        url = reverse('get-other-user-page', kwargs={'username': '-------323232-----------'})  # Non-existing username
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.data, {'detail': 'No CustomUser matches the given query.'})
+

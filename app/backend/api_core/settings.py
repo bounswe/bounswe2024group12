@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'v1.apps.accounts',
     'v1.apps.posts',
     'v1.apps.games',
+    'v1.apps.puzzle',
     
 ]
 
@@ -137,6 +138,9 @@ STATIC_URL = '/api/static/'
 
 # Absolute path where collected static files will be stored.
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
