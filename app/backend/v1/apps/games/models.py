@@ -65,16 +65,21 @@ class GameOpening(models.Model):
         return self.name
     
 class Annotation(models.Model):
+    context = models.CharField(max_length=255, default="http://www.w3.org/ns/anno.jsonld")
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    game = models.ForeignKey('Game', on_delete=models.CASCADE, related_name='annotations')
+    game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name='annotations')
     creator = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='annotations')
-    body_value = models.TextField()  # The content of the annotation
-    body_format = models.CharField(max_length=50, default="text/plain")
-    target_fen = models.CharField(max_length=255)  # The specific FEN position for this annotation
-    move_number = models.IntegerField()  # Move number in the game
-    motivation = models.CharField(max_length=50, default="commenting")
-    created_at = models.DateTimeField(auto_now_add=True)
-    modified_at = models.DateTimeField(auto_now=True)
+    
+    type = models.CharField(max_length=50, default="Annotation")  # "Annotation"
+    created = models.DateTimeField(auto_now_add=True)  # Timestamp for creation
+    modified = models.DateTimeField(auto_now=True)  # Timestamp for modification
+    
+    body = models.JSONField()  # Store the body as JSON (type, value, format)
+    target = models.JSONField()  # Store the target as JSON (type, source, state)
+    motivation = models.CharField(max_length=100, null=True, blank=True)  # e.g., "commenting"
+    
+    class Meta:
+        ordering = ['-created']
     
     def __str__(self):
-        return f"Annotation by {self.creator.username} on FEN: {self.target_fen} (Game {self.game.id})"
+        return f"Annotation {self.id} on Game {self.game.id} by {self.creator.username}"

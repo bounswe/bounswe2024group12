@@ -218,78 +218,114 @@ class AnnotationTestCase(APITestCase):
         self.annotation = Annotation.objects.create(
             game=self.game,
             creator=self.user,
-            body_value="Test annotation",
-            body_format="text/plain",
-            target_fen="rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
-            move_number=1,
+            type="Annotation",
+            created="2024-03-14T12:00:00Z",
+            modified="2024-03-14T12:00:00Z",
+            body={
+                "type": "TextualBody",
+                "value": "Test annotation",
+                "format": "text/plain"
+            },
+            target={
+                "type": "ChessPosition",
+                "source": f"http://localhost/games/{self.game.id}",
+                "state": {
+                    "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
+                    "moveNumber": 1
+                }
+            },
             motivation="commenting"
-        )
+        )       
         self.get_url = reverse('annotations_list_create', kwargs={'game_id': self.game.id})
         self.post_url = reverse('annotations_list_create', kwargs={'game_id': self.game.id})
         self.put_url = reverse('annotation_detail', kwargs={'game_id': self.game.id, 'anno_id': self.annotation.id})
         self.delete_url = reverse('annotation_detail', kwargs={'game_id': self.game.id, 'anno_id': self.annotation.id})
-    
-    # GET Annotations Test
+
     def test_get_annotations_authenticated(self):
         self.client.force_authenticate(user=self.user)
         response = self.client.get(self.get_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertGreaterEqual(len(response.data), 1)  # At least 1 annotation
-        self.assertEqual(response.data[0]['body_value'], "Test annotation")
-    
-    # POST Annotation Test
+        self.assertGreaterEqual(len(response.data), 1)
+        self.assertIn('@context', response.data[0])
+        self.assertEqual(response.data[0]['@context'], "http://www.w3.org/ns/anno.jsonld")
+        self.assertEqual(response.data[0]['body']['value'], "Test annotation")
+
     def test_create_annotation_authenticated(self):
         self.client.force_authenticate(user=self.user)
         data = {
-            'body_value': 'New annotation content',
-            'body_format': 'text/plain',
-            'target_fen': 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR',
-            'move_number': 2,
-            'motivation': 'commenting'
+            "@context": "http://www.w3.org/ns/anno.jsonld",
+            "type": "Annotation",
+            "body": {
+                "type": "TextualBody",
+                "value": "New annotation content",
+                "format": "text/plain"
+            },
+            "target": {
+                "type": "ChessPosition",
+                "source": f"http://localhost/games/{self.game.id}",
+                "state": {
+                    "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
+                    "moveNumber": 2
+                }
+            },
+            "motivation": "commenting"
         }
-        response = self.client.post(self.post_url, data)
+        response = self.client.post(self.post_url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['annotation']['body_value'], 'New annotation content')
-    
-    # PUT Annotation Test
+        self.assertEqual(response.data['body']['value'], 'New annotation content')
+        
+
     def test_update_annotation_authenticated(self):
         self.client.force_authenticate(user=self.user)
         data = {
-            'body_value': 'Updated annotation content',
-            'move_number': 3
+            "body": {
+                "value": "Updated annotation content"
+            },
+            "modified": "2024-03-14T12:10:00Z"
         }
-        response = self.client.put(self.put_url, data)
+        response = self.client.put(self.put_url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.annotation.refresh_from_db()
-        self.assertEqual(self.annotation.body_value, 'Updated annotation content')
-        self.assertEqual(self.annotation.move_number, 3)
-    
-    # DELETE Annotation Test
+        self.assertEqual(self.annotation.body['value'], 'Updated annotation content')
+
     def test_delete_annotation_authenticated(self):
         self.client.force_authenticate(user=self.user)
         response = self.client.delete(self.delete_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         annotation_exists = Annotation.objects.filter(id=self.annotation.id).exists()
         self.assertFalse(annotation_exists)
-    
-    # Permissions Tests
+
     def test_unauthenticated_user_cannot_create_annotation(self):
         data = {
-            'body_value': 'Unauthorized annotation content',
-            'body_format': 'text/plain',
-            'target_fen': 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR',
-            'move_number': 2,
-            'motivation': 'commenting'
+            "type": "Annotation",
+            "body": {
+                "type": "TextualBody",
+                "value": "Unauthorized annotation content",
+                "format": "text/plain"
+            },
+            "target": {
+                "type": "ChessPosition",
+                "source": f"http://localhost/games/{self.game.id}",
+                "state": {
+                    "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
+                    "moveNumber": 2
+                }
+            },
+            "motivation": "commenting"
         }
-        response = self.client.post(self.post_url, data)
+        response = self.client.post(self.post_url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-    
+
     def test_only_creator_can_update_annotation(self):
         self.client.force_authenticate(user=self.other_user)
-        data = {'body_value': 'Malicious update'}
-        response = self.client.put(self.put_url, data)
+        data = {
+            "body": {
+                "value": "Malicious update"
+            }
+        }
+        response = self.client.put(self.put_url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-    
+
     def test_only_creator_can_delete_annotation(self):
         self.client.force_authenticate(user=self.other_user)
         response = self.client.delete(self.delete_url)
