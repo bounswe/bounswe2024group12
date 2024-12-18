@@ -82,11 +82,8 @@ const ArchiveCard = () => {
       })
       .catch(error => {
         console.error('Error fetching games:', error.message);
-      });
-    
-  const cardContentStyle = {
-    fontSize: '1.1rem',
-  };
+      });  
+    };
 
   return (
     <div>
