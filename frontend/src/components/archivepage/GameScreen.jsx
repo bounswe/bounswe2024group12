@@ -414,11 +414,19 @@ const GameScreen = ({ game, currentUser, onGameSelect, onMetadataClick }) => {
     }
   };
 
+
   const handleMetadataClick = (filterType, value) => {
     if (onMetadataClick) {
       onMetadataClick(filterType, value);
     }
   };
+
+  // Find the container/content area and add/update the styles
+  const contentStyle = {
+    // existing styles...
+    fontSize: '1.1rem',  // Increase base font size
+    // ...
+  }
 
   return (
     <Box

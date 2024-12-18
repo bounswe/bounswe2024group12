@@ -1,0 +1,362 @@
+[
+    {
+        "eco_code": "C50",
+        "name": "Giuoco Pianissimo (Italian Game)",
+        "description": "A quiet version of the Italian Game, emphasizing slow development and pawn structure."
+    },
+    {
+        "eco_code": "C60",
+        "name": "Ruy-Lopez (Spanish Game)",
+        "description": "Highly strategic opening where White attacks the knight on c6 to exert pressure on Black's pawn structure."
+    },
+    {
+        "eco_code": "C65",
+        "name": "Berlin Defense (Ruy-Lopez)",
+        "description": "Black counters with ...Nf6, known for its solid and often drawish endgame structures."
+    },
+    {
+        "eco_code": "C70",
+        "name": "Modern Steinitz Defense (Ruy-Lopez)",
+        "description": "Black delays kingside development to counter with a solid pawn structure."
+    },
+    {
+        "eco_code": "C42",
+        "name": "Petrov's Defense (Russian Defense)",
+        "description": "Black counters White's attack on e5 with a symmetrical pawn move, focusing on piece activity."
+    },
+    {
+        "eco_code": "C45",
+        "name": "Scotch Game",
+        "description": "An early pawn exchange in the center (2. d4) leads to open lines and tactical opportunities."
+    },
+    {
+        "eco_code": "B33",
+        "name": "Sicilian Defense: Sveshnikov Variation",
+        "description": "A sharp line where Black pushes ...e5 early to challenge White's knight on d5."
+    },
+    {
+        "eco_code": "B23",
+        "name": "Sicilian Defense: Closed Variation",
+        "description": "White avoids the Open Sicilian by playing Nc3, leading to a more positional game."
+    },
+    {
+        "eco_code": "B90",
+        "name": "Sicilian Defense: Najdorf Variation",
+        "description": "Black plays ...a6 to maintain flexibility and aim for a counterattack."
+    },
+    {
+        "eco_code": "C11",
+        "name": "French Defense: Classical Variation",
+        "description": "Black counters 1. e4 with 1...e6 and aims for counterplay on the dark squares."
+    },
+    {
+        "eco_code": "B12",
+        "name": "Caro-Kann Defense",
+        "description": "Black prepares to develop solidly with ...c6 and ...d5, offering high defensive strength."
+    },
+    {
+        "eco_code": "C20",
+        "name": "King's Pawn Opening",
+        "description": "A direct and flexible system where both sides can branch into aggressive or positional lines."
+    },
+    {
+        "eco_code": "D02",
+        "name": "Queen's Pawn Game",
+        "description": "A simple opening without committing to any pawn structure, giving flexibility to both players."
+    },
+    {
+        "eco_code": "D37",
+        "name": "Queen's Gambit Declined (QGD)",
+        "description": "Black declines White's pawn gambit on c4, leading to rich strategic battles."
+    },
+    {
+        "eco_code": "D38",
+        "name": "Ragozin Defense (QGD)",
+        "description": "Black combines the QGD with a quick development of the bishop to b4, creating active counterplay."
+    },
+    {
+        "eco_code": "D43",
+        "name": "Semi-Slav Defense",
+        "description": "Black plays ...d5 and ...e6 while preparing ...c6, a flexible and combative defense."
+    },
+    {
+        "eco_code": "E60",
+        "name": "King's Indian Defense (KID)",
+        "description": "Black allows White control of the center early on but plans a strong kingside counterattack."
+    },
+    {
+        "eco_code": "E32",
+        "name": "Nimzo-Indian Defense",
+        "description": "Black develops the bishop to b4, pinning White\u2019s knight and targeting the doubled pawns on c3."
+    },
+    {
+        "eco_code": "D90",
+        "name": "Gr\u00fcnfeld Defense",
+        "description": "Black challenges White's center with ...d5 and exchanges pawns, leading to dynamic positions."
+    },
+    {
+        "eco_code": "A48",
+        "name": "King's Indian Attack (KIA)",
+        "description": "White fianchettos the bishop and builds a pawn structure for a slow buildup."
+    },
+    {
+        "eco_code": "C30",
+        "name": "King's Gambit",
+        "description": "White sacrifices a pawn for rapid development and a kingside attack."
+    },
+    {
+        "eco_code": "C40",
+        "name": "Latvian Gambit",
+        "description": "Black plays 2...f5 to counter White\u2019s e4 pawn aggressively."
+    },
+    {
+        "eco_code": "C41",
+        "name": "Philidor Defense",
+        "description": "A solid, though passive defense where Black supports the e5 pawn early."
+    },
+    {
+        "eco_code": "A45",
+        "name": "Trompowsky Attack",
+        "description": "White plays an early Bg5, looking to exchange on f6 and create imbalances."
+    },
+    {
+        "eco_code": "B01",
+        "name": "Scandinavian Defense",
+        "description": "Black plays 1...d5 to challenge the e4 pawn immediately."
+    },
+    {
+        "eco_code": "C13",
+        "name": "French Defense: Exchange Variation",
+        "description": "White exchanges pawns on d5 to open the center early."
+    },
+    {
+        "eco_code": "A46",
+        "name": "Colle System",
+        "description": "A system-oriented opening focused on a solid pawn structure and central control."
+    },
+    {
+        "eco_code": "B50",
+        "name": "Sicilian Defense: Accelerated Dragon",
+        "description": "Black fianchettos the bishop early, avoiding the Yugoslav Attack."
+    },
+    {
+        "eco_code": "E15",
+        "name": "Queen's Indian Defense",
+        "description": "Black fianchettos the bishop to counter White's central ambitions."
+    },
+    {
+        "eco_code": "D08",
+        "name": "Albin Countergambit",
+        "description": "Black sacrifices a pawn for dynamic counterplay against the Queen's Gambit."
+    },
+    {
+        "eco_code": "C02",
+        "name": "French Defense: Advance Variation",
+        "description": "White advances e4-e5 early, gaining space but creating a static pawn structure."
+    },
+    {
+        "eco_code": "C03",
+        "name": "French Defense: Tarrasch Variation",
+        "description": "White avoids doubled pawns and aims for active piece play."
+    },
+    {
+        "eco_code": "C19",
+        "name": "French Defense: Winawer Variation",
+        "description": "Black pins White's knight with Bb4, creating complex pawn structures."
+    },
+    {
+        "eco_code": "A41",
+        "name": "Old Indian Defense",
+        "description": "Black aims for a solid pawn structure with a quiet buildup."
+    },
+    {
+        "eco_code": "A50",
+        "name": "Queen's Pawn Game: Chigorin Defense",
+        "description": "Black develops the knight early to create counterplay against d4 and c2."
+    },
+    {
+        "eco_code": "D07",
+        "name": "Catalan Opening",
+        "description": "White combines d4 and g3 for central control and bishop activity."
+    },
+    {
+        "eco_code": "E94",
+        "name": "King's Indian Defense: Classical Variation",
+        "description": "A standard KID setup where Black plays for kingside counterplay."
+    },
+    {
+        "eco_code": "A07",
+        "name": "Reti Opening",
+        "description": "A hypermodern approach focusing on controlling the center from afar with pieces."
+    },
+    {
+        "eco_code": "C44",
+        "name": "Ponziani Opening",
+        "description": "An early c3 aims to prepare d4 and central control."
+    },
+    {
+        "eco_code": "B00",
+        "name": "Nimzowitsch Defense",
+        "description": "Black challenges White's center with ...Nc6 instead of immediate pawn moves."
+    },
+    {
+        "eco_code": "E61",
+        "name": "King's Indian Defense: Fianchetto Variation",
+        "description": "White fianchettos to control the center and avoid direct confrontation."
+    },
+    {
+        "eco_code": "B21",
+        "name": "Sicilian Defense: Smith-Morra Gambit",
+        "description": "White sacrifices a pawn for rapid development and initiative."
+    },
+    {
+        "eco_code": "C24",
+        "name": "Bishop's Opening",
+        "description": "An opening focused on rapid development and kingside attacks."
+    },
+    {
+        "eco_code": "A10",
+        "name": "English Opening",
+        "description": "White starts with c4 to control d5 and aims for flexible pawn structures."
+    },
+    {
+        "eco_code": "A22",
+        "name": "English Opening: Carls-Bremen System",
+        "description": "A flexible system combining the English and Nimzo-Indian setups."
+    },
+    {
+        "eco_code": "B27",
+        "name": "Sicilian Defense: Hyperaccelerated Dragon",
+        "description": "Black fianchettos the bishop even earlier for counterattacking chances."
+    },
+    {
+        "eco_code": "D06",
+        "name": "Queen's Gambit Declined: Triangle Defense",
+        "description": "Black sets up a triangle of pawns to maintain solid control of the center."
+    },
+    {
+        "eco_code": "E00",
+        "name": "Catalan Opening: Closed Variation",
+        "description": "White builds a strong pawn center while keeping the light-squared bishop active."
+    },
+    {
+        "eco_code": "B06",
+        "name": "Robatsch (Modern) Defense",
+        "description": "Black avoids an early pawn structure commitment to remain flexible."
+    },
+    {
+        "eco_code": "C11",
+        "name": "French Defense: Steinitz Variation",
+        "description": "A strategic variation focusing on the dark square battle."
+    },
+    {
+        "eco_code": "B22",
+        "name": "Sicilian Defense: Alapin Variation",
+        "description": "White plays c3 to prepare d4 and avoid mainline Sicilian theory."
+    },
+    {
+        "eco_code": "D31",
+        "name": "Queen's Gambit Declined: Janowski Variation",
+        "description": "Black develops the queen early for counterplay."
+    },
+    {
+        "eco_code": "A00",
+        "name": "Polish Opening (Orangutan)",
+        "description": "White plays b4 to create early queenside space and unusual tactics."
+    },
+    {
+        "eco_code": "C49",
+        "name": "Four Knights Game: Scotch Variation",
+        "description": "White combines the Four Knights setup with early central pawn breaks."
+    },
+    {
+        "eco_code": "B40",
+        "name": "Sicilian Defense: Paulsen Variation",
+        "description": "A flexible variation preparing for rapid queenside development."
+    },
+    {
+        "eco_code": "C00",
+        "name": "French Defense: Wing Gambit",
+        "description": "White sacrifices a wing pawn to create open lines for attack."
+    },
+    {
+        "eco_code": "B02",
+        "name": "Alekhine Defense",
+        "description": "Black provokes White to overextend pawns for counterplay."
+    },
+    {
+        "eco_code": "A20",
+        "name": "English Opening: King's English Variation",
+        "description": "White develops flexibly with e4 and Nc3 setups."
+    },
+    {
+        "eco_code": "C55",
+        "name": "Two Knights Defense",
+        "description": "Black counters White's early attack with aggressive counterplay."
+    },
+    {
+        "eco_code": "B41",
+        "name": "Sicilian Defense: Kan Variation",
+        "description": "Black develops queenside pieces rapidly with flexible pawn moves."
+    },
+    {
+        "eco_code": "C70",
+        "name": "Ruy-Lopez: Schliemann Defense",
+        "description": "An aggressive defense with an early ...f5 by Black."
+    },
+    {
+        "eco_code": "B15",
+        "name": "Caro-Kann Defense: Tartakower Variation",
+        "description": "A variation with early piece activity and flexible pawn structure."
+    },
+    {
+        "eco_code": "D32",
+        "name": "Queen's Gambit Declined: Tarrasch Defense",
+        "description": "Black accepts an isolated pawn to gain active pieces."
+    },
+    {
+        "eco_code": "E97",
+        "name": "King's Indian Defense: Bayonet Attack",
+        "description": "White aggressively pushes pawns on the queenside for space."
+    },
+    {
+        "eco_code": "C88",
+        "name": "Ruy-Lopez: Closed Defense",
+        "description": "Black defends the center with a flexible pawn structure."
+    },
+    {
+        "eco_code": "C12",
+        "name": "French Defense: MacCutcheon Variation",
+        "description": "Black sacrifices time to create complex positions with ...Bb4."
+    },
+    {
+        "eco_code": "B07",
+        "name": "Pirc Defense",
+        "description": "Black develops flexibly, preparing to counterattack the center."
+    },
+    {
+        "eco_code": "E20",
+        "name": "Nimzo-Indian Defense: Rubinstein Variation",
+        "description": "A classical setup where Black focuses on controlling the center."
+    },
+    {
+        "eco_code": "C65",
+        "name": "Ruy-Lopez: Berlin Defense",
+        "description": "A solid line leading to early queen exchanges and endgame play."
+    },
+    {
+        "eco_code": "A15",
+        "name": "English Opening: Anglo-Indian Defense",
+        "description": "A setup combining the English Opening with Indian Defense ideas."
+    },
+    {
+        "eco_code": "D35",
+        "name": "Queen's Gambit Declined: Exchange Variation",
+        "description": "White exchanges pawns early to open lines and create pawn weaknesses."
+    },
+    {
+        "eco_code": "C43",
+        "name": "Petrov's Defense: Modern Attack",
+        "description": "A dynamic line in the Petrov with chances for both sides."
+    }
+]

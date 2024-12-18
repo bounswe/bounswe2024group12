@@ -6,6 +6,7 @@ import {
   FormControl, InputLabel, Button, Collapse, Switch
 } from "@mui/material";
 import InfiniteScroll from "react-infinite-scroll-component";
+import { use } from "react";
 
 const BACKEND_URL = process.env.REACT_APP_API_URL;
 
@@ -172,6 +173,12 @@ const Feed = ({ isGuest, passedTag }) => {
     setPosts([]); // Clear previous posts
   };
 
+  const handleFollowedChange = () => {
+    setFollowedOnly(!followedOnly);
+    setPage(1); // Reset to first page when followedOnly changes
+    setPosts([]); // Clear previous posts
+  }
+
   return (
     <div>
       {/* Only show SharePost if not a guest */}
@@ -215,10 +222,10 @@ const Feed = ({ isGuest, passedTag }) => {
       {/* Filter section */}
       <Box sx={{ display: 'flex', justifyContent: 'center' }}>
         {openFilters && (
-          <Box 
-            sx={{ 
-              padding: "20px", 
-              backgroundColor: "background.paper", 
+          <Box
+            sx={{
+              padding: "20px",
+              backgroundColor: "background.paper",
               borderRadius: "8px",
               maxWidth: '600px',
               width: '100%'
@@ -235,7 +242,7 @@ const Feed = ({ isGuest, passedTag }) => {
                     <MenuItem value="title">Title</MenuItem>
                   </Select>
                 </FormControl>
-                
+
 
                 <FormControl fullWidth>
                   <InputLabel>Tag</InputLabel>
@@ -256,7 +263,7 @@ const Feed = ({ isGuest, passedTag }) => {
                   </Typography>
                   <Switch
                     checked={followedOnly}
-                    onChange={() => setFollowedOnly(!followedOnly)}
+                    onChange={handleFollowedChange}
                     color="primary"
                     disabled={isGuest}
                   />

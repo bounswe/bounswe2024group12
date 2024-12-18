@@ -3,6 +3,10 @@ import { Box, Typography, Card, CardContent, Avatar, Divider } from "@mui/materi
 import FENRenderer from "../common/FENRenderer";
 
 const CommentsList = ({ comments }) => {
+  const commentStyle = {
+    fontSize: '1.1rem',
+  };
+
   return (
     <Box sx={{ marginTop: 2 }}>
       {comments.map((comment, index) => (
@@ -15,7 +19,7 @@ const CommentsList = ({ comments }) => {
               </Typography>
             </Box>
             <Divider sx={{ marginBottom: 1 }} />
-            <Typography variant="body2">{comment.text}</Typography>
+            <Typography variant="body2" sx={commentStyle}>{comment.text}</Typography>
 
             {comment.fen && (
               <Box sx={{ marginTop: 2, display: "flex", justifyContent: "center" }}>

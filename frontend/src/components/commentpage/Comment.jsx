@@ -18,9 +18,11 @@ import FENRenderer from "../common/FENRenderer";
 const BACKEND_URL = process.env.REACT_APP_API_URL;
 
 const Comment = ({ comment, postId, onDelete }) => {
+  console.log("Received comment data:", comment);
+
   const [isEditing, setIsEditing] = useState(false);
   const [editedText, setEditedText] = useState("");
-  const [editedFen, setEditedFen] = useState("");
+  const [editedFens, setEditedFens] = useState([]);
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
   const [snackbarSeverity, setSnackbarSeverity] = useState("success");
@@ -28,9 +30,9 @@ const Comment = ({ comment, postId, onDelete }) => {
   const currentUsername = localStorage.getItem("username");
 
   const handleEditMode = () => {
-    // Prepopulate fields with existing comment values
     setEditedText(comment.text);
-    setEditedFen(comment.fen || "");
+    const fensToEdit = comment.fens || comment.fen_notations;
+    setEditedFens(fensToEdit ? fensToEdit.split(',').map(fen => fen.trim()) : []);
     setIsEditing(true);
   };
 
@@ -47,13 +49,12 @@ const Comment = ({ comment, postId, onDelete }) => {
           },
           body: JSON.stringify({
             text: editedText,
-            fen_notations: editedFen || null,
+            fens: editedFens.join(','),
           }),
         }
       );
 
       if (response.ok) {
-        const updatedComment = await response.json();
         setSnackbarMessage("Comment updated successfully!");
         setSnackbarSeverity("success");
         setIsEditing(false);
@@ -129,19 +130,23 @@ const Comment = ({ comment, postId, onDelete }) => {
                 onChange={(e) => setEditedText(e.target.value)}
                 sx={{ marginBottom: "10px" }}
               />
-              <TextField
-                fullWidth
-                label="FEN (Optional)"
-                value={editedFen}
-                onChange={(e) => setEditedFen(e.target.value)}
-                sx={{ marginBottom: "10px" }}
-              />
+              {editedFens.map((fen, index) => (
+                <Box key={index} sx={{ mb: 2 }}>
+                  <TextField
+                    fullWidth
+                    label={`FEN Position ${index + 1}`}
+                    value={fen}
+                    onChange={(e) => {
+                      const newFens = [...editedFens];
+                      newFens[index] = e.target.value;
+                      setEditedFens(newFens);
+                    }}
+                  />
+                  <FENRenderer fen={fen} width="150" />
+                </Box>
+              ))}
               <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handleEdit}
-                >
+                <Button variant="contained" color="primary" onClick={handleEdit}>
                   Save
                 </Button>
                 <Button
@@ -159,14 +164,16 @@ const Comment = ({ comment, postId, onDelete }) => {
                 {comment.text}
               </Typography>
 
-              {comment.fen_notations && (
-                <Box sx={{ marginTop: "10px" }}>
-                  <Typography variant="caption" sx={{ color: "gray" }}>
-                    FEN Position:
-                  </Typography>
-                  <FENRenderer fen={comment.fen_notations} width={"150"} />
-                </Box>
-              )}
+              {(comment.fens || comment.fen_notations) && 
+                (comment.fens || comment.fen_notations).split(',').map((fen, index) => (
+                  <Box key={index} sx={{ mt: 2 }}>
+                    <Typography variant="caption" sx={{ color: "gray", display: "block", mb: 1 }}>
+                      Position {index + 1}:
+                    </Typography>
+                    <FENRenderer fen={fen.trim()} width="150" />
+                  </Box>
+                ))
+              }
             </Box>
           )}
 

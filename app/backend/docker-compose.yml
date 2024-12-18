@@ -1,0 +1,39 @@
+version: '3'
+
+services:
+  db:
+    image: mysql:8.0  # Use MySQL 8.0, the latest stable version
+    environment:
+      MYSQL_DATABASE: chess         # Replace with your desired database name
+      MYSQL_USER: user1             # Replace with your desired MySQL username
+      MYSQL_PASSWORD: pass123     # Replace with your desired MySQL user password
+      MYSQL_ROOT_PASSWORD: rootpass123         # Replace with a secure root password
+    ports:
+      - "3306:3306"                              # Expose MySQL on port 3306
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./init-scripts:/docker-entrypoint-initdb.d      # Privilige granting will be done when initializing (for tests) 
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5                  # Persist MySQL data in a Docker volume
+
+  web:
+    build: .
+    command: /app/start.sh  # Start Django development server
+    volumes:
+      - .:/app                                   # Mount current directory to /app in the container
+      - media_data:/app/media  # Persist media files in a Docker volume
+    ports:
+      - "8000:8000"                              # Expose Django on port 8000
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - LICHESS_ACCESS_TOKEN
+    env_file:
+      - .env
+volumes:
+  db_data:                                        # Docker volume for MySQL persistence
+  media_data:  # Docker volume for Django media files

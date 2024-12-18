@@ -6,7 +6,7 @@ import { Box, Typography, TextField, Button, List, ListItem, ListItemText } from
 const BACKEND_URL = process.env.REACT_APP_API_URL;
 
 const ArchiveCard = () => {
-  const [currentUser, setCurrentUser] = useState("currentUser");
+  const [currentUser, setCurrentUser] = useState(localStorage.getItem('username'));
   const [filters, setFilters] = useState({
     year: '',
     player: '',
@@ -83,6 +83,9 @@ const ArchiveCard = () => {
       .catch(error => {
         console.error('Error fetching games:', error.message);
       });
+    
+  const cardContentStyle = {
+    fontSize: '1.1rem',
   };
 
   return (
