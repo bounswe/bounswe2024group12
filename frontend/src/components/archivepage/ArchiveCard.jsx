@@ -54,9 +54,36 @@ const ArchiveCard = () => {
     setSelectedGame(game);
   };
 
-  const cardContentStyle = {
-    fontSize: '1.1rem',
-  };
+  const handleMetadataClick = (filterType, value) => {
+    const newFilters = {
+      year: '',
+      player: '',
+      site: '',
+      event: '',
+      result: ''
+    };
+    newFilters[filterType] = value;
+    
+    setFilters(newFilters);
+    
+    const queryParams = new URLSearchParams(newFilters).toString();
+    fetch(`${BACKEND_URL}/games/filter/?${queryParams}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' }
+    })
+      .then(response => {
+        if (!response.ok) throw new Error('Failed to fetch filtered games');
+        return response.json();
+      })
+      .then(data => {
+        setGames(data.games);
+        setHasSearched(true);
+        setSelectedGame(null);
+      })
+      .catch(error => {
+        console.error('Error fetching games:', error.message);
+      });  
+    };
 
   return (
     <div>
@@ -112,6 +139,7 @@ const ArchiveCard = () => {
               game={selectedGame} 
               currentUser={currentUser}
               onGameSelect={handleGameSelect}
+              onMetadataClick={handleMetadataClick}
             />
           </Box>
         </>
