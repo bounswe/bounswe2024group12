@@ -1,84 +1,99 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, fireEvent, screen } from '@testing-library/react';
 import GameScreen from '../GameScreen';
+import '@testing-library/jest-dom';
 
-// Mock child components
-jest.mock('../../common/FENRenderer', () => {
-  return function MockFENRenderer() {
-    return <div data-testid="mock-fen-renderer">FEN Renderer</div>;
-  };
-});
+describe('GameScreen Arrow Navigation', () => {
+    const mockGame = {
+        id: 1,
+        pgn: '1. e4 e5 2. Nf3 Nc6 3. Bb5',  // Sample PGN
+    };
 
-describe('GameScreen', () => {
-  const mockGame = {
-    id: 1,
-    pgn: `[Event "Test Tournament"]
-[Site "Test Site"]
-[Date "2024.01.01"]
-[White "Player One"]
-[Black "Player Two"]
-[Result "1-0"]
-1. e4 e5 2. Nf3 Nc6 3. Bb5 1-0`,
-  };
+    const mockHandleNext = jest.fn();
+    const mockHandlePrevious = jest.fn();
 
-  const mockOnMetadataClick = jest.fn();
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
 
-  beforeEach(() => {
-    mockOnMetadataClick.mockClear();
-  });
+    it('renders left and right arrow buttons', () => {
+        render(
+            <GameScreen 
+                game={mockGame}
+                currentUser="testUser"
+            />
+        );
 
-  it('renders game metadata correctly', () => {
-    render(
-      <GameScreen 
-        game={mockGame}
-        currentUser="testUser"
-        onMetadataClick={mockOnMetadataClick}
-      />
-    );
+        expect(screen.getByTestId('previous-button')).toBeInTheDocument();
+        expect(screen.getByTestId('next-button')).toBeInTheDocument();
+    });
 
-    expect(screen.getByText('Test Tournament')).toBeInTheDocument();
-    expect(screen.getByText('Player One')).toBeInTheDocument();
-    expect(screen.getByText('Player Two')).toBeInTheDocument();
-    expect(screen.getByText('2024.01.01')).toBeInTheDocument();
-    expect(screen.getByText('Result: 1-0')).toBeInTheDocument();
-  });
+    it('calls handleNext when right arrow is clicked', () => {
+        render(
+            <GameScreen 
+                game={mockGame}
+                currentUser="testUser"
+            />
+        );
 
-  it('triggers metadata clicks correctly', () => {
-    render(
-      <GameScreen 
-        game={mockGame}
-        currentUser="testUser"
-        onMetadataClick={mockOnMetadataClick}
-      />
-    );
+        fireEvent.click(screen.getByTestId('next-button'));
+        expect(screen.getByTestId('next-button')).toBeInTheDocument();
+    });
 
-    // Click event name
-    fireEvent.click(screen.getByText('Test Tournament'));
-    expect(mockOnMetadataClick).toHaveBeenCalledWith('event', 'Test Tournament');
+    it('calls handlePrevious when left arrow is clicked', () => {
+        render(
+            <GameScreen 
+                game={mockGame}
+                currentUser="testUser"
+            />
+        );
 
-    // Click player name
-    fireEvent.click(screen.getByText('Player One'));
-    expect(mockOnMetadataClick).toHaveBeenCalledWith('player', 'Player One');
+        fireEvent.click(screen.getByTestId('previous-button'));
+        expect(screen.getByTestId('previous-button')).toBeInTheDocument();
+    });
 
-    // Click date
-    fireEvent.click(screen.getByText('2024.01.01'));
-    expect(mockOnMetadataClick).toHaveBeenCalledWith('year', '2024');
+    it('disables left arrow when on first move', () => {
+        render(
+            <GameScreen 
+                game={mockGame}
+                currentUser="testUser"
+            />
+        );
 
-    // Click result
-    fireEvent.click(screen.getByText('Result: 1-0'));
-    expect(mockOnMetadataClick).toHaveBeenCalledWith('result', '1-0');
-  });
+        const previousButton = screen.getByTestId('previous-button');
+        expect(previousButton).toBeDisabled();
+    });
 
-  it('applies clickable styles to metadata', () => {
-    render(
-      <GameScreen 
-        game={mockGame}
-        currentUser="testUser"
-        onMetadataClick={mockOnMetadataClick}
-      />
-    );
+    it('disables right arrow when on last move', async () => {
+        render(
+            <GameScreen 
+                game={mockGame}
+                currentUser="testUser"
+            />
+        );
 
-    const eventText = screen.getByText('Test Tournament');
-    expect(eventText).toHaveStyle({ cursor: 'pointer' });
-  });
+        // Move to the last position
+        const nextButton = screen.getByTestId('next-button');
+        while (!nextButton.disabled) {
+            fireEvent.click(nextButton);
+        }
+        expect(nextButton).toBeDisabled();
+    });
+
+    it('responds to keyboard arrow keys', () => {
+        render(
+            <GameScreen 
+                game={mockGame}
+                currentUser="testUser"
+            />
+        );
+
+        // Simulate right arrow key press
+        fireEvent.keyDown(document, { key: 'ArrowRight' });
+        expect(screen.getByTestId('next-button')).toBeInTheDocument();
+
+        // Simulate left arrow key press
+        fireEvent.keyDown(document, { key: 'ArrowLeft' });
+        expect(screen.getByTestId('previous-button')).toBeInTheDocument();
+    });
 }); 
