@@ -1,8 +1,3 @@
----
-title: Group Milestone 3 Report
-
----
-
 # Group Milestone 3 Report
 
 ## 1. Executive Summary
