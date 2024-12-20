@@ -450,26 +450,26 @@ To get yaml or json file add the ".json" or ".yaml" end of the given link.
 
 ## 5. User Interface / User Experience
 - **Screenshots of Web and Mobile Interfaces**: 
-    - Frontend Images:
-![Screenshot 2024-12-20 at 16.16.03](https://hackmd.io/_uploads/rk0FkxmBJx.png)
-![Screenshot 2024-12-20 at 16.16.22](https://hackmd.io/_uploads/By6q1xmB1g.png)
-![Screenshot 2024-12-20 at 16.16.55](https://hackmd.io/_uploads/r1O5ylmB1e.png)
-![Screenshot 2024-12-20 at 16.17.05](https://hackmd.io/_uploads/H18cklXr1x.png)
-![Screenshot 2024-12-20 at 16.17.13](https://hackmd.io/_uploads/rk_q1eQrye.png)
-![Screenshot 2024-12-20 at 16.17.34](https://hackmd.io/_uploads/BJcqklQBkl.png)
-![Screenshot 2024-12-20 at 16.17.47](https://hackmd.io/_uploads/rya9yl7Syx.png)
-![Screenshot 2024-12-20 at 16.20.10](https://hackmd.io/_uploads/HJr9kgmBkg.png)
-![Screenshot 2024-12-20 at 16.20.24](https://hackmd.io/_uploads/BJY9yxQrke.png)
-![Screenshot 2024-12-20 at 16.20.34](https://hackmd.io/_uploads/S1w5kxmr1g.png)
-![Screenshot 2024-12-20 at 21.48.53](https://hackmd.io/_uploads/rJ_-64XBJe.png)
-![Screenshot 2024-12-20 at 21.49.27](https://hackmd.io/_uploads/r1YZa4mHJx.png)
-![Screenshot 2024-12-20 at 21.50.10](https://hackmd.io/_uploads/Hkt-647S1l.png)
-![Screenshot 2024-12-20 at 21.50.27](https://hackmd.io/_uploads/BytbTVQBJl.png)
-![Screenshot 2024-12-20 at 21.50.38-min](https://hackmd.io/_uploads/BJAP6EQrJx.png)
-![Screenshot 2024-12-20 at 21.51.03](https://hackmd.io/_uploads/H1FWpN7SJg.png)
-![Screenshot 2024-12-20 at 21.51.18](https://hackmd.io/_uploads/B1YWTNQSyg.png)
-![Screenshot 2024-12-20 at 21.51.36](https://hackmd.io/_uploads/r1d-6E7Skl.png)
-![Screenshot 2024-12-20 at 21.51.46](https://hackmd.io/_uploads/SyK-a4QS1g.png)
+### Frontend Images
+<img width="1710" alt="BJcqklQBkl" src="https://github.com/user-attachments/assets/4b497e93-c378-4259-b9ad-995889d0d951" />
+<img width="1710" alt="BJY9yxQrke" src="https://github.com/user-attachments/assets/3261afbc-4e2b-4710-a99a-b957fc325883" />
+<img width="1710" alt="By6q1xmB1g" src="https://github.com/user-attachments/assets/42a2be17-5571-4cad-a4da-48e0866175f9" />
+<img width="1710" alt="H18cklXr1x" src="https://github.com/user-attachments/assets/a681a6df-b0e3-4b1b-b1d7-676b3eb0a45c" />
+<img width="1710" alt="HJr9kgmBkg" src="https://github.com/user-attachments/assets/c0dace9d-b210-4a0d-9c26-178062504b78" />
+<img width="1710" alt="r1O5ylmB1e" src="https://github.com/user-attachments/assets/1925e58f-e046-456f-b2ff-82152a74f6af" />
+<img width="1710" alt="rk_q1eQrye" src="https://github.com/user-attachments/assets/7d7edba2-8e60-4fa5-9b21-56aedb9e6d90" />
+<img width="1710" alt="rk0FkxmBJx" src="https://github.com/user-attachments/assets/7b4c5d34-ee21-4a57-93b7-a42a849517d3" />
+<img width="1710" alt="rya9yl7Syx" src="https://github.com/user-attachments/assets/396c5605-0391-4532-8988-fbcdc6d548a0" />
+<img width="1710" alt="S1w5kxmr1g" src="https://github.com/user-attachments/assets/ae22abaa-1598-427d-a06a-756b2eb544ca" />
+<img width="1280" alt="upload_6d8fc9067f349aa7af9365d7847ce8c4" src="https://github.com/user-attachments/assets/f934896e-20ef-4648-9526-6a277ace9979" />
+<img width="1280" alt="upload_7d85f76f8f535c0c4c09fcfcea5ed9a2" src="https://github.com/user-attachments/assets/c8c282ee-a13e-4896-afa3-b5a1bb36282e" />
+<img width="1280" alt="upload_9a25bc5d51f1fd912f4962ab49507294" src="https://github.com/user-attachments/assets/72a7f04a-7a47-4f91-9ede-38e40be5455c" />
+<img width="1280" alt="upload_13bbec0e79531ac868bd109f99063b64" src="https://github.com/user-attachments/assets/0f2b7e5e-cf82-42e7-a4eb-bd36bb558310" />
+<img width="1280" alt="upload_6022ef549f9c3e33d35bfb23de37ca56" src="https://github.com/user-attachments/assets/6074f313-0a9f-4db2-a0f2-c1e3a8671480" />
+<img width="1280" alt="upload_24016e71adca51f42de6a3ddd685d816" src="https://github.com/user-attachments/assets/0e2f1eaa-73a8-4eb3-9e8a-b9114e8f12a6" />
+<img width="1280" alt="upload_1039522341857c7bec7e937166ec5ad0" src="https://github.com/user-attachments/assets/933e6c0f-4e3e-4c9f-bd83-efb4cdc45130" />
+<img width="1280" alt="upload_e8451e5da7ae6bef6a6f24a072a31983" src="https://github.com/user-attachments/assets/ecab3844-4d16-4f9a-9a90-cc58e8d5fd0d" />
+<img width="1280" alt="upload_f4f104ecdab70b42c4cc95b14dcf42a1" src="https://github.com/user-attachments/assets/320f06da-a688-4e68-8019-f88033b1f325" />
 
 ### Mobile Images
 ![WhatsApp Image 2024-12-20 at 21 31 28](https://github.com/user-attachments/assets/1c1d1e2f-747a-43fc-9d23-51c0104a4552)
