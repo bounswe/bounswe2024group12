@@ -471,14 +471,14 @@ To get yaml or json file add the ".json" or ".yaml" end of the given link.
 ![Screenshot 2024-12-20 at 21.51.36](https://hackmd.io/_uploads/r1d-6E7Skl.png)
 ![Screenshot 2024-12-20 at 21.51.46](https://hackmd.io/_uploads/SyK-a4QS1g.png)
 
-    - Mobile Images:
-![WhatsApp Image 2024-12-20 at 21.31.28](https://hackmd.io/_uploads/S12yYV7HJl.jpg)
-![WhatsApp Image 2024-12-20 at 21.32.33](https://hackmd.io/_uploads/Sy6GF47Ske.jpg)
-![WhatsApp Image 2024-12-20 at 21.32.20](https://hackmd.io/_uploads/ByzXKNQB1g.jpg)
-![WhatsApp Image 2024-12-20 at 21.32.49](https://hackmd.io/_uploads/r1tXKNQHJx.jpg)
-![WhatsApp Image 2024-12-20 at 21.33.07](https://hackmd.io/_uploads/ByxNK47S1x.jpg)
-![WhatsApp Image 2024-12-20 at 21.33.42](https://hackmd.io/_uploads/H1HEt47B1x.jpg)
-![WhatsApp Image 2024-12-20 at 21.33.55](https://hackmd.io/_uploads/H12Vt4XSke.jpg)
+### Mobile Images
+![WhatsApp Image 2024-12-20 at 21 31 28](https://github.com/user-attachments/assets/1c1d1e2f-747a-43fc-9d23-51c0104a4552)
+![WhatsApp Image 2024-12-20 at 21 32 33](https://github.com/user-attachments/assets/e49545d7-910e-401c-a861-6a47f5fa0a6b)
+![WhatsApp Image 2024-12-20 at 21 32 20](https://github.com/user-attachments/assets/b590b6af-8908-4c3a-84d9-d7df39538e73)
+![WhatsApp Image 2024-12-20 at 21 32 49](https://github.com/user-attachments/assets/11ff13e1-5264-4772-badf-9cfeaa3948ad)
+![WhatsApp Image 2024-12-20 at 21 33 07](https://github.com/user-attachments/assets/f633b4b0-91c6-4c10-96ba-7079b9df989f)
+![WhatsApp Image 2024-12-20 at 21 33 42](https://github.com/user-attachments/assets/ceea0c4d-9ae9-4adc-bdcb-826429461c76)
+![WhatsApp Image 2024-12-20 at 21 33 55](https://github.com/user-attachments/assets/e081b364-4312-49fe-9312-c57b808487f4)
 
 - **UX Considerations**: Based on user feedback and testing throughout the milestones, several key UX improvements were implemented:
 
